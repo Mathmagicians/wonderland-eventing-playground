@@ -13,8 +13,9 @@ artifact.
 
 | Feature | Issue | State | Examples agreed | Spec signed | Spec green | Map |
 |---|---|---|---|---|---|---|
-| Load on demand: the transport and its environment | [#13](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/13) | Archive | [2026-10-20](01_discovery.md#load-on-demand-the-transport-and-its-environment) | [2026-10-21](02_formulation.md#load-on-demand-the-transport-and-its-environment) | [2026-10-23](03_automation.md#load-on-demand-the-transport-and-its-environment) | [discovery.md](01_discovery.md#load-on-demand-the-transport-and-its-environment) |
 | Slides spike: the talk plays from compose | [#14](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/14) | Archive | | | [2026-10-20](03_automation.md#slides-spike-the-talk-plays-from-compose) | [automation.md](03_automation.md#slides-spike-the-talk-plays-from-compose) |
 | One name: wonderland-eventing-playground | [#15](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/15) | Archive | [2026-10-21](01_discovery.md#one-name-wonderland-eventing-playground) | | [2026-10-21](03_automation.md#one-name-wonderland-eventing-playground) | [discovery.md](01_discovery.md#one-name-wonderland-eventing-playground) |
 | Project sync: the board follows the catalog | [#16](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/16) | Archive | [2026-10-21](01_discovery.md#project-sync-the-board-follows-the-catalog) | [2026-10-21](02_formulation.md#project-sync-the-board-follows-the-catalog) | [2026-10-22](03_automation.md#project-sync-the-board-follows-the-catalog) | [discovery.md](01_discovery.md#project-sync-the-board-follows-the-catalog) |
-| CI plays each transport | [#19](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/19) | Archive | [2026-10-22](01_discovery.md#ci-plays-each-transport) | [2026-10-22](02_formulation.md#ci-plays-each-transport) | [2026-10-23](03_automation.md#ci-plays-each-transport) | [discovery.md](01_discovery.md#ci-plays-each-transport) |
+
+Load on demand, #13, and CI plays each transport, #19, were in Automation at the archive and moved to 0.0.7 in that
+state, with their gate dates and their sections.

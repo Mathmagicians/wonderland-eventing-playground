@@ -14,7 +14,7 @@ questions, and the decisions it raises for [docs/adr.md](../../adr.md).
   [application-confluent.properties:2](../../../platform/src/main/resources/application-confluent.properties#L2);
   the Kafka adapters carry `@Profile("confluent")`, and `kafka` has no profile yet.
 - 0.0.6 ships the transports `cli` and `confluent`, with
-  [CI plays each transport](../archived/release-0.0.6/01_discovery.md#ci-plays-each-transport), its matrix played on `cli`; 0.0.7
+  [CI plays each transport](#ci-plays-each-transport), its matrix played on `cli`; 0.0.7
   adds `kafka`. Decided 2026-10-22.
 - A transport is a profile, `cli`, `kafka`, `confluent`; an environment is the GitHub environment a run plays
   against or deploys to, `test` or `prod`, and a profile of its own naming the topics. A process runs
@@ -206,3 +206,115 @@ writes.
 
 **Questions**
 1. The client for the demo: a second purse, or a new story?
+
+## Load on demand: the transport and its environment
+
+**Story:** I play the load when I choose, on the transport I pick: in test from a branch, in prod from `main`.
+
+Examples agreed 2026-10-20. In Automation at the archive of 0.0.6, moved here 2026-10-24.
+
+### Rule: load-run.yaml runs on dispatch, with the transport confluent, kafka, or cloudflare, and the load arguments
+- a dispatch with `transport=kafka` and no arguments: `make docker-smoke`, the minimum.
+- a dispatch with arguments: `make docker-run` with them.
+- the hour turns: nothing runs.
+
+### Rule: from main the load plays in <transport>-prod, from any other branch in <transport>-test
+- a dispatch from `eventing-without-confluent` with `transport=kafka`: the job runs in `kafka-test`, with `ENV=test`.
+- a dispatch from `main` with `transport=confluent`: the job runs in `confluent-prod`, with `ENV=prod`.
+- `<transport>-prod` takes deployments from `main` only; `make gh-main-protection` sets each transport's two
+  environments.
+- the `kafka-*` and `cloudflare-*` environments start empty.
+
+## CI plays each transport
+
+**Goal:** a matrix build for each of the transports, confluent excluded for now, with a comment about pricing.
+
+- `cd` and `cicd-client-example` play the features against Confluent Cloud, which answers the keys with
+  `SaslAuthenticationException` since 2026-09-29, see
+  [Messaging capability](#messaging-capability-cli-kafka-confluent).
+  `main` takes a merge with both green, admins included, [branch-protection.json](../../../.github/branch-protection.json).
+- The suite's drivers start the image with the suite's profiles, `<transport>,<env>`, and the keys the environment
+  has, [GeneratorContainer.java:78](../../../platform/src/testFixtures/java/dk/mathmagicians/playground/confluent/eventing/bdd/GeneratorContainer.java#L78)
+  and [StoryContainer.java:62](../../../platform/src/testFixtures/java/dk/mathmagicians/playground/confluent/eventing/bdd/StoryContainer.java#L62).
+  Under `cli` the image publishes to its log and its console feeds it.
+- A job with a matrix reports a check per entry, `bdd (cli)`. The matrix is a `bdd` job of its own, so `ci` and
+  `cd` keep the names branch protection requires, and protection stays as it is. Decided 2026-10-21.
+- CI plays each transport in a matrix: confluent sits out for Confluent Cloud's pricing, kafka until its broker and
+  schema registry run on the runner, and the five features move to cli. Decided 2026-10-21.
+- What CI runs is driven by the Makefile: the transports CI plays are `CI_TRANSPORTS` in `platform.mk`, with the
+  reason each other transport sits out, and the matrix reads them from `make ci-transports`. Decided 2026-10-21.
+
+**Story:** CI plays the spec on each transport we run, and a transport that sits out says why.
+
+Examples agreed 2026-10-22. In Automation at the archive of 0.0.6, moved here 2026-10-24.
+
+### Rule: the bdd job plays a matrix of the transports; a transport that sits out carries its reason
+- a pull request: `bdd (cli)` plays, then `cd` publishes the image, and `ci`, `cd`, and `cicd-client-example` are
+  green.
+- `make ci-transports`: `["cli"]`.
+- confluent sits out: the comment at `CI_TRANSPORTS` names Confluent Cloud's pricing.
+- kafka sits out: the same comment names the broker and the schema registry on the runner.
+
+### Rule: each transport plays the scenarios it carries
+- `make bdd`: plays as `TRANSPORT=cli`.
+- `make bdd TRANSPORT=cli`: every scenario but `@kafka`, `@confluent`, `@wip`, and `@manual`.
+- `make bdd TRANSPORT=kafka`: every scenario but `@confluent`, `@wip`, and `@manual`.
+- `make bdd TRANSPORT=confluent`: every scenario but `@wip` and `@manual`.
+- the Background `Given I can connect to the eventing system`: in every feature, checked on the transport played.
+
+### Rule: on cli the console feeds the story and the log receives what it publishes
+- the generator's feature on cli: the envelope's id and region in the image's log.
+- the tea party and the purse on cli: the offers and the orders typed on the console, the transactions in the log.
+- cli plays the image's `cli` profile, see [Messaging capability](#messaging-capability-cli-kafka-confluent).
+
+**Questions**
+1. The default of `TRANSPORT`: `cli`, which plays without a broker and without keys. Decided 2026-10-21.
+
+**Decisions for docs/adr.md, by title**
+- [ADR-001 CI plays each transport in a matrix](../../adr.md#adr-001-ci-plays-each-transport-in-a-matrix)
+
+## Wonderland's lines: what a feature reuses from the platform
+
+**Goal:** in a client's feature I see which lines are Wonderland's and which the client defines, and the summary
+prints the degree of reuse.
+
+- The platform ships 14 step patterns in 7 classes under `platform/src/testFixtures/.../bdd`, each class named by
+  the element it drives: `TransportSteps`, `StreamSteps`, `StorySteps`, `GeneratorSteps`, `ClusterSteps`,
+  `SchemaSteps`, `FlinkSteps`.
+- The purse's feature has 13 step lines, 7 of them the platform's.
+- `cucumber.json` records each step's glue method, `cucumber.plugin` in `junit-platform.properties`; the `bdd` job
+  appends `pretty.txt` to its summary, [cicd.yaml:111](../../../.github/workflows/cicd.yaml#L111).
+
+**Story:** I read a client's feature and see, line by line, what Wonderland does and what the client defines, and
+the summary tells me how much of the feature is Wonderland's.
+
+### Rule: a platform step opens with Wonderland and names the element of the hexagon it drives, in the present tense
+- the rim, the transport played: `Given Wonderland is reachable`.
+- what the story hears, `StoryListener` and `ConsoleListener`: `And Wonderland hears on the stream of transactions:
+  Mad Hatter paid Alice 20.25 coins for a thing`.
+- the driving port `Story`, the story by its `--story` name: `When Wonderland's story purse reads the stream of
+  transactions`.
+- the driven port `Publisher`, `KafkaPublisher` and `LoggingPublisher`: `Then Wonderland publishes 3 offers to the
+  topic offers`.
+- Confluent Cloud, from `iac/`: `Then Wonderland has the topic offers`, `Wonderland has the schema offer.proto for
+  the topic offers`, the table the same way.
+
+### Rule: a client's step never opens with Wonderland
+- `Given Alice's purse holds 1000 coins`, `Then Alice has 1009.75 coins left`, `And the purse makes a warning`.
+
+### Rule: the opening and the glue agree
+- a line opening with Wonderland whose glue lies outside the platform's `bdd` package: `make bdd` red, naming the
+  line; the reverse the same way.
+
+### Rule: the summary prints the reuse per feature, by element
+- `make bdd-reuse` after `make bdd`: Feature | Lines | Eventing system | Stream | Story | Topic | Cloud | Own |
+  Share, from `cucumber.json`; the purse's row `13 | 1 | 4 | 2 | 0 | 0 | 6 | 54%`.
+- the `bdd` job: the table under the scenarios in the job summary.
+
+**Questions**
+1. Columns per element beside the one count: now, the rule above. Decided 2026-10-24.
+2. The order of the rewrite: the feature files first, one at a time, each red on its undefined steps, then the 14
+   step patterns in the fixtures turn them green. Decided 2026-10-24.
+
+**Decisions for docs/adr.md, by title**
+- A platform step opens with Wonderland and names its hexagon element

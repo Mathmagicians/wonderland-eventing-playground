@@ -43,3 +43,24 @@ feature's row in the catalog.
 | Task | Owner | Done when |
 |---|---|---|
 | The client's features and architecture classes, the acceptance it turns green | themathmagician | they run red on an empty client |
+
+## Load on demand: the transport and its environment
+
+| Task | Owner | Done when |
+|---|---|---|
+| The spec: the Git and CI bullet on `load-run.yaml` in the README, and `.github/environment-test.json` and `environment-prod.json`, applied by `make gh-main-protection` | pair | themathmagician signs it |
+| The red run: a dispatch from `eventing-without-confluent` with `transport=kafka`, in the empty `kafka-test` | pair | the run shown, red at startup |
+
+Spec signed 2026-10-21. The run,
+[39508585975](https://github.com/Mathmagicians/wonderland-eventing-playground/actions/runs/39508585975), from
+`eventing-without-confluent` with `transport=kafka`, deployed to `kafka-test` with `ENV=test` and skipped the load:
+the registry holds no `latest` under the new image name until `main` builds it.
+
+## CI plays each transport
+
+Spec signed 2026-10-22: `make bdd` on cli, red before `Transport`.
+
+| Task | Owner | Done when |
+|---|---|---|
+| `@confluent` on the cluster's and the Flink table's features | pair | done 2026-10-22: `make bdd-snippets TRANSPORT=cli` lists none of them |
+| The generator's, the tea party's, and the purse's scenarios play on cli as written, the drivers following the transport | pair | done 2026-10-22: `make bdd-snippets TRANSPORT=cli` lists them, every step defined |

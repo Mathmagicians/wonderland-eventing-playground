@@ -46,14 +46,13 @@ In this order, each change seen by themathmagician, who stages and commits; the 
 carries it all.
 
 1. The overview: every row Spec green reads Archive, its gate cells filled and linked; the header names the merged
-   pull request and the run on `main`, and the badge goes, since the merge deletes the branch. A row not Spec green
-   moves to the next release's catalog first, with its sections of the phase files.
+   pull request and the run on `main`. A row not Spec green
+   moves to the next release's catalog first, in its state, with its gate dates and its sections of the phase files.
 2. The phase files: each task to pointers, each `Open` line closed with its date or handed to the release that takes
    it, named `<version>, <feature>`. A link into another release's folder is a link only when that folder is
    `archived/`; a live release is named.
 3. The folders: `this-pr/` moves to `archived/release-<version>/`, the next release's folder into `this-pr/`, plain
-   `mv`; its overview names its branch and carries the branch's `cicd` badge. The branch starts from `main` after
-   the merge.
+   `mv`; its overview names its branch. The branch starts from `main` after the merge.
 4. The links from the new `this-pr/` into the archive follow the move, `../archived/release-<version>/`.
 5. The board: `make gh-project-sync` on the new branch moves the archived rows' cards to `archive`, closes their
    milestone, and writes their bodies with links into `main`, alive once this pull request merges; the live rows'
