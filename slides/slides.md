@@ -217,7 +217,7 @@ Order id: "ORD-1" customer_id: "ALICE" product_id: "P-TOPH"
 </div>
 <div>
 
-**confluent**: Confluent Cloud, the topics, schemas, and Flink tables from `iac/`, applied by Terraform Cloud; the keys from `.env.test.private`
+**confluent**: Confluent Cloud, the topics, schemas, and Flink tables from `iac/`, applied by Terraform Cloud; the keys from `.env*`
 
 ```bash
 make tf-plan
@@ -263,7 +263,7 @@ spring.kafka.bootstrap-servers=${KAFKA_BOOTSTRAP_SERVERS}
 ```
 
 ```bash
-make run TRANSPORT=confluent ENV=test    # SPRING_PROFILES_ACTIVE=confluent,test, the keys from .env.test.private
+make run TRANSPORT=confluent ENV=test    # SPRING_PROFILES_ACTIVE=confluent,test, the keys from .env*
 ```
 
 ---

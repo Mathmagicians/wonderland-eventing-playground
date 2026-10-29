@@ -55,12 +55,20 @@ in order, and the key picks the partition, so records with the same key stay in 
 
 <table>
   <tr>
+    <td align="center"><img src="slides/public/images/wonderland-architecture.svg" width="100%" alt="Wonderland's hexagon as planned: the stories, their ports, the adapters at the rim, and the rabbit"></td>
+  </tr>
+  <tr>
+    <td align="center">Wonderland, as planned</td>
+  </tr>
+  <tr>
     <td align="center"><img src="docs/generated/architecture/svg/hexagon.svg" width="100%" alt="The hexagon, generated from the code"></td>
   </tr>
   <tr>
     <td align="center">Diagram was <a href="architecture-discovery/architecture-discoverability.md">automatically generated</a>, with kudos to Alistair Cockburn, original: <a href="https://alistair.cockburn.us/hexagonal-architecture/">Hexagonal Architecture</a></td>
   </tr>
 </table>
+
+The talk, Architecture Discoverability and Verification: [the slides as PDF](docs/generated/slides/architecture-discoverability.pdf), played live by `make slidev-present`.
 
 ### Services
 
@@ -339,9 +347,10 @@ A review finding cites the rule it breaks.
   carries the value, injected where needed.
 - Auto-configuration first. A `@Bean` method covers what auto-configuration cannot express and carries a one-line
   comment saying so.
-- Profiles are a transport, `cli` or `confluent`, and an environment, `test` or `prod`, played as
-  `<transport>,<env>`. `cli` publishes every envelope to the log at INFO and needs no credentials, `confluent`
-  publishes to Confluent Cloud. The environments differ in properties: the topic names.
+- Profiles are a transport, `cli`, `kafka`, or `confluent`, and an environment, `test` or `prod`, played as
+  `<transport>,<env>`. `cli` publishes every envelope to the log at INFO and needs no credentials, `kafka`
+  publishes to the kafka universe and needs none either, `confluent` publishes to Confluent Cloud. The
+  environments differ in properties: the topic names.
 - `application.properties` holds defaults, `application-<profile>.properties` holds the profile. Secrets are
   `${ENV_VAR}` placeholders that fail fast when unset. Everything else has a default.
 - `@SpringBootTest` serves one wiring test per service and the BDD suite.

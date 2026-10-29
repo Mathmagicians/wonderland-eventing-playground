@@ -13,7 +13,7 @@ runs, and keeps what this stack taught us in `references/`.
 
 `.env.*.private` is never read, opened, or sourced by an agent. Git is read-only for an agent: no `add`, `commit`,
 `push`, `pull`, `checkout`, `rebase`, `tag`, `stash`, `config`, no branch changes. Staging is the human's; a report
-names what changed, never paths to stage.
+names what changed, never paths to stage, never what is uncommitted, never a git command, unless asked.
 
 ## A step
 
@@ -22,8 +22,10 @@ names what changed, never paths to stage.
    A design statement from the human is discussion. The change starts after "go".
 3. The change, one file at a time, through edits the human sees. Check `/dry` for the home before adding.
 4. Verification by the command that proves the file, see below. A failure is reported with its output.
-5. The report: outcome first, then what changed, then the plan for the next step, then stop. Findings outside the
-   step are one line each, never silent fixes.
+5. The report: outcome first, then what changed, then what is next, then stop. Terse: one line per fact, nothing
+   the human said, decided, or can see for themselves, no git state, no command they know, no closing recap. A
+   trivial step, a rename, a date, a line written in after y, reports in one line. Findings outside the step are one
+   line each, never silent fixes.
 
 ## Plumbing done
 

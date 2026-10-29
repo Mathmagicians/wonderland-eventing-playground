@@ -125,9 +125,9 @@ Spec green 2026-10-29: `make bdd TRANSPORT=kafka` green on the platform's and th
 [40851714017](https://github.com/Mathmagicians/wonderland-eventing-playground/actions/runs/40851714017), `bdd (cli)`
 and `bdd (kafka)` green in `cli-test` and `kafka-test`, each with its summary and its `cucumber-report-<transport>`.
 
-- Parked: the JDK's restricted-method warning on lz4-java's native load, once per JVM that publishes;
-  `--enable-native-access=ALL-UNNAMED` on the `Test` tasks, `bootRun`, and the image's `JAVA_TOOL_OPTIONS`, in
-  `platform.gradle`.
+- The JDK's restricted-method warning on lz4-java's native load, once per JVM that publishes, is silenced by
+  `--enable-native-access=ALL-UNNAMED` in `platform.gradle`: on the `Test` tasks, on `bootRun`, and appended to the
+  image's `JAVA_TOOL_OPTIONS` through `bootBuildImage`.
 
 ## The catalog follows the board
 
@@ -178,7 +178,7 @@ Owner: pair. The deck in [slides/](../../../slides/slides.md), with `make slidev
 feature fills its section of the deck as it lands. The talk plays from compose,
 [Slides spike](../archived/release-0.0.6/03_automation.md#slides-spike-the-talk-plays-from-compose).
 
-- The PDF in `docs/generated/slides` is the export of 2026-10-20.
+- The PDF in `docs/generated/slides` is the export of 2026-10-29.
 
 ## README
 

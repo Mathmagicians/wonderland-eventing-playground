@@ -4,10 +4,10 @@
 # where the talk plays, the port of the slides service
 TALK := http://localhost:3030
 # a variable the repository's Makefile passes, checked by the recipe that needs it
-need = $(if $($1),,$(error $1 is passed by the repository's Makefile: run make slides-present or make slides-pdf there))
+need = $(if $($1),,$(error $1 is passed by the repository's Makefile: run make slidev-present or make slidev-export there))
 
 .DEFAULT_GOAL := help
-.PHONY: help present pdf
+.PHONY: help present export
 
 help:      ## this list
 	@sed -nE 's/^([a-z_-]+):.*## *(.*)/  \1\t\2/p' $(lastword $(MAKEFILE_LIST)) | expand -t 16
@@ -18,5 +18,5 @@ present:   ## live reload and presenter notes, on localhost:3030, opened in the 
 	@(for i in $$(seq 120); do curl -sfo /dev/null $(TALK) && exec open $(TALK); sleep 1; done) &
 	@$(COMPOSE) run --rm --service-ports slides
 
-pdf:   ## slides.md as the PDF the repository commits, under docs/generated/slides
+export:   ## slides.md as the PDF the repository commits, under docs/generated/slides
 	@$(call need,COMPOSE)$(COMPOSE) run --rm --build slides export slides.md --output /pdf/architecture-discoverability.pdf

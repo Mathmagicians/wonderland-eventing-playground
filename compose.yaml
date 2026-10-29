@@ -52,8 +52,8 @@ services:
       - --tea-party.region=${REGION:-EMEA}
       - --tea-party.ttl=${TTL:-60}
 
-  # the talk, Slidev over slides/ and the committed diagrams, on localhost:3030, `make slides-present`; the export writes
-  # the PDF to docs/generated/slides, `make slides-pdf`. Its profile keeps it out of `make up`.
+  # the talk, Slidev over slides/ and the committed diagrams, on localhost:3030, `make slidev-present`; the export writes
+  # the PDF to docs/generated/slides, `make slidev-export`. Its profile keeps it out of `make up`.
   slides:
     profiles: [slides]
     build: slides
