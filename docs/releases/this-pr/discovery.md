@@ -62,6 +62,8 @@ questions, and the decisions it raises for [docs/adr.md](../../adr.md).
 **Decisions for docs/adr.md, by title**
 - The transport is a profile beside the environment
 
+Examples agreed 2026-10-29.
+
 ## The catalog follows the board
 
 **Goal:** a project update is a release doc update; a change on the board is for members only.

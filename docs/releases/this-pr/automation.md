@@ -121,6 +121,14 @@ in [cicd.yaml](../../../.github/workflows/cicd.yaml), each with its summary and 
 | [ConsoleListener.java:258](../../../platform/src/main/java/dk/mathmagicians/playground/confluent/eventing/adapter/cli/console/ConsoleListener.java#L258) hands the story what `story.hears`, as [StoryListener.java:64](../../../platform/src/main/java/dk/mathmagicians/playground/confluent/eventing/adapter/kafka/consumer/StoryListener.java#L64) does | themathmagician | `ConsoleListenerTest`: an envelope of another region is not heard |
 | [ConsoleListener.java:186](../../../platform/src/main/java/dk/mathmagicians/playground/confluent/eventing/adapter/cli/console/ConsoleListener.java#L186) keeps the region a `region:` line names as typed, without `toUpperCase` | themathmagician | `ConsoleListenerTest`: `region: Apac` stamps `Apac` |
 
+Spec green 2026-10-29: `make bdd TRANSPORT=kafka` green on the platform's and the tea party's features, and run
+[40851714017](https://github.com/Mathmagicians/wonderland-eventing-playground/actions/runs/40851714017), `bdd (cli)`
+and `bdd (kafka)` green in `cli-test` and `kafka-test`, each with its summary and its `cucumber-report-<transport>`.
+
+- Parked: the JDK's restricted-method warning on lz4-java's native load, once per JVM that publishes;
+  `--enable-native-access=ALL-UNNAMED` on the `Test` tasks, `bootRun`, and the image's `JAVA_TOOL_OPTIONS`, in
+  `platform.gradle`.
+
 ## The catalog follows the board
 
 `project.yaml` plays [Project sync](../archived/release-0.0.6/03_automation.md#project-sync-the-board-follows-the-catalog) on every
@@ -198,9 +206,9 @@ Owner: pair. Turns green: the dispatches of the map.
   on 2026-10-21, `make docker-smoke` with `latest` in `cli-prod`, green; from the branch,
   [39508585975](https://github.com/Mathmagicians/wonderland-eventing-playground/actions/runs/39508585975) deployed to
   `kafka-test` with `ENV=test` and skipped the load, the registry holding no `latest` yet.
-- Open: the `kafka-*` and `cloudflare-*` environments filled when their transports play,
-  [Messaging capability](#messaging-capability-cli-kafka-confluent) and 0.0.8, Eventing over Cloudflare; Spec green
-  on a dispatch per transport that plays.
+- Open: a dispatch on `kafka`, its environments empty by design, the universe on the runner, see
+  [Messaging capability](#messaging-capability-cli-kafka-confluent); the `cloudflare-*` environments filled when it
+  plays, 0.0.8, Eventing over Cloudflare. Spec green on a dispatch per transport that plays.
 
 ## CI plays each transport
 
@@ -216,5 +224,7 @@ Owner: pair. Turns green: the dispatches of the map.
 - The merge of 0.0.6, run
   [39692749878](https://github.com/Mathmagicians/wonderland-eventing-playground/actions/runs/39692749878) on `main`,
   2026-10-21: `ci`, `bdd (cli)` in `cli-test`, `cd`, and `tag` green, `make ci-transports` printing `["cli"]`.
-- Open: the transports beyond `cli`, `kafka` on the runner and `confluent` when the cluster answers; Spec green when
-  each transport `CI_TRANSPORTS` lists plays its scenarios.
+- Spec green 2026-10-29: run
+  [40851714017](https://github.com/Mathmagicians/wonderland-eventing-playground/actions/runs/40851714017), `bdd (cli)`
+  and `bdd (kafka)` green, `make ci-transports` printing `["cli","kafka"]`; `confluent` joins `CI_TRANSPORTS` when
+  the cluster answers.

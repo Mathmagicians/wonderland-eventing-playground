@@ -24,6 +24,13 @@ feature's row in the catalog.
 |---|---|---|
 | The map's scenarios in [a_release_ships_what_is_ready.feature](../../../src/test/resources/features/a_release_ships_what_is_ready.feature), `@manual` | pair | each example of the map is a scenario |
 
+Spec signed 2026-10-29: the features play on `kafka` through the tag filter of the `bdd` task in
+[platform.gradle](../../../platform.gradle), `@kafka` on
+[the_cluster_has_my_topics_and_schemas.feature](../../../platform/src/test/resources/features/the_cluster_has_my_topics_and_schemas.feature)
+and `@confluent` on its Flink outline. The red run:
+[40804413757](https://github.com/Mathmagicians/wonderland-eventing-playground/actions/runs/40804413757), `bdd (kafka)`
+with `bootstrap.servers` unset, the environment's empty variables.
+
 ## Stories describe themselves
 
 | Task | Owner | Done when |

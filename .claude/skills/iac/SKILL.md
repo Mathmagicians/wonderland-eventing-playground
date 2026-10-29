@@ -11,6 +11,12 @@ The plan is the review, the human approves it, and nothing in the code second-gu
 ## The workspace
 
 - VCS-driven on `main`. A CLI apply is refused; `make tf-plan` is a speculative plan, the apply is the merge.
+- `iac.yaml` is red on `make tf-check`, and on a plan with an error while the environment is up. The environment is
+  up when its data sources read, `data.confluent_environment`, `data.confluent_kafka_cluster`,
+  `data.confluent_flink_compute_pool`; an error on one of them means it is not, and the plan is written to the job
+  summary as disregarded, with a warning annotation, and leaves the check green.
+- An environment that is gone comes out of the state with `make tf-forget DELETEIT=yes`, no call to Confluent; a
+  destroy would read and delete through the API that is gone.
   `make tf-check` depends on `tf-init`, so it needs the workspace too.
 - `cloud {}` stays empty; `TF_CLOUD_ORGANIZATION` and `TF_WORKSPACE` name the workspace, from `.env.confluent-test.private`
   locally and the `terraform-cloud` GitHub environment in CI. The token is `terraform login` once locally,

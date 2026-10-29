@@ -35,10 +35,16 @@ jobs:
       - name: formatting and validation of iac/
         if: steps.changes.outputs.iac == 'true'
         run: make tf-check
-      - name: speculative plan in Terraform Cloud, into the job summary
+      - name: speculative plan in Terraform Cloud, into the job summary; an environment that is not up leaves the check green, the plan disregarded
         if: steps.changes.outputs.iac == 'true'
         shell: bash   # pipefail, so a failed plan fails the step
         run: |
           make tf-plan | tee plan.txt && result=0 || result=$?
+          # the environment is up when its data sources read; an error on one means it is not, and the plan is disregarded
+          if [ $result -ne 0 ] && grep -qE '^│ +with data\.confluent_' plan.txt; then
+            echo "::warning::iac: the environment is not up, the plan is disregarded; iac/ passed tf-check"
+            { printf '### Plan: the environment is not up, the plan is disregarded\n\n```\n%s\n```\n\n<details><summary>the plan</summary>\n\n```\n' "$(grep -E '^│ Error:' plan.txt)"; cat plan.txt; printf '```\n\n</details>\n'; } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           { printf '### Plan\n\n```\n'; cat plan.txt; printf '```\n'; } >> "$GITHUB_STEP_SUMMARY"
           exit $result

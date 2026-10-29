@@ -93,6 +93,11 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
     def cucumberRunner = '**/RunCucumberTest.class'
     def architectureGenTag = 'architecture-gen'
 
+    // lz4, the producer's compression, loads its native library from the class path, a restricted call the JDK
+    // warns about once per JVM unless native access is granted
+    def nativeAccess = '--enable-native-access=ALL-UNNAMED'
+    tasks.withType(Test).configureEach { jvmArgs nativeAccess }
+
     tasks.named('test') {
         useJUnitPlatform {
             excludeTags architectureGenTag
@@ -166,13 +171,15 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
         // the local profile reads the console, so a run from source gets the terminal's input
         tasks.named('bootRun') {
             standardInput = System.in
+            jvmArgs nativeAccess
         }
 
         tasks.named('bootBuildImage') {
             // the image name is the Makefile's, -Pimage=<name>:<tag>; the build's name when Gradle runs alone
             imageName = providers.gradleProperty('image').getOrElse("${rootProject.name}:${project.version}")
             // launch environment of the image, inherited by compose, docker run, and the integration tests
-            environment = ['BPE_BPL_JAVA_NMT_ENABLED': 'false']
+            environment = ['BPE_BPL_JAVA_NMT_ENABLED': 'false',
+                           'BPE_DELIM_JAVA_TOOL_OPTIONS': ' ', 'BPE_APPEND_JAVA_TOOL_OPTIONS': nativeAccess]
             // the image is no file, so a build record is the output; with it Gradle skips the task while the jar
             // and the image name are unchanged
             def record = layout.buildDirectory.file("image/${project.version}.txt")
