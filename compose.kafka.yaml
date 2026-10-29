@@ -80,9 +80,13 @@ services:
     entrypoint: ["/bin/bash", "-ec"]
     command:
       - |
+        set -o pipefail
+        # kafka-topics.sh warns on every name with a period, which a metric name shares with an underscore; the
+        # names have periods only, so the line is dropped
         for name in $$TOPICS; do for topic in $$ENV.$$name $$ENV.$$name.DLT; do
           /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --create --if-not-exists \
-            --topic $$topic --partitions $$PARTITIONS --replication-factor 1
+            --topic $$topic --partitions $$PARTITIONS --replication-factor 1 \
+            | sed '/limitations in metric names/d'
         done; done
 
   # the schemas of ENV, what iac/schemas.tf registers on Confluent Cloud: each payload's proto under
