@@ -36,17 +36,18 @@ import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.core.DependencyDepth;
 import org.springframework.modulith.core.DependencyType;
 
-/// The hexagon of an application as PlantUML. Three columns, driving adapters, application, driven adapters, each
-/// holding the Spring Modulith application modules that belong there, placed by the jMolecules stereotypes of
-/// their types, their own or their package's, and below the application a row of the adapters both sides share,
-/// the unqualified `Adapter`. Every module is a hexagon; modules without a hexagonal stereotype, the domain, nest
-/// inside the application module, the application's own types in a row above it. Inside a module, every type with a
-/// stereotype is a card, its role below its name, in a grid; the permitted types of a sealed type sit in a row
-/// under the grid and implement it, one arrowhead. Types of a non-hexagonal role are listed up to the options'
-/// maximum, then an ellipsis line carries the total. The arrows, drawn in the legend: from an adapter type into
-/// the application and between the application's types and the domain's, `uses` where one holds the other,
-/// `implements` where one implements the other, `depends on` for any other reference. Everything is sorted, so the
-/// same code gives the same text.
+/// The hexagon of an application as PlantUML, content alone: the look is `hexagon.style.puml`, the resource
+/// PlantUML reads as its config before the diagram. Three columns, driving adapters, application, driven
+/// adapters, each a package holding the Spring Modulith application modules that belong there, placed by the
+/// jMolecules stereotypes of their types, their own or their package's, and below the application a row of the
+/// adapters both sides share, the unqualified `Adapter`. Every module is a hexagon; modules without a hexagonal
+/// stereotype, the domain, nest inside the application module, the application's own types in a row above it.
+/// Inside a module, every type with a stereotype is a card with its role as its stereotype, in a grid; the
+/// permitted types of a sealed type sit in a row under the grid, each implementing it. Types of a non-hexagonal
+/// role are listed up to the options' maximum, then an ellipsis line carries the total. The arrows, drawn in the
+/// legend: from an adapter type into the application and between the application's types and the domain's,
+/// `uses` where one holds the other, `implements` where one implements the other, `depends on` for any other
+/// reference. Everything is sorted, so the same code gives the same text.
 public final class HexagonDocumenter {
 
     /// Choices for the picture: how many types of one role a box lists before the ellipsis line. Unlimited by
@@ -68,26 +69,17 @@ public final class HexagonDocumenter {
     /// The group of the jMolecules hexagonal stereotypes, as their catalog names it.
     static final String HEXAGONAL = "architecture.hexagonal";
 
-    /// The small font: a role under a type's name, the legend.
-    static final int SMALL_FONT_SIZE = 10;
-
-    /// The legend's colours, a grey line and grey text, so it stays discrete beside the hexagon.
-    private static final String LEGEND_LINE = "BBBBBB";
-    private static final String LEGEND_TEXT = "666666";
-
     private static final String PRIMARY_ADAPTER = HEXAGONAL + ".PrimaryAdapter";
     private static final String SECONDARY_ADAPTER = HEXAGONAL + ".SecondaryAdapter";
     private static final String ADAPTER = HEXAGONAL + ".Adapter";
     private static final String PACKAGE_INFO = "package-info";
     private static final String INDENT = "  ";
+    /// The element each thing is drawn as: a ring, a module, a type, the legend. The style file keys the look on
+    /// them.
+    private static final String RING = "package";
     private static final String MODULE = "hexagon";
-    private static final String FRAME = "rectangle";
-    /// A frame that groups without being seen: a column under its title, the padding inside a hexagon.
-    private static final String UNSEEN = " #line:transparent";
-    /// A text too small to see: the title of a padding frame, the node where the lines of several permitted types
-    /// meet before the one arrow to their sealed type.
-    private static final String UNSEEN_TEXT = "\"<size:1> </size>\"";
-    private static final String JUNCTION = "label " + UNSEEN_TEXT + " as ";
+    private static final String TYPE = "card";
+    private static final String LEGEND = "frame";
     /// The permitted types of a sealed type in one line, two when there are more than this.
     private static final int FAMILY_COLUMNS = 4;
 
@@ -205,16 +197,6 @@ public final class HexagonDocumenter {
         var out = new ArrayList<String>();
         out.add("@startuml");
         out.add("' the hexagon from the code: Spring Modulith modules placed by their jMolecules stereotypes");
-        out.add("skinparam shadowing false");
-        out.add("skinparam defaultTextAlignment left");
-        out.add("skinparam ranksep 24");
-        out.add("skinparam nodesep 24");
-        out.add("skinparam ArrowFontSize " + SMALL_FONT_SIZE);
-        out.add("skinparam ArrowFontColor #" + LEGEND_TEXT);
-        out.add("<style>");
-        out.add("hexagon { HorizontalAlignment center; FontStyle plain }");
-        out.add("rectangle { HorizontalAlignment center }");
-        out.add("</style>");
         out.add("");
         var cards = new TreeMap<String, String>();
         var columns = new EnumMap<Ring, Cell>(Ring.class);
@@ -250,18 +232,18 @@ public final class HexagonDocumenter {
                 .toList();
     }
 
-    /// A column: an unseen frame with the ring's name as its title, its modules as hexagons in a grid of one
-    /// column. The nested modules go inside the first module of the column, or straight into the column when it
-    /// has none of its own. `cards` collects the alias of every stereotyped type's card by type name, for the
-    /// arrows. Answers the column as a cell, its top where it hangs from what sits above, the cards along the
-    /// bottom of every module in it where what hangs below attaches, since the arrows may float a module above
-    /// its place in the grid; nothing when the ring has no module.
+    /// A column: a package with the ring's name as its title, its modules as hexagons in a grid of one column.
+    /// The nested modules go inside the first module of the column, or straight into the column when it has none
+    /// of its own. `cards` collects the alias of every stereotyped type's card by type name, for the arrows.
+    /// Answers the column as a cell, its top where it hangs from what sits above, the cards along the bottom of
+    /// every module in it where what hangs below attaches, since the arrows may float a module above its place in
+    /// the grid; nothing when the ring has no module.
     private Optional<Cell> column(List<String> out, Ring ring, List<ApplicationModule> members,
                                   List<ApplicationModule> nested, Map<String, String> cards) {
         if (members.isEmpty() && nested.isEmpty()) {
             return Optional.empty();
         }
-        out.add(FRAME + " \"" + ring.label + "\" as " + frame(ring) + UNSEEN + " {");
+        out.add(RING + " \"" + ring.label + "\" as " + alias(ring) + " {");
         var cells = new ArrayList<Cell>();
         if (members.isEmpty()) {
             nested.forEach(module -> cells.add(box(out, module, INDENT, List.of(), cards)));
@@ -275,9 +257,9 @@ public final class HexagonDocumenter {
         return Optional.of(new Cell(cell.left(), cell.right(), cell.top(), bottom));
     }
 
-    /// The columns in their order, left to right: an unseen anchor above each, the anchors in a row, each column
-    /// hung from its own, and the frames chained the same way. Without it the layout engine mirrors the columns,
-    /// or lowers one whose adapters the shared row pulls at.
+    /// The columns in their order, left to right: an empty anchor above each, the anchors in a row, each column
+    /// hung from its own, and the packages chained the same way. Without it the layout engine mirrors the
+    /// columns, or lowers one whose adapters the shared row pulls at.
     private static void order(List<String> out, Map<Ring, Cell> columns) {
         Ring previous = null;
         for (var entry : columns.entrySet()) {
@@ -285,37 +267,31 @@ public final class HexagonDocumenter {
             out.add("label \" \" as " + anchor(ring));
             if (previous != null) {
                 out.add(anchor(previous) + " -[hidden]right-> " + anchor(ring));
-                out.add(frame(previous) + " -[hidden]right-> " + frame(ring));
+                out.add(alias(previous) + " -[hidden]right-> " + alias(ring));
             }
             out.add(anchor(ring) + " -[hidden]down-> " + entry.getValue().top());
             previous = ring;
         }
     }
 
-    private static String frame(Ring ring) {
+    private static String alias(Ring ring) {
         return ring.name().toLowerCase();
     }
 
     private static String anchor(Ring ring) {
-        return "t_" + frame(ring);
+        return "t_" + alias(ring);
     }
 
-    /// One module: its hexagon, its package in the small plain font above its bold name, since a hexagon's title
-    /// is bold as a whole and the style sets it plain, padded by an unseen frame, since
-    /// PlantUML's hexagon cuts its corners through what sits there. Inside, the cards of its hexagonal types,
-    /// grouped by role; then the types of every other role,
-    /// up to the options' maximum and an ellipsis line beyond it; then the modules nested inside it, each a
-    /// hexagon of its own. The cards sit in a near-square grid, at least as wide as the widest family; each sealed
-    /// type's permitted types hang from it in a row of their own below the grid; the nested modules come last, and
-    /// above them the cards keep to one row. Answers the module as a cell. An arrow ending on a hexagon's alias
-    /// makes PlantUML show the alias as its title, so the cell's ends are the module's first card, the hexagon
-    /// itself when it has none.
+    /// One module: its hexagon, its name above its package. Inside, the cards of its hexagonal types, grouped by
+    /// role; then the types of every other role, up to the options' maximum and an ellipsis line beyond it; then
+    /// the modules nested inside it, each a hexagon of its own. The cards sit in a near-square grid, at least as
+    /// wide as the widest family; each sealed type's permitted types hang from it in a row of their own below the
+    /// grid; the nested modules come last, and above them the cards keep to one row. Answers the module as a
+    /// cell, its ends the module's first card, the hexagon itself when it has none.
     private Cell box(List<String> out, ApplicationModule module, String indent, List<ApplicationModule> nested,
                      Map<String, String> cards) {
-        out.add(indent + MODULE + " \"<size:" + SMALL_FONT_SIZE + ">" + packageLine(module) + "</size>\\n<b>"
-                + module.getDisplayName() + "</b>\" as " + alias(module) + " {");
-        var inner = indent + INDENT;
-        out.add(inner + FRAME + " " + UNSEEN_TEXT + " as " + padding(module) + UNSEEN + " {");
+        out.add(indent + MODULE + " \"" + module.getDisplayName() + "\\n" + packageLine(module) + "\" as "
+                + alias(module) + " {");
         var hexagonal = new TreeMap<String, List<JavaClass>>();
         var others = new TreeMap<String, List<JavaClass>>();
         var permitted = permittedTypes(module);
@@ -327,12 +303,12 @@ public final class HexagonDocumenter {
                 }));
         var entries = new ArrayList<Entry>();
         hexagonal.forEach((role, types) ->
-                types.forEach(type -> entries.add(entry(out, inner, module, type, role, cards))));
+                types.forEach(type -> entries.add(entry(out, indent, module, type, role, cards))));
         others.forEach((role, types) -> {
             var shown = types.size() <= options.maxTypes() ? types : types.subList(0, options.maxTypes() - 1);
-            shown.forEach(type -> entries.add(entry(out, inner, module, type, role, cards)));
+            shown.forEach(type -> entries.add(entry(out, indent, module, type, role, cards)));
             if (shown.size() < types.size()) {
-                var total = card(out, inner, module, "... (" + types.size() + " total)", role, role + "_total");
+                var total = card(out, indent, module, "... (" + types.size() + " total)", role, role + "_total");
                 entries.add(new Entry(Cell.of(total), List.of()));
             }
         });
@@ -341,28 +317,26 @@ public final class HexagonDocumenter {
         var rows = new ArrayList<Cell>();
         if (!own.isEmpty()) {
             var widest = families.stream().mapToInt(entry -> columns(entry.family())).max().orElse(1);
-            var top = grid(out, inner, own, nested.isEmpty() ? Math.max(square(own.size()), widest) : own.size());
+            var top = grid(out, indent, own, nested.isEmpty() ? Math.max(square(own.size()), widest) : own.size());
             var bottom = new ArrayList<String>();
             for (var entry : families) {
-                var family = grid(out, inner, entry.family(), columns(entry.family()));
-                out.add(inner + INDENT + entry.card().left() + " -[hidden]down-> " + family.top());
+                var family = grid(out, indent, entry.family(), columns(entry.family()));
+                out.add(indent + INDENT + entry.card().left() + " -[hidden]down-> " + family.top());
                 bottom.addAll(family.bottom());
             }
             rows.add(families.isEmpty() ? top : new Cell(top.left(), top.right(), top.top(), bottom));
         }
         if (!nested.isEmpty()) {
-            var children = nested.stream().map(child -> box(out, child, inner + INDENT, List.of(), cards)).toList();
-            rows.add(grid(out, inner, children, children.size()));
+            var children = nested.stream().map(child -> box(out, child, indent + INDENT, List.of(), cards)).toList();
+            rows.add(grid(out, indent, children, children.size()));
         }
-        var cell = rows.isEmpty() ? Cell.of(alias(module)) : grid(out, inner, rows, 1);
-        out.add(inner + "}");
+        var cell = rows.isEmpty() ? Cell.of(alias(module)) : grid(out, indent, rows, 1);
         out.add(indent + "}");
         return cell;
     }
 
-    /// A card for the type. For a sealed type, cards for its permitted types as well, its family, implementing
-    /// it: one permitted type draws its arrow, several draw lines to a junction and the one arrow from there, so
-    /// the arrows meet in one head. Registers every card by type name.
+    /// A card for the type. For a sealed type, cards for its permitted types as well, its family, each with its
+    /// arrow up to the type it implements. Registers every card by type name.
     private Entry entry(List<String> out, String indent, ApplicationModule module, JavaClass type, String role,
                         Map<String, String> cards) {
         var alias = card(out, indent, module, type.getSimpleName(), role, type.getSimpleName());
@@ -377,28 +351,17 @@ public final class HexagonDocumenter {
                     cards.put(member.getName(), memberAlias);
                     family.add(Cell.of(memberAlias));
                 }));
-        if (family.size() == 1) {
-            out.add(indent + INDENT + family.getFirst().left() + " " + Kind.IMPLEMENTS.line("up") + " " + alias);
-        } else if (family.size() > 1) {
-            var junction = alias + "_j";
-            out.add(indent + INDENT + JUNCTION + junction);
-            family.forEach(member -> out.add(indent + INDENT + member.left() + " .up. " + junction));
-            out.add(indent + INDENT + junction + " " + Kind.IMPLEMENTS.line("up") + " " + alias);
-        }
+        family.forEach(member ->
+                out.add(indent + INDENT + member.left() + " " + Kind.IMPLEMENTS.line("up") + " " + alias));
         return new Entry(Cell.of(alias), family);
     }
 
-    /// Writes the card, the type on the first line and its role in guillemets below in a smaller font. Answers the
-    /// card's alias.
+    /// Writes the card, the type's name with its role as the stereotype. Answers the card's alias.
     private static String card(List<String> out, String indent, ApplicationModule module, String name, String role,
                                String aliasName) {
         var alias = alias(module) + "_" + aliasName.replaceAll("[^A-Za-z0-9]", "_");
-        out.add(indent + INDENT + "card \"" + label(name, role) + "\" as " + alias);
+        out.add(indent + INDENT + TYPE + " \"" + name + "\" as " + alias + " <<" + role + ">>");
         return alias;
-    }
-
-    private static String label(String name, String role) {
-        return name + "\\n<size:" + SMALL_FONT_SIZE + ">«" + role + "»</size>";
     }
 
     /// Hidden arrows lay the cells out in a grid with the columns given: right between neighbours in a row, down
@@ -485,13 +448,12 @@ public final class HexagonDocumenter {
         });
     }
 
-    /// The legend: a discrete grey box in the lower right corner, one row of horizontal samples, every arrow with
-    /// its relation written on it. Hidden arrows from the hangers, the cards along the bottom of the shared row,
-    /// or the last driven card and the bottom of the application column when there is none, hang it below
+    /// The legend: a frame in the lower right corner, one row of horizontal samples, every arrow with its
+    /// relation written on it. Hidden arrows from the hangers, the cards along the bottom of the shared row, or
+    /// the last driven card and the bottom of the application column when there is none, hang it below
     /// everything, to the right. The text legend carries the system's name.
     private void legend(List<String> out, List<String> hangers) {
-        out.add(FRAME + " \"<size:" + SMALL_FONT_SIZE + ">legend</size>\" as legend #line:" + LEGEND_LINE
-                + ";text:" + LEGEND_TEXT + " {");
+        out.add(LEGEND + " \"legend\" as legend {");
         var samples = new ArrayList<Cell>();
         for (var kind : Kind.values()) {
             var sample = new Cell(kind.alias() + "_from", kind.alias() + "_to", kind.alias() + "_from", List.of());
@@ -518,10 +480,9 @@ public final class HexagonDocumenter {
 
     /// The card of the type, or of the top-level type it is nested in, `Recipe` inside `GenerateLoad`; the hexagon
     /// of the module it belongs to when neither has one, so a dependency on a type without a stereotype still
-    /// points where it belongs. The arrow ends on the padding inside the hexagon: aimed at the hexagon itself,
-    /// the head would sit on its bounding box, outside the cut corner.
+    /// points where it belongs.
     private static String cardOr(Map<String, String> cards, JavaClass type, ApplicationModule module) {
-        return cards.getOrDefault(topLevel(type).getName(), padding(module));
+        return cards.getOrDefault(topLevel(type).getName(), alias(module));
     }
 
     private static JavaClass topLevel(JavaClass type) {

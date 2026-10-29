@@ -1,0 +1,7 @@
+/// Driving adapter: the console, for the cli profile, where the messages a story listens to are typed.
+@PrimaryAdapter
+@Module(name = "Console")
+package dk.mathmagicians.wonderland.eventing.adapter.cli.console;
+
+import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
+import org.jmolecules.ddd.annotation.Module;

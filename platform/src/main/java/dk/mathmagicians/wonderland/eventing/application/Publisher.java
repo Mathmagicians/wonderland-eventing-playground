@@ -1,0 +1,15 @@
+package dk.mathmagicians.wonderland.eventing.application;
+
+import dk.mathmagicians.wonderland.eventing.domain.Envelope;
+import dk.mathmagicians.wonderland.eventing.domain.Receipt;
+import java.util.concurrent.CompletableFuture;
+import org.jmolecules.architecture.hexagonal.SecondaryPort;
+
+/// Driven port: where envelopes go. One adapter per profile, the log or Kafka. The receipt completes when the
+/// message has landed.
+@SecondaryPort
+@FunctionalInterface
+public interface Publisher {
+
+    CompletableFuture<Receipt> publish(Envelope envelope);
+}

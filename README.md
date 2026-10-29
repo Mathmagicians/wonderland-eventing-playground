@@ -26,9 +26,18 @@ generator and stream consumers, against **Confluent Cloud**.
 
 ## Purpose
 
-- Playground for refreshing event-streaming fundamentals against a managed Confluent cluster: keys, partitions, ordering, idempotence, schemas.
-- Generate repeatable load from GitHub Actions (on demand) and from a developer machine.
-- Use stream processing capabilities from Confluent to consume over several topics
+Architecture docs go stale: compliance, audit, and governance want the architecture documented and approved
+before it is deployed, then life goes on, and the thing worse than no documentation is stale documentation. Must
+they? Architecture discoverability asks three questions:
+
+- How do we specify the architecture?
+- How do we keep it in sync, as life goes on?
+- How do we verify it?
+
+Wonderland is the toy platform built to explore the answers: an eventing platform where stories play, the
+generator produces, the tea party settles, the purse counts, each story a hexagon beside the platform's, its
+architecture declared in the code, drawn from it, and verified by the build. The stories are also the
+event-streaming refresher: keys, partitions, ordering, idempotence, schemas, and load on demand.
 
 One topic per payload type, each keyed for a different ordering guarantee. Kafka keeps the records of one partition
 in order, and the key picks the partition, so records with the same key stay in order.
@@ -525,30 +534,20 @@ or test that enforces it.
 
 ## Roadmap
 
-- [x] Install Java 25
-- [x] Hello world
-- [x] Gradle script builds and runs the unit test
-- [x] Makefile with `build`, `test`, `bdd`, `run`, `check`
-- [x] Local docker compose spins up a flock of workers
-- [x] workers can generate load, and convert it to protobuf
-- [x] Topics, dead-letter topics, and schemas created by Terraform Cloud from `iac/`
-- [x] workers can publish against test.* kafka topics
-- [x] Prod docker flock works against prod.* kafka topics
-- [x] Cucumber wired into the build (JUnit Platform Suite, Testcontainers for workers, Confluent test.* topics)
-- [x] BDD feature: I can publish messages
-- [ ] BDD feature: same key ends up in the same partition
-- [x] Partition key strategy defined per payload type
-- [x] Publish Ks of messages to Confluent Cloud
-- [x] Stories: a business process as a jar the platform plays, `--story=<name>`, one consumer group each
-- [x] A story built outside the repository against the published platform, `examples/purse/`
-- [ ] Stream consumer service: the tea party settles, the purse counts
-- [ ] Flink beside the stories: `products.lvs`, the latest value snapshot, a materialized table over the products topic, from `iac/`
-- [x] Protobuf via Schema Registry
-- [x] Split into modules
-- [x] Convert to hexagonal
-- [x] GitHub Actions `cicd.yaml`
-- [x] GitHub Actions `load-run.yaml`, load on demand
-- [x] Auto discover architecture, verify architecture rules, generate diagrams, and check for drift
+The plan is spec driven, see How we work: the current release in `docs/releases/this-pr/`, its catalog the
+features and their gates, and the board,
+[Wonderland, spec driven](https://github.com/orgs/Mathmagicians/projects/5), kept in step with the catalogs by
+`make gh-project-sync`.
+
+- [x] Build Wonderland, a toy platform, to explore the core ideas: an eventing platform where stories play, the
+      generator produces, the tea party settles, the purse counts, on a Kafka cluster, local or Confluent Cloud,
+      one topic per payload type, each keyed for its ordering; the platform defines the BDD features' steps,
+      reusable by a story's feature
+- [ ] Architecture discoverability: the architecture declared in the code, the stereotypes on ports and adapters,
+      and drawn from it at three levels: the landscape of the platform and its stories, the stories with their
+      streams, and the hexagon of each
+- [ ] Architecture verification: the rules as tests, which a client's story gets for free, and the round trip: a
+      new story built from its feature, the build saying whether it fits
 
 ## License
 

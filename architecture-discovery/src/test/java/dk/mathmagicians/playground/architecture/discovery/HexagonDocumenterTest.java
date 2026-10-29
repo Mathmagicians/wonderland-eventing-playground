@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.tngtech.archunit.core.importer.ImportOption;
 import dk.mathmagicians.playground.architecture.discovery.HexagonDocumenter.Options;
 import dk.mathmagicians.playground.architecture.discovery.fixture.FixtureApplication;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModules;
 
@@ -17,7 +18,17 @@ class HexagonDocumenterTest {
     private static final ApplicationModules FIXTURE =
             ApplicationModules.of(FixtureApplication.PACKAGE, ImportOption.Predefined.DO_NOT_INCLUDE_JARS);
 
+    /// A line of styling: a skinparam, a style block, a colour, a font size, a bold.
+    private static final Pattern STYLING = Pattern.compile("skinparam|<style>|#[0-9A-Fa-f]{6}|#line:|<size:|<b>");
+
     private final String uml = new HexagonDocumenter(FIXTURE).toPlantUml();
+
+    /// The text is content: the elements, their stereotypes, their nesting, the arrows. The look is
+    /// `hexagon.style.puml`'s.
+    @Test
+    void carriesNoStyling() {
+        assertThat(uml.lines()).noneMatch(line -> STYLING.matcher(line).find());
+    }
 
     /// A card: the type on the first line, its role in guillemets and a smaller font below.
     private static String card(String type, String role) {

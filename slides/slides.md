@@ -331,7 +331,7 @@ make bdd-matrix               # both, locally what the bdd job plays
 
 `cicd.yaml`, job `bdd`: `make bdd-published TRANSPORT=<t>` against the candidate image, one job per entry in `<t>-test`; `cd` publishes what both passed
 
-<div class="mt-4 h-52 border-2 border-dashed border-gray-500 rounded flex items-center justify-center text-gray-500">screenshot: the bdd job on cli and kafka, from GitHub Actions</div>
+<img src="/images/green_gh_cicd.png" class="mt-4 rounded" alt="cicd.yaml on a pull request: ci, bdd (cli) and bdd (kafka), cd green, tag skipped">
 
 ---
 layout: image

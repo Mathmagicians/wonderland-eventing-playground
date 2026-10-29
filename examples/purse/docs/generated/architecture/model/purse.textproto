@@ -1,0 +1,19 @@
+# proto-file: hexagon.proto
+# proto-message: Story
+
+name: "Purse Story"
+base_package: "dk.mathmagicians.playground.confluent.stories.purse"
+port { name: "KnowWhatIsLeft"  implements: "Story" }
+hears {
+  payload: "Transaction"
+  scenario: "alices_purse_knows_what_is_left.feature:9"
+  scenario: "alices_purse_knows_what_is_left.feature:24"
+}
+depends_on: "application"
+depends_on: "domain"
+annotated { type: "package-info"  annotation: "@Module"  value: "Purse Story" }
+annotated { type: "KnowWhatIsLeft"  annotation: "@PrimaryPort" }
+annotated { type: "PurseStory"  annotation: "@AutoConfiguration" }
+annotated { type: "PurseStory"  annotation: "@EnableConfigurationProperties"  value: "PurseProperties" }
+annotated { type: "PurseStory.purse"  annotation: "@Bean"  value: "KnowWhatIsLeft" }
+annotated { type: "PurseProperties"  annotation: "@ConfigurationProperties"  value: "purse" }
