@@ -1,6 +1,6 @@
 # Automation
 
-The tasks of each feature in the [catalog](release-0.0.7.md), each with its owner and the scenario it turns green,
+The tasks of each feature in the [catalog](release-spec-0.0.7.md), each with its owner and the scenario it turns green,
 and the core snippets. One go per change. The evidence of Spec green, the green run and the ADRs a feature touches,
 is linked from the feature's row in the catalog.
 

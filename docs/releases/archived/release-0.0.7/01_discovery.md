@@ -1,6 +1,6 @@
 # Discovery
 
-The example map of each feature in the [catalog](release-0.0.7.md): its story, its rules with examples, its
+The example map of each feature in the [catalog](release-spec-0.0.7.md): its story, its rules with examples, its
 questions, and the decisions it raises for [docs/adr.md](../../adr.md).
 
 ## Messaging capability: cli, kafka, confluent

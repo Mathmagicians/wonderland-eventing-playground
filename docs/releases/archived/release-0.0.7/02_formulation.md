@@ -1,7 +1,7 @@
 # Formulation
 
 Each feature's scenarios and architecture rules, by link, and the step skeletons, for the features of the
-[catalog](release-0.0.7.md) that passed Examples agreed. The evidence of Spec signed, the red run, is linked from the
+[catalog](release-spec-0.0.7.md) that passed Examples agreed. The evidence of Spec signed, the red run, is linked from the
 feature's row in the catalog.
 
 ## Messaging capability: cli, kafka, confluent
