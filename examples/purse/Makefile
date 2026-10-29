@@ -5,6 +5,6 @@
 IMAGE := purse
 # the platform's targets: this checkout's, or a copy of the file next to a build outside it
 PLATFORM_MK ?= ../../platform.mk
-# where .env.<ENV>.private lives: the platform's root while the example sits inside it
+# where .env.<TRANSPORT>-<ENV>.private lives: the platform's root while the example sits inside it
 ENV_DIR := ../..
 include $(PLATFORM_MK)

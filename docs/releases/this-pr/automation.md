@@ -34,7 +34,7 @@ at [EventingPlatform.java:12](../../../platform/src/main/java/dk/mathmagicians/p
 as `Topics` is. Spring Boot reports the failed binding as `APPLICATION FAILED TO START` with the message:
 
 ```java
-/// The Confluent Cloud keys, by the names of `.env.<ENV>.private` and the GitHub environments. Startup fails naming
+/// The Confluent Cloud keys, by the names of `.env.confluent-<ENV>.private` and the GitHub environments. Startup fails naming
 /// every variable that is missing.
 @ConfigurationProperties("confluent")
 @Profile("confluent")
@@ -104,8 +104,11 @@ from `make bdd`, and on `kafka` the universe's network and the addresses on it, 
 [GeneratorContainer.java](../../../platform/src/testFixtures/java/dk/mathmagicians/playground/confluent/eventing/bdd/GeneratorContainer.java)
 puts every container of the image on the suite's transport, the story's in
 [StoryContainer.java](../../../platform/src/testFixtures/java/dk/mathmagicians/playground/confluent/eventing/bdd/StoryContainer.java)
-too; `ClusterTransport` plays on `kafka`, Confluent Cloud through the group. The keys of `.env.<ENV>.private` go
-to a story on `confluent` only, `WITH_KEYS` in [platform.mk](../../../platform.mk).
+too; `ClusterTransport` plays on `kafka`, Confluent Cloud through the group. A transport's keys are its
+environment's, `<transport>-<env>`: on GitHub the environment, locally `.env.<transport>-<env>.private`,
+`WITH_KEYS` in [platform.mk](../../../platform.mk), which drops a variable the environment exports empty; `cli`
+and `kafka` have neither. The `bdd` job plays every transport of `CI_TRANSPORTS` to the end, `fail-fast: false`
+in [cicd.yaml](../../../.github/workflows/cicd.yaml), each with its summary and report.
 
 - `CI_TRANSPORTS := cli kafka` in [platform.mk](../../../platform.mk), the universe on the runner for the `bdd`
   job; `confluent` stays beside it, commented out, out of trial credits. Done 2026-10-29. The purse's cicd plays

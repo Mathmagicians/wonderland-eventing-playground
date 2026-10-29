@@ -40,7 +40,7 @@ dependencies {
     testFixturesApi 'com.tngtech.archunit:archunit-junit5:1.5.0' // not in the Boot BOM, 2026-09-07
     testFixturesApi platform('org.springframework.modulith:spring-modulith-bom:2.1.1') // not in the Boot BOM, 2026-09-08
     testFixturesApi 'org.springframework.modulith:spring-modulith-starter-test'
-    testFixturesApi 'dk.mathmagicians.playground:architecture-discovery:latest.integration' // ours, the newest published, see architecture-discovery/
+    testFixturesApi 'dk.mathmagicians.playground:architecture-discovery:latest.integration' // this repository's, the newest published, see architecture-discovery/
 }
 
 protobuf {

@@ -38,7 +38,7 @@ tasks.register('nextVersion') {
     doLast { println next }
 }
 
-// our own libraries live on GitHub Packages, which needs a token even to read: GITHUB_ACTOR and GITHUB_TOKEN from
+// the repository's own libraries live on GitHub Packages, which needs a token even to read: GITHUB_ACTOR and GITHUB_TOKEN from
 // the environment, CI's or gh's; the same repository resolves them and receives them
 def githubPackages = {
     name = 'GitHubPackages'
@@ -64,7 +64,7 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
     repositories {
         mavenCentral()
         maven { url = 'https://packages.confluent.io/maven/' } // the Schema Registry client and the Protobuf serializer
-        // our own libraries: the developer loop installs them locally, make platform-install and discovery-install,
+        // the repository's own libraries: the developer loop installs them locally, make platform-install and discovery-install,
         // taken first; CI publishes them to GitHub Packages
         mavenLocal {
             content { includeGroup ourGroup }
@@ -83,7 +83,7 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
         }
     }
 
-    // our libraries float: the newest published version, and a re-published snapshot, are looked up on every build
+    // the repository's own libraries float: the newest published version, and a re-published snapshot, are looked up on every build
     configurations.configureEach {
         resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
         resolutionStrategy.cacheChangingModulesFor 0, 'seconds'

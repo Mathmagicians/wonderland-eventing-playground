@@ -25,6 +25,6 @@ tasks.named('bdd') {
     mustRunAfter subprojects.collect { "${it.path}:bdd" }
 }
 
-// the root has no main code: no jar, and no unit tests until the features' drivers bring theirs
+// the root has no main code, so no jar, and no unit tests: the features under src/test are its tests, run by bdd
 tasks.named('jar') { enabled = false }
 tasks.named('test') { failOnNoDiscoveredTests = false }

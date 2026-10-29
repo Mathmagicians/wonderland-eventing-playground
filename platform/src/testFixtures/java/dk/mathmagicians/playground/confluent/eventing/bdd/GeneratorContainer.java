@@ -30,7 +30,7 @@ public class GeneratorContainer {
     /// `<transport>,<env>`, the profiles the Gradle `bdd` task gives the suite
     static final String PROFILES = System.getProperty("spring.profiles.active");
 
-    /// What the image reads, by the names of `.env.<ENV>.private` and the GitHub environments, passed through
+    /// What the image reads, by the names of `.env.<transport>-<env>.private` and the GitHub environments, passed through
     private static final List<String> CREDENTIALS =
             List.of(
                     "KAFKA_BOOTSTRAP_SERVERS",

@@ -36,7 +36,7 @@ jobs:
           java-version: 25
       - uses: gradle/actions/setup-gradle@v6
         with:
-          add-job-summary: never   # the job summary carries our own tables only
+          add-job-summary: never   # the job summary carries the tables the steps write, nothing from the action
       - name: the transports bdd plays
         id: transports
         run: echo "list=$(make -s ci-transports)" >> "$GITHUB_OUTPUT"
@@ -69,6 +69,8 @@ jobs:
   bdd:
     needs: ci
     strategy:
+      # every transport finishes and reports; one red transport fails the job without hiding the others
+      fail-fast: false
       matrix:
         transport: ${{ fromJSON(needs.ci.outputs.transports) }}
     runs-on: ubuntu-latest

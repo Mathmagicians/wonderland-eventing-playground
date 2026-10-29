@@ -5,8 +5,10 @@
 - Every workflow step is a `make` target, so what runs on GitHub is what runs on a developer machine. `make help`
   is built from the `##` comments, sections from `##@` lines; every target carries one.
 - Recipes start with `@`. `make -n <target>` shows a recipe when it matters.
-- `WITH_ENV` sources `.env.<ENV>.private` into the one command that needs it, `ENV` defaulting to `test`. A
-  variable passed on the command line, `make docker-smoke ENV=prod`, reaches the sub-make.
+- `WITH_KEYS` drops the variables the environment exports empty and sources `.env.<TRANSPORT>-<ENV>.private` into
+  the one command that needs it, `TRANSPORT` defaulting to `cli`, `ENV` to `test`; `WITH_ENV` is the sourcing alone,
+  for the Confluent Cloud targets, which pin `TRANSPORT := confluent`. A variable passed on the command line,
+  `make docker-smoke ENV=prod`, reaches the sub-make.
 - `VERSION` is Gradle's, evaluated once on first use through `$(eval ...)`; a target name that needs it would
   evaluate it on every invocation, so targets with a version in their name go through a sub-make or, better, do not
   exist.

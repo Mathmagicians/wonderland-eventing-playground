@@ -33,11 +33,11 @@ questions, and the decisions it raises for [docs/adr.md](../../adr.md).
   run.
 - `make kafka-universe-down`: the broker, the registry, and the viewer stop, and what they held is gone.
 
-### Rule: on confluent the keys come from .env.ENV.private, and startup checks them
-- `make run-tiny TRANSPORT=confluent` without `.env.test.private`: `APPLICATION FAILED TO START`, naming each
+### Rule: on confluent the keys come from .env.confluent-ENV.private, and startup checks them
+- `make run-tiny TRANSPORT=confluent` without `.env.confluent-test.private`: `APPLICATION FAILED TO START`, naming each
   missing variable, exit code 1.
 - with `KAFKA_API_SECRET` alone missing: the message names `KAFKA_API_SECRET`.
-- with the keys `.env.test.private` holds, which the cluster rejects: see question 2.
+- with the keys `.env.confluent-test.private` holds, which the cluster rejects: see question 2.
 
 **Questions**
 1. A process that names an environment alone, `SPRING_PROFILES_ACTIVE=test`: Spring's own failure for the missing

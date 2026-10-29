@@ -12,7 +12,7 @@ The plan is the review, the human approves it, and nothing in the code second-gu
 
 - VCS-driven on `main`. A CLI apply is refused; `make tf-plan` is a speculative plan, the apply is the merge.
   `make tf-check` depends on `tf-init`, so it needs the workspace too.
-- `cloud {}` stays empty; `TF_CLOUD_ORGANIZATION` and `TF_WORKSPACE` name the workspace, from `.env.test.private`
+- `cloud {}` stays empty; `TF_CLOUD_ORGANIZATION` and `TF_WORKSPACE` name the workspace, from `.env.confluent-test.private`
   locally and the `terraform-cloud` GitHub environment in CI. The token is `terraform login` once locally,
   `TF_TOKEN_app_terraform_io` in CI, the CLI's rule `TF_TOKEN_<hostname>`.
 - Data plane only. The workspace holds the cluster, the registry, the environment, the compute pool, the principal,

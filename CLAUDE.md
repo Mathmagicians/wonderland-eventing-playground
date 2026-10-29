@@ -55,9 +55,10 @@ finding to report.
   `stash`, `tag`, branch deletes and renames, `clean`, `config`, `remote`, and the rest of the write surface.
 - **GitHub through `gh`.** Allowed: viewing PRs, issues, workflows, and runs, and `workflow run`, `run watch`,
   `run rerun`. Denied: `pr create`, `pr merge`, `release`, `repo`.
-- **Credentials.** `.env.test.private` and `.env.prod.private` hold the human's Confluent credentials. Denied:
+- **Credentials.** `.env.<transport>-<env>.private`, today `.env.confluent-test.private` and
+  `.env.confluent-prod.private`, holds the human's keys for a transport. Denied:
   `Read` and `Edit` on `.env*`, `Edit` covering `Write`, and `cat`, `head`, `tail`, `less`, `more`, `source`, `.` on them. `make`
-  sources the file for `ENV` into the command it runs, so the values are never in your environment either.
+  sources the file for `TRANSPORT` and `ENV` into the command it runs, so the values are never in your environment either.
 - **File changes** go through the `Edit` and `Write` tools, one diff at a time, for the human to approve.
 
 ## Documentation rules
@@ -70,6 +71,8 @@ These apply to everything you write into the repository, this file included.
   the team.
 - A standard decided in conversation becomes a rule when the human writes it into the README. Supply the wording,
   they place it.
+- A comment in the code follows the `code-comments` skill: what the code does and the fact it cannot say, no
+  process, no people, no fluff.
 
 ## Review protocol
 

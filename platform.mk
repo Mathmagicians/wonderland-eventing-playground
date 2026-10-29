@@ -22,26 +22,28 @@ REPO = $(shell echo $(REGISTRY)/$(IMAGE) | tr A-Z a-z)
 # the tags docker-publish pushes; the registry tag docker-run, bdd-published and git-release take
 TAGS ?= $(VERSION)
 TAG ?= latest
-# what the image reads, passed through to bdd and docker-run; locally from .env.<ENV>.private, sourced into the
-# command's shell only, in CI from the environment
+# what a story reads, the names of .env.private.sample: a transport's keys, locally from .env.<TRANSPORT>-<ENV>.private,
+# sourced into the command's shell only, in CI from the GitHub environment <transport>-<env>; a transport without
+# keys, cli, kafka, has neither
 CREDENTIALS := KAFKA_BOOTSTRAP_SERVERS KAFKA_API_KEY KAFKA_API_SECRET SCHEMA_REGISTRY_REST_ENDPOINT SCHEMA_REGISTRY_API_KEY SCHEMA_REGISTRY_API_SECRET
 ENV ?= test
-# where .env.<ENV>.private lives: here, or the repository root for a story's build inside it
+# where the file lives: here, or the repository root for a story's build inside it
 ENV_DIR ?= .
-ENV_FILE := $(ENV_DIR)/.env.$(ENV).private
-WITH_ENV := test ! -f $(ENV_FILE) || { set -a; . $(ENV_FILE); set +a; };
+ENV_FILE = $(ENV_DIR)/.env.$(TRANSPORT)-$(ENV).private
+WITH_ENV = test ! -f $(ENV_FILE) || { set -a; . $(ENV_FILE); set +a; };
+# a variable the environment exports empty, as a GitHub environment without it does, is dropped: to Spring an empty
+# is a value, not the default
+DROP_EMPTY := for v in $(CREDENTIALS); do eval "[ -n \"\$$$$v\" ] || unset $$v"; done;
 # the transports, each with the GitHub environments <transport>-test and <transport>-prod: cli, the console and the
 # log; kafka, the universe of compose.kafka.yaml; confluent, Confluent Cloud, the cluster the keys of
-# .env.<ENV>.private open, out of trial credits :); cloudflare, nothing yet
+# .env.confluent-<ENV>.private open; cloudflare, plays nothing
 TRANSPORTS := cli kafka confluent cloudflare
-# the transports CI plays, the matrix of the bdd job; cloudflare sits out until it plays
+# the transports CI plays, the matrix of the bdd job: those whose <transport>-test environment holds what they need
 CI_TRANSPORTS := cli kafka
-# CI_TRANSPORTS += confluent   out of trial credits :)
 # the transport a story plays on, one of TRANSPORTS
 TRANSPORT ?= cli
-# the keys of .env.<ENV>.private go to a story on confluent only: on kafka the universe's addresses are the
-# defaults, and the file's would point at Confluent Cloud
-WITH_KEYS := $(if $(filter confluent,$(TRANSPORT)),$(WITH_ENV))
+# the keys of TRANSPORT and ENV into the command: the environment's, then the file's
+WITH_KEYS = $(DROP_EMPTY) $(WITH_ENV)
 # the profiles a process plays: its transport and its environment
 PROFILES = $(TRANSPORT),$(ENV)
 # the kafka universe of compose.kafka.yaml, beside this file, what iac/ is for Confluent Cloud: the broker, the
@@ -56,7 +58,7 @@ KAFKA_NETWORK = $(eval KAFKA_NETWORK := $(shell $(KAFKA_COMPOSE) config --format
 FLOCK_KAFKA := KAFKA_BOOTSTRAP_SERVERS=kafka:19092 SCHEMA_REGISTRY_REST_ENDPOINT=http://registry:8081
 ON_KAFKA := $(filter kafka,$(TRANSPORT))
 NEEDS := $(if $(ON_KAFKA),kafka-universe-up)
-# the flock's environment: the profiles and the credentials from .env.<ENV>.private; on kafka the broker's addresses
+# the flock's environment: the profiles and the keys of TRANSPORT and ENV; on kafka the broker's addresses
 COMPOSE := $(WITH_KEYS) $(if $(ON_KAFKA),$(FLOCK_KAFKA)) PROFILES=$(PROFILES) VERSION=$(VERSION) docker compose
 # the scenarios bdd plays, a Cucumber tag expression; left empty, the bdd task's default
 SCENARIOS ?=

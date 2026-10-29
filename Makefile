@@ -58,6 +58,8 @@ up-tea-party: docker-image   ## the tea party of REGION, default EMEA, for TTL s
 ##@ Infrastructure, Terraform Cloud creates the topics, schemas, and Flink tables from iac/, applied on main
 # the workspace: TF_CLOUD_ORGANIZATION TF_WORKSPACE; the cluster, the registry, and their keys are its variables;
 # the token: `terraform login` once on a developer machine, TF_TOKEN_app_terraform_io in CI
+# Confluent Cloud's targets read confluent's file whatever TRANSPORT says
+tf-init tf-check tf-format tf-plan tf-output confluent-lookup flink-statements flink-verify: TRANSPORT := confluent
 tf-init:   ## download the provider and connect the workspace
 	@$(WITH_ENV) $(TF) init -input=false
 

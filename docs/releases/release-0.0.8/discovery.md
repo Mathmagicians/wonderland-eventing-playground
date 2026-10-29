@@ -45,7 +45,7 @@ through adapters of its own at the rim of the hexagon.
    `Envelope` message of `envelope.proto` in its JSON form?
 3. The schema: the Confluent framing with its schema id, base64 in the body, against a registry the platform
    reaches; or the Protobuf JSON form, checked against the platform's own descriptors?
-4. The runs: a Cloudflare account for the developer machine and for CI, its token in `.env.<ENV>.private` and a
+4. The runs: a Cloudflare account for the developer machine and for CI, its token in `.env.cloudflare-<ENV>.private` and a
    GitHub environment `cloudflare-<env>`?
 5. Pipelines: the counterpart of the `@confluent` Flink feature, the generator's JSON in an R2 table, with the
    latest value snapshot as a query over it?

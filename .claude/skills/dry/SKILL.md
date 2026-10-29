@@ -13,7 +13,7 @@ is the trigger to extract, and the question before writing anything is: where do
 | Fact | Its one home | Who refers to it |
 |---|---|---|
 | Variable names | `.env.private.sample` | Makefile, `compose.yaml`, workflows, properties, test drivers, by name |
-| Credentials | `.env.<ENV>.private`, GitHub environments, the Terraform Cloud workspace | `make` sources the file into the command it runs; nothing else reads it |
+| Credentials | `.env.<transport>-<env>.private`, the GitHub environment of the same name, the Terraform Cloud workspace | `make` sources the file into the command it runs; nothing else reads it |
 | Kafka client settings | the `kafka` profile, `application-kafka.properties` | the app, the admin client, the consumer, the registry client, through `KafkaProperties` |
 | Topic per payload | `topics.*` in the profile | `Topics`, features by the plain word, `ParameterTypes` resolves it |
 | The schema | the proto file under `src/main/proto` | protoc, Terraform, the BDD comparison |

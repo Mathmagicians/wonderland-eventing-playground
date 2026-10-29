@@ -201,8 +201,8 @@ topics. `make` takes them from `TRANSPORT`, default `cli`, and `ENV`, default `t
 | Transport   | Publishes to    | Runs from                                                                  |
 |-------------|-----------------|----------------------------------------------------------------------------|
 | `cli`       | the log         | Developer machine, no credentials; the `bdd` job on every pull request     |
-| `kafka`     | a local broker  | Developer machine, `make kafka-universe-up`, no credentials                |
-| `confluent` | Confluent Cloud | Developer machine with `.env.<ENV>.private`, `load-run.yaml`               |
+| `kafka`     | a local broker  | Developer machine, `make kafka-universe-up`, no credentials; the `bdd` job on every pull request |
+| `confluent` | Confluent Cloud | Developer machine with `.env.confluent-<ENV>.private`, `load-run.yaml`     |
 
 | Environment | Topics          | Runs from                                                                             |
 |-------------|-----------------|---------------------------------------------------------------------------------------|
@@ -216,12 +216,14 @@ topics. `make` takes them from `TRANSPORT`, default `cli`, and `ENV`, default `t
 All environment-specific values come from environment variables, bound through `${...}` placeholders in the profile
 properties files. `.env.private.sample` lists them. They live in three places:
 
-- `.env.<ENV>.private`, `ENV` being `test` or `prod`, git-ignored. `make` sources the file for `ENV`, default
-  `test`, into the command it runs.
-- The GitHub environments `confluent-test` and `confluent-prod`: the endpoints as variables, the API keys as
-  secrets. One Confluent cluster serves both, one topic prefix each. `load-run.yaml` plays in `<transport>-prod`
-  from `main` and in `<transport>-test` from any other branch; the `cli-*`, `kafka-*`, and `cloudflare-*`
-  environments start empty.
+- `.env.<transport>-<env>.private`, a transport's keys on a developer machine, named as its GitHub environment,
+  git-ignored. `make` sources the file for `TRANSPORT` and `ENV` into the command it runs, and drops a variable
+  the environment exports empty. A transport without keys, `cli`, `kafka`, has no file.
+- The GitHub environments `<transport>-test` and `<transport>-prod`, a transport's keys in CI: for `confluent`
+  the endpoints as variables, the API keys as secrets, one Confluent cluster serving both, one topic prefix each.
+  The `bdd` job plays in `<transport>-test`; `load-run.yaml` plays in `<transport>-prod` from `main` and in
+  `<transport>-test` from any other branch. The `cli-*` and `kafka-*` environments are empty, and `cloudflare-*`
+  start empty.
 - The Terraform Cloud workspace, as Terraform variables.
 
 #### IaC
@@ -232,7 +234,7 @@ holds the cluster, the Schema Registry, the environment, the compute pool, the F
 as Terraform variables, declared in `iac/variables.tf`. The
 GitHub environment `terraform-cloud` holds `TF_API_TOKEN`, `TF_CLOUD_ORGANIZATION`, and `TF_WORKSPACE` for the plan
 `iac.yaml` runs on every pull request. A developer machine runs `terraform login` once and keeps the organization
-and workspace names in `.env.test.private`.
+and workspace names in `.env.confluent-test.private`.
 
 ## Play
 The application is a container image that plays one story per process, `--story=<name>`, `load` by default. Start
