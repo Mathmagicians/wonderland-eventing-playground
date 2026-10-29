@@ -174,7 +174,7 @@ Owner: pair.
 
 ## Slides alongside
 
-Owner: pair. The deck in [slides/](../../../slides/slides.md), with `make slides-present` and `make slides-pdf`. Each
+Owner: pair. The deck in [slides/](../../../slides/slides.md), with `make slidev-present` and `make slidev-export`. Each
 feature fills its section of the deck as it lands. The talk plays from compose,
 [Slides spike](../archived/release-0.0.6/03_automation.md#slides-spike-the-talk-plays-from-compose).
 

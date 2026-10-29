@@ -163,9 +163,9 @@ only, both reach the shared adapters, which reach the domain only, and nothing i
 ├── iac/                      Terraform: topics, schemas, and Flink tables on the Confluent cluster, applied by Terraform Cloud
 ├── .github/workflows/        cicd.yaml, load-run.yaml, iac.yaml, architecture-discovery.yaml, cicd-client-example.yaml
 ├── architecture-discovery/   the library behind the hexagon diagram, and architecture-discoverability.md: its own build, its own workflow, published to GitHub Packages
-├── slides/                   the talk, Architecture Discoverability and Verification, played by compose: make slides-present
+├── slides/                   the talk, Architecture Discoverability and Verification, played by compose: make slidev-present
 └── docs/
-    ├── generated/            the architecture from the code, make arch-gen; the slides as PDF, make slides-pdf
+    ├── generated/            the architecture from the code, make arch-gen; the slides as PDF, make slidev-export
     ├── releases/             a folder per release: the overview with the catalog of its features, and one file per phase
     └── adr.md                the architecture decisions
 ```
@@ -473,8 +473,9 @@ BDD with Cucumber:
   image, no run.
 - `iac.yaml` runs on the same events as `cicd.yaml` and does its work when `iac/` changed, so it can be a required
   check while a run with nothing to do is green in seconds: `make tf-check`, then `make tf-plan`, the speculative plan
-  written to the job summary, with the credentials of the `terraform-cloud` environment. Terraform Cloud applies
-  `iac/` on `main` through its GitHub connection.
+  written to the job summary, with the credentials of the `terraform-cloud` environment; a plan against an environment
+  that is not up, its data sources failing to read, is written as disregarded and leaves the check green. Terraform
+  Cloud applies `iac/` on `main` through its GitHub connection.
 - `architecture-discovery.yaml` runs on the same events as `cicd.yaml` and does its work when
   `architecture-discovery/` changed, the same way: `make discovery-build`, then `make discovery-publish`, the
   library's snapshot to GitHub Packages, where `ci`, `bdd`, and `cd` resolve it.
