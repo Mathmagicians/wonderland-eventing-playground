@@ -21,8 +21,9 @@ method, the folders, and the other phases are in `plan-and-supervise`.
   step skeletons, each throwing `PendingException` (CLAUDE.md, Roles).
 - A check played by hand is a scenario tagged `@manual` and gets no step skeletons; `@wip` and `@manual` are the
   README's, Testing. The repository's own features, the tooling's, live in `src/test/resources/features/` at the root.
-- `*formulation.md` lists per feature the tasks: the feature file, the architecture rules, the skeletons, each with
-  its owner and done-when. The scenarios live in the feature files, linked by file and line.
+- `*formulation.md` opens each feature's section with the link to its feature file, `@manual` or with its steps
+  pending, so the card carries it, then lists the tasks: the architecture rules, the skeletons, each with its owner
+  and done-when. The scenarios live in the feature files, linked by file and line.
 
 ## Gate: Spec signed
 
@@ -31,6 +32,7 @@ and themathmagician signs off.
 
 | Check | How |
 |---|---|
+| The spec is a feature file, linked from the feature's section | the file exists, `@manual` or with its steps' skeletons, and `*formulation.md` opens the section with its link, so the card carries it |
 | Each example of the map is a scenario | the feature file read against the map |
 | Each new step is defined, a skeleton throwing `PendingException` | `make bdd-snippets` finds every step defined |
 | The new scenarios and architecture rules run red for the reason they name; the existing ones stay green | the output of `make bdd` and `make arch-verify`; a `@manual` scenario has no run |

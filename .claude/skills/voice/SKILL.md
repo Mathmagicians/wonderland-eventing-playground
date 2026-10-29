@@ -15,6 +15,8 @@ Every file outside `.claude/` reads as written by the team, once, in the present
 - Once. A fact lives in its home, see `/dry`, and every other place refers to it by name. No remarks about where
   a version comes from, no tool names in the team's files, no restated rules in comments.
 - Agents, Claude, and `CLAUDE.md` are mentioned in `.claude/` and `CLAUDE.md` only.
+- A comment in the code follows `/code-comments`: what the code does and the fact it cannot say, no process, no
+  people, no fluff.
 - A legend explains a diagram's arrows. Prose points at the legend in one line and never restates it.
 - The README is the human's: voice, structure, wording. Plumbing that changes what it says supplies the lines to
   add, a table row, a command, a variable name; once the human agrees them, Claude writes them in, word for word.

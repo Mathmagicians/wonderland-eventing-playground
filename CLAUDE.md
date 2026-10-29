@@ -46,18 +46,19 @@ When unsure which bucket something is in, it is theirs. Ask in one line.
 
 ## Security settings
 
-`.claude/settings.json` is the human's guard on you. Only the human edits it; the file denies you `Edit` and
-`Write` on itself, `tee` into `.claude/`, and in-place `sed` and `perl`. A rule that blocks a task is a finding to
-report.
+`.claude/settings.json` is the human's guard on you. Only the human edits it; the file denies you `Edit` on itself,
+a rule that covers `Write` too, `tee` into `.claude/`, and in-place `sed` and `perl`. A rule that blocks a task is a
+finding to report.
 
 - **Git is read-only.** Allowed: `status`, `diff`, `log`, `show`, `ls-files`, listing branches. Denied: `add`,
   `commit`, `push`, `pull`, `fetch`, `merge`, `rebase`, `reset`, `restore`, `rm`, `mv`, `checkout`, `switch`,
   `stash`, `tag`, branch deletes and renames, `clean`, `config`, `remote`, and the rest of the write surface.
 - **GitHub through `gh`.** Allowed: viewing PRs, issues, workflows, and runs, and `workflow run`, `run watch`,
   `run rerun`. Denied: `pr create`, `pr merge`, `release`, `repo`.
-- **Credentials.** `.env.test.private` and `.env.prod.private` hold the human's Confluent credentials. Denied:
-  `Read`, `Edit`, `Write` on `.env*`, and `cat`, `head`, `tail`, `less`, `more`, `source`, `.` on them. `make`
-  sources the file for `ENV` into the command it runs, so the values are never in your environment either.
+- **Credentials.** `.env.<transport>-<env>.private`, today `.env.confluent-test.private` and
+  `.env.confluent-prod.private`, holds the human's keys for a transport. Denied:
+  `Read` and `Edit` on `.env*`, `Edit` covering `Write`, and `cat`, `head`, `tail`, `less`, `more`, `source`, `.` on them. `make`
+  sources the file for `TRANSPORT` and `ENV` into the command it runs, so the values are never in your environment either.
 - **File changes** go through the `Edit` and `Write` tools, one diff at a time, for the human to approve.
 
 ## Documentation rules
@@ -70,6 +71,8 @@ These apply to everything you write into the repository, this file included.
   the team.
 - A standard decided in conversation becomes a rule when the human writes it into the README. Supply the wording,
   they place it.
+- A comment in the code follows the `code-comments` skill: what the code does and the fact it cannot say, no
+  process, no people, no fluff.
 
 ## Review protocol
 

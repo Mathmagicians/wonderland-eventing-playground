@@ -73,7 +73,7 @@ resource "confluent_flink_materialized_table" "product_lvs" {
   }
   table_options = {
     "changelog.mode"       = "upsert"
-    "key.format"           = "proto-registry" # the compound key in the registry format we use everywhere; the default is Avro
+    "key.format"           = "proto-registry" # the compound key in the registry format of every topic; the default is Avro
     "value.format"         = "proto-registry"
     "value.fields-include" = "all" # region and product id in the value too, a row that stands alone
   }

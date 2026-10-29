@@ -24,7 +24,7 @@ BRANCH ?= $(shell git branch --show-current)
 # so the talk runs with it from here
 SLIDES := $(MAKE) --no-print-directory -C slides COMPOSE='cd $(CURDIR) && $(COMPOSE)'
 
-.PHONY: generated-check proto-gen proto-check run-tiny docker-smoke up-product up-offer up-order up-tea-party tf-init tf-check tf-format tf-plan tf-output confluent-lookup flink-statements flink-verify discovery-build discovery-install discovery-publish platform-install platform-publish slides-present slides-pdf git-tag git-release gh-main-protection gh-project-sync
+.PHONY: generated-check proto-gen proto-check run-tiny docker-smoke up-product up-offer up-order up-tea-party tf-init tf-check tf-format tf-plan tf-output tf-state-forget confluent-lookup flink-statements flink-verify discovery-build discovery-install discovery-publish platform-install platform-publish slidev-present slidev-export git-tag git-release gh-main-protection gh-project-sync
 
 ##@ Generated code and documents
 generated-check: proto-check arch-check   ## fail when generated code or documents are stale
@@ -58,6 +58,8 @@ up-tea-party: docker-image   ## the tea party of REGION, default EMEA, for TTL s
 ##@ Infrastructure, Terraform Cloud creates the topics, schemas, and Flink tables from iac/, applied on main
 # the workspace: TF_CLOUD_ORGANIZATION TF_WORKSPACE; the cluster, the registry, and their keys are its variables;
 # the token: `terraform login` once on a developer machine, TF_TOKEN_app_terraform_io in CI
+# Confluent Cloud's targets read confluent's file whatever TRANSPORT says
+tf-init tf-check tf-format tf-plan tf-output tf-state-forget confluent-lookup flink-statements flink-verify: TRANSPORT := confluent
 tf-init:   ## download the provider and connect the workspace
 	@$(WITH_ENV) $(TF) init -input=false
 
@@ -73,6 +75,10 @@ tf-plan: tf-init   ## the speculative plan, no colour for logs
 
 tf-output: tf-init   ## the facts of the workspace; OUTPUT=<name> for one, as JSON
 	@$(WITH_ENV) $(TF) output $(if $(OUTPUT),-json $(OUTPUT))
+
+tf-state-forget: tf-init   ## forget every resource in the state without touching the cluster, the way down from an environment that is gone; refuses without DELETEIT=yes
+	@$(WITH_ENV) [ "$(DELETEIT)" = yes ] || { echo "tf-state-forget empties the state of workspace $$TF_WORKSPACE; run it with DELETEIT=yes" >&2; exit 1; }; \
+	  $(TF) state list | tr '\n' '\0' | xargs -0 $(TF) state rm
 
 confluent-lookup:   ## the ids the workspace variables want, from the management API with the Cloud API key
 	@$(WITH_ENV) lookup() { printf '\n== %s\n' "$$1"; curl -sS --fail-with-body -u "$$CLOUD_API_KEY:$$CLOUD_API_SECRET" "$(CONFLUENT_API)$$2" | jq -r "$$3"; }; \
@@ -123,11 +129,11 @@ platform-publish:  ## the platform, its test fixtures, and the stories to GitHub
 	@$(WITH_GH) $(GRADLE) publish --no-configuration-cache
 
 ##@ Slides, the talk in slides/, played by the slides service of compose.yaml
-slides-present:   ## the talk on localhost:3030, opened in the browser, live reload and presenter notes
+slidev-present:   ## the talk on localhost:3030, opened in the browser, live reload and presenter notes
 	@$(SLIDES) present
 
-slides-pdf:   ## write the talk to docs/generated/slides/architecture-discoverability.pdf
-	@$(SLIDES) pdf
+slidev-export:   ## write the talk to docs/generated/slides/architecture-discoverability.pdf
+	@$(SLIDES) export
 
 ##@ Repository, git tags and GitHub settings
 git-tag:   ## tag v<RELEASE> on HEAD and push it; RELEASE defaults to the next version
@@ -144,5 +150,5 @@ gh-main-protection:   ## apply .github/branch-protection.json to main, and .gith
 	    || gh api --method POST repos/$(GITHUB_REPO)/environments/$$t-prod/deployment-branch-policies -f name=main -f type=branch --silent; \
 	done
 
-gh-project-sync:   ## the board follows the release plans on BRANCH, see .github/project-sync.sh
+gh-project-sync:   ## the board follows the release plans on BRANCH, the archived ones on main, see .github/project-sync.sh
 	@.github/project-sync.sh $(GITHUB_REPO) $(BRANCH)

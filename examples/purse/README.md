@@ -66,9 +66,9 @@ make up            # the image from compose.yaml, OWNERS and TTL as environment 
 make help          # every target
 ```
 
-On `TRANSPORT=confluent` the credentials of the test cluster come from `.env.test.private`, the platform's
+On `TRANSPORT=confluent` the keys of the test cluster come from `.env.confluent-test.private`, the platform's
 `.env.private.sample` lists them; `ENV_DIR` in the Makefile says where the file is. In CI they are in the
-environment.
+environment `confluent-test`.
 
 ## The feature
 

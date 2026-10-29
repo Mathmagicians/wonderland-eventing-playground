@@ -1,3 +1,4 @@
+@kafka
 @confluent
 Feature: The cluster has my topics and schemas
   One topic per payload type, its dead-letter twin, and the Protobuf schema registered for each topic. Terraform
@@ -20,6 +21,7 @@ Feature: The cluster has my topics and schemas
       | orders       | Order       | order.proto       |
       | transactions | Transaction | transaction.proto |
 
+    @confluent
   Scenario Outline: A Flink table set up with IaC is on the cluster, with its schema
     Then the topic <Table> exists
     And a Protobuf schema is registered for the topic <Table>

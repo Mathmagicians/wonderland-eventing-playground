@@ -1,0 +1,41 @@
+/* Footnotes: [^1] in the text and `[^1]: the note` below it, numbered per slide. Small, muted, at the foot of the
+   slide, without the separator and the return arrows. */
+.slidev-layout .footnotes-sep {
+    display: none;
+}
+
+.slidev-layout .footnotes {
+    position: absolute;
+    left: 3.5rem;
+    right: 3.5rem;
+    bottom: 1.5rem;
+    font-size: 0.7rem;
+    font-style: italic;
+    font-weight: 300;
+    opacity: 0.6;
+}
+
+.slidev-layout .footnotes-list {
+    margin: 0;
+    padding-left: 1em;
+}
+
+.slidev-layout .footnote-item p {
+    margin: 0;
+}
+
+.slidev-layout .footnote-backref {
+    display: none;
+}
+
+/* The reference in the text, [^1]: a small superscript, without the link underline. */
+.slidev-layout .footnote-ref {
+    font-size: 0.55em;
+    vertical-align: super;
+    opacity: 0.6;
+}
+
+.slidev-layout .footnote-ref a {
+    border-bottom: none;
+    text-decoration: none;
+}

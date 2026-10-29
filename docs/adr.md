@@ -36,3 +36,20 @@ text; a decision that replaces it is a new entry, and the earlier entry's status
   `CI_TRANSPORTS`. On `cli` the features of the cluster and the Flink table sit out; they play on `confluent` from a
   developer machine. `cicd-client-example.yaml` plays the purse on `cli` in `cli-test`.
 - **Enforced by:** `make ci-transports`, and review of `cicd.yaml` and `cicd-client-example.yaml`.
+
+### ADR-002 A platform step opens with Wonderland and names its hexagon element
+
+- **Date:** 2026-10-24
+- **Status:** Accepted
+- **Context:** The platform ships the shared steps of the BDD suite, and a client's feature mixes them with its
+  own. A reader cannot tell which lines the client defines, and nothing measures how much of a feature the platform
+  carries.
+- **Decision:** A step the platform ships opens with `Wonderland` and names the element of the hexagon it drives,
+  in the present tense: `Wonderland is reachable`, the rim; `Wonderland hears on the stream of <payloads>:`, what
+  the story hears; `Wonderland's story <name> reads the stream of <payloads>`, the driving port; `Wonderland
+  publishes <payloads> to the topic`, the driven port; `Wonderland has the topic`, the schema, the table, Confluent
+  Cloud. A client's step never opens with `Wonderland`. `make bdd-reuse` counts the lines per element from
+  `cucumber.json`, and the `bdd` job prints the table in its summary.
+- **Consequences:** Every feature in the repository and the purse's are rewritten, the features first, then the
+  step patterns. A line whose opening and glue disagree fails `make bdd`.
+- **Enforced by:** `make bdd-reuse`, the check of opening against glue; review of the feature files.

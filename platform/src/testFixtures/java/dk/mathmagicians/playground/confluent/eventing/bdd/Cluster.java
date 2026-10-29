@@ -182,7 +182,8 @@ public class Cluster {
                 .toList();
     }
 
-    /// The API keys open the cluster: the cheapest authenticated call answers with the cluster id.
+    /// The API keys open the cluster: describeCluster, an authenticated call that needs no topic, answers with
+    /// the cluster id.
     void assertReachable() {
         assertThat(await(client.describeCluster().clusterId())).isNotBlank();
     }

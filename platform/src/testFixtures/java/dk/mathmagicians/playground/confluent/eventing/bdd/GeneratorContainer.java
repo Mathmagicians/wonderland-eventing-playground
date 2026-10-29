@@ -30,7 +30,7 @@ public class GeneratorContainer {
     /// `<transport>,<env>`, the profiles the Gradle `bdd` task gives the suite
     static final String PROFILES = System.getProperty("spring.profiles.active");
 
-    /// What the image reads, by the names of `.env.<ENV>.private` and the GitHub environments, passed through
+    /// What the image reads, by the names of `.env.<transport>-<env>.private` and the GitHub environments, passed through
     private static final List<String> CREDENTIALS =
             List.of(
                     "KAFKA_BOOTSTRAP_SERVERS",
@@ -39,6 +39,12 @@ public class GeneratorContainer {
                     "SCHEMA_REGISTRY_REST_ENDPOINT",
                     "SCHEMA_REGISTRY_API_KEY",
                     "SCHEMA_REGISTRY_API_SECRET");
+
+    /// The network of the kafka universe and the broker's and registry's addresses on it, `bdd.network` and
+    /// `bdd.flock` from the Gradle `bdd` task on kafka; empty on the other transports
+    static final String NETWORK = System.getProperty("bdd.network", "");
+
+    static final Map<String, String> FLOCK = flock(System.getProperty("bdd.flock", ""));
 
     /// The publisher's receipt line is at DEBUG
     private static final String RECEIPTS_AT_DEBUG = "--logging.level.dk.mathmagicians=DEBUG";
@@ -73,9 +79,8 @@ public class GeneratorContainer {
 
     private List<Receipt> run(String type, String region, List<String> load) {
         try (var generator = new GenericContainer<>(IMAGE)) {
+            onTransport(generator);
             generator
-                    .withEnv(credentials())
-                    .withEnv("SPRING_PROFILES_ACTIVE", PROFILES)
                     .withCommand(command(type, region, load))
                     .withStartupCheckStrategy(new OneShotStartupCheckStrategy().withTimeout(TIMEOUT))
                     .withLogConsumer(new Slf4jLogConsumer(log))
@@ -96,6 +101,29 @@ public class GeneratorContainer {
         assertThat(receipt.envelopeId()).isNotBlank();
         assertThat(receipt.partition()).isNotNegative();
         assertThat(receipt.offset()).isNotNegative();
+    }
+
+    /// A container of the image on the suite's transport: its profiles, the credentials the environment has, and
+    /// on kafka the universe's network with the broker's and registry's addresses on it.
+    static void onTransport(GenericContainer<?> container) {
+        container.withEnv(credentials());
+        container.withEnv(FLOCK);
+        container.withEnv("SPRING_PROFILES_ACTIVE", PROFILES);
+        if (!NETWORK.isBlank()) {
+            container.withNetworkMode(NETWORK);
+        }
+    }
+
+    /// `NAME=value` pairs separated by blanks, as make passes them
+    private static Map<String, String> flock(String pairs) {
+        var env = new HashMap<String, String>();
+        for (var pair : pairs.trim().split("\\s+")) {
+            var separator = pair.indexOf('=');
+            if (separator > 0) {
+                env.put(pair.substring(0, separator), pair.substring(separator + 1));
+            }
+        }
+        return env;
     }
 
     /// The credentials the environment has, for any container of the image; a transport that needs one the

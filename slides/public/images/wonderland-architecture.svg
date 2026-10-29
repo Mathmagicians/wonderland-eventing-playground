@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <!-- chalk: small warp of the stroke plus speckled alpha -->
+    <filter id="chalk" filterUnits="userSpaceOnUse" x="0" y="0" width="1600" height="900">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="4" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="wobbly"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" seed="9" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 2.5 -0.5" result="speckle"/>
+      <feComposite in="wobbly" in2="speckle" operator="in"/>
+    </filter>
+    <!-- the entrance and exit signs of the ports -->
+    <g id="sign">
+      <circle cx="16" cy="15" r="4" fill="#ffffff" stroke="none"/>
+      <path d="M19,21 L27,32 M20,22 L13,28 M20,22 L29,20 M27,32 L35,38 L33,46 M27,32 L19,39 L14,37"/>
+      <rect x="39" y="10" width="11" height="36" fill="#ffffff" stroke="none"/>
+    </g>
+  </defs>
+
+  <!-- column headers -->
+  <g text-anchor="middle">
+    <text x="235" y="250" font-size="24" font-weight="700" fill="#2b6cb0">Driving adapters</text>
+    <text x="235" y="278" font-size="15" fill="#6b7280">they start a story and feed it</text>
+    <text x="1385" y="250" font-size="24" font-weight="700" fill="#1b9e4f">Driven adapters</text>
+    <text x="1385" y="278" font-size="15" fill="#6b7280">where a story publishes</text>
+  </g>
+
+  <!-- application hexagon -->
+  <path d="M800,150 L540,300 L540,600 L800,750 L1060,600 L1060,300 Z" fill="#dcecee" stroke="#1f6f78" stroke-width="3"/>
+  <g text-anchor="middle">
+    <text x="800" y="218" font-size="30" font-weight="700" fill="#1f6f78">Application</text>
+    <text x="800" y="246" font-size="15" fill="#3f7a82">use cases: the stories</text>
+    <text x="800" y="266" font-size="14" fill="#3f7a82">GenerateLoad · SettleAtTheTeaParty · KnowWhatIsLeft</text>
+    <text x="800" y="650" font-size="14" font-style="italic" fill="#3f7a82">ports: Story, every story's contract</text>
+    <text x="800" y="670" font-size="14" font-style="italic" fill="#3f7a82">PublishMessage · Publisher</text>
+  </g>
+
+  <!-- domain hexagon -->
+  <path d="M800,280 L653,365 L653,535 L800,620 L947,535 L947,365 Z" fill="#1f6f78"/>
+  <g text-anchor="middle">
+    <text x="800" y="442" font-size="34" font-weight="700" fill="#ffffff">Domain</text>
+    <text x="800" y="474" font-size="15" fill="#e6f2f3">Product · Offer · Order · Transaction</text>
+    <text x="800" y="500" font-size="15" fill="#e6f2f3">Envelope · Receipt · Wonderland</text>
+  </g>
+
+  <!-- the rabbit of make help, the platform's logo -->
+  <text font-family="Menlo, 'DejaVu Sans Mono', monospace" font-size="26" font-weight="700" fill="#ffffff" xml:space="preserve"><tspan x="730" y="335">   (\ /)</tspan><tspan x="730" y="362">   ( . .)</tspan><tspan x="730" y="389">  c(")(")</tspan></text>
+
+  <!-- the driving port, Story: one entrance sign -->
+  <g fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(512,422)">
+      <rect width="56" height="56" rx="7" fill="#2b6cb0" stroke="#163d66" stroke-width="2"/>
+      <use href="#sign"/>
+    </g>
+  </g>
+  <text x="540" y="500" font-size="14" font-weight="600" fill="#163d66" text-anchor="middle">Story</text>
+
+  <!-- the driven port, Publisher: one exit sign -->
+  <g fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(1032,422)">
+      <rect width="56" height="56" rx="7" fill="#1b9e4f" stroke="#0f5e2e" stroke-width="2"/>
+      <use href="#sign"/>
+    </g>
+  </g>
+  <text x="1060" y="500" font-size="14" font-weight="600" fill="#0f5e2e" text-anchor="middle">Publisher</text>
+
+  <!-- driving adapters (elongated hexagons, centre x=235) -->
+  <g fill="#dbe7f5" stroke="#2b6cb0" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M115,340 L147,302 L323,302 L355,340 L323,378 L147,378 Z"/>
+    <path d="M115,450 L147,412 L323,412 L355,450 L323,488 L147,488 Z"/>
+    <path d="M115,560 L147,522 L323,522 L355,560 L323,598 L147,598 Z"/>
+  </g>
+  <g fill="#163d66" text-anchor="middle">
+    <text x="235" y="337" font-size="19" font-weight="500">StoryRunner</text>
+    <text x="235" y="359" font-size="13">the command line, --story</text>
+    <text x="235" y="447" font-size="19" font-weight="500">ConsoleListener</text>
+    <text x="235" y="469" font-size="13">the console, cli</text>
+    <text x="235" y="557" font-size="19" font-weight="500">StoryListener</text>
+    <text x="235" y="579" font-size="13">the topics, Kafka</text>
+  </g>
+
+  <!-- driven adapters (elongated hexagons, centre x=1385) -->
+  <g fill="#d8f0e1" stroke="#1b9e4f" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M1265,395 L1297,357 L1473,357 L1505,395 L1473,433 L1297,433 Z"/>
+    <path d="M1265,505 L1297,467 L1473,467 L1505,505 L1473,543 L1297,543 Z"/>
+  </g>
+  <g fill="#0f5e2e" text-anchor="middle">
+    <text x="1385" y="392" font-size="19" font-weight="500">LoggingPublisher</text>
+    <text x="1385" y="414" font-size="13">the log, cli</text>
+    <text x="1385" y="502" font-size="19" font-weight="500">KafkaPublisher</text>
+    <text x="1385" y="524" font-size="13">Confluent Cloud</text>
+  </g>
+
+  <!-- left arrows: three adapters call the one port -->
+  <g fill="none" stroke="#3a3a3a" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#chalk)">
+    <path d="M353,340 C430,340 455,434 506,436"/>
+    <path d="M493,428 L506,436 L494,444"/>
+    <path d="M353,450 C405,453 445,446 506,450"/>
+    <path d="M494,441 L506,450 L493,458"/>
+    <path d="M353,560 C430,560 455,466 506,464"/>
+    <path d="M493,456 L506,464 L494,472"/>
+  </g>
+
+  <!-- right arrows: the port calls one of two adapters, the transport picks which -->
+  <g fill="none" stroke="#3a3a3a" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#chalk)">
+    <path d="M1094,442 C1150,440 1200,398 1259,395"/>
+    <path d="M1246,387 L1259,395 L1246,403"/>
+    <path d="M1094,458 C1150,460 1200,502 1259,505"/>
+    <path d="M1246,497 L1259,505 L1246,513"/>
+  </g>
+
+  <!-- shared adapters: what both sides of the rim use -->
+  <path d="M500,810 L532,772 L1068,772 L1100,810 L1068,848 L532,848 Z" fill="#eef0f3" stroke="#6b7280" stroke-width="2.5" stroke-linejoin="round"/>
+  <g fill="#374151" text-anchor="middle">
+    <text x="800" y="806" font-size="19" font-weight="500">Shared adapters: Converter · Topics · EnvelopeHeaders</text>
+    <text x="800" y="830" font-size="13">the Protobuf messages and the wire, used by both sides, reaching the domain only</text>
+  </g>
+  <g fill="none" stroke="#8a8f99" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#chalk)">
+    <path d="M235,600 C240,700 380,810 488,810" stroke-dasharray="11 7 15 8 9 7"/>
+    <path d="M476,802 L488,810 L476,818"/>
+    <path d="M1385,545 C1380,700 1220,810 1112,810" stroke-dasharray="11 7 15 8 9 7"/>
+    <path d="M1124,802 L1112,810 L1124,818"/>
+  </g>
+</svg>

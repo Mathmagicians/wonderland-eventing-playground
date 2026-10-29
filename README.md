@@ -24,17 +24,6 @@ generator and stream consumers, against **Confluent Cloud**.
 - Terraform + Terraform Cloud - topics, schemas, and Flink tables on Confluent Cloud, provider `confluentinc/confluent`
 - Container image - deployment unit, built with `./gradlew bootBuildImage`
 
-<table>
-  <tr>
-    <td align="center"><img src="docs/confluent.png" width="420" alt="Confluent Cloud"></td>
-    <td align="center"><img src="docs/tf.png" width="420" alt="Terraform Cloud"></td>
-  </tr>
-  <tr>
-    <td align="center">Powered by Confluent Cloud ...</td>
-    <td align="center">... and Terraform Cloud</td>
-  </tr>
-</table>
-
 ## Purpose
 
 - Playground for refreshing event-streaming fundamentals against a managed Confluent cluster: keys, partitions, ordering, idempotence, schemas.
@@ -66,12 +55,20 @@ in order, and the key picks the partition, so records with the same key stay in 
 
 <table>
   <tr>
+    <td align="center"><img src="slides/public/images/wonderland-architecture.svg" width="100%" alt="Wonderland's hexagon as planned: the stories, their ports, the adapters at the rim, and the rabbit"></td>
+  </tr>
+  <tr>
+    <td align="center">Wonderland, as planned</td>
+  </tr>
+  <tr>
     <td align="center"><img src="docs/generated/architecture/svg/hexagon.svg" width="100%" alt="The hexagon, generated from the code"></td>
   </tr>
   <tr>
     <td align="center">Diagram was <a href="architecture-discovery/architecture-discoverability.md">automatically generated</a>, with kudos to Alistair Cockburn, original: <a href="https://alistair.cockburn.us/hexagonal-architecture/">Hexagonal Architecture</a></td>
   </tr>
 </table>
+
+The talk, Architecture Discoverability and Verification: [the slides as PDF](docs/generated/slides/architecture-discoverability.pdf), played live by `make slidev-present`.
 
 ### Services
 
@@ -174,9 +171,9 @@ only, both reach the shared adapters, which reach the domain only, and nothing i
 ├── iac/                      Terraform: topics, schemas, and Flink tables on the Confluent cluster, applied by Terraform Cloud
 ├── .github/workflows/        cicd.yaml, load-run.yaml, iac.yaml, architecture-discovery.yaml, cicd-client-example.yaml
 ├── architecture-discovery/   the library behind the hexagon diagram, and architecture-discoverability.md: its own build, its own workflow, published to GitHub Packages
-├── slides/                   the talk, Architecture Discoverability and Verification, played by compose: make slides-present
+├── slides/                   the talk, Architecture Discoverability and Verification, played by compose: make slidev-present
 └── docs/
-    ├── generated/            the architecture from the code, make arch-gen; the slides as PDF, make slides-pdf
+    ├── generated/            the architecture from the code, make arch-gen; the slides as PDF, make slidev-export
     ├── releases/             a folder per release: the overview with the catalog of its features, and one file per phase
     └── adr.md                the architecture decisions
 ```
@@ -212,26 +209,29 @@ topics. `make` takes them from `TRANSPORT`, default `cli`, and `ENV`, default `t
 | Transport   | Publishes to    | Runs from                                                                  |
 |-------------|-----------------|----------------------------------------------------------------------------|
 | `cli`       | the log         | Developer machine, no credentials; the `bdd` job on every pull request     |
-| `confluent` | Confluent Cloud | Developer machine with `.env.<ENV>.private`, `load-run.yaml`               |
+| `kafka`     | a local broker  | Developer machine, `make kafka-universe-up`, no credentials; the `bdd` job on every pull request |
+| `confluent` | Confluent Cloud | Developer machine with `.env.confluent-<ENV>.private`, `load-run.yaml`     |
 
 | Environment | Topics          | Runs from                                                                             |
 |-------------|-----------------|---------------------------------------------------------------------------------------|
 | `test`      | `test.<topic>`  | Developer machine, the `bdd` job on every pull request, `load-run.yaml` from a branch |
 | `prod`      | `prod.<topic>`  | `load-run.yaml` from `main`, developer machine with `ENV=prod`                        |
 
-`kafka` and `cloudflare` are in `TRANSPORTS` of `platform.mk`, with their GitHub environments, and play nothing yet.
+`cloudflare` is in `TRANSPORTS` of `platform.mk`, with its GitHub environments, and plays nothing yet.
 
 #### Variables and secrets
 
 All environment-specific values come from environment variables, bound through `${...}` placeholders in the profile
 properties files. `.env.private.sample` lists them. They live in three places:
 
-- `.env.<ENV>.private`, `ENV` being `test` or `prod`, git-ignored. `make` sources the file for `ENV`, default
-  `test`, into the command it runs.
-- The GitHub environments `confluent-test` and `confluent-prod`: the endpoints as variables, the API keys as
-  secrets. One Confluent cluster serves both, one topic prefix each. `load-run.yaml` plays in `<transport>-prod`
-  from `main` and in `<transport>-test` from any other branch; the `cli-*`, `kafka-*`, and `cloudflare-*`
-  environments start empty.
+- `.env.<transport>-<env>.private`, a transport's keys on a developer machine, named as its GitHub environment,
+  git-ignored. `make` sources the file for `TRANSPORT` and `ENV` into the command it runs, and drops a variable
+  the environment exports empty. A transport without keys, `cli`, `kafka`, has no file.
+- The GitHub environments `<transport>-test` and `<transport>-prod`, a transport's keys in CI: for `confluent`
+  the endpoints as variables, the API keys as secrets, one Confluent cluster serving both, one topic prefix each.
+  The `bdd` job plays in `<transport>-test`; `load-run.yaml` plays in `<transport>-prod` from `main` and in
+  `<transport>-test` from any other branch. The `cli-*` and `kafka-*` environments are empty, and `cloudflare-*`
+  start empty.
 - The Terraform Cloud workspace, as Terraform variables.
 
 #### IaC
@@ -242,7 +242,7 @@ holds the cluster, the Schema Registry, the environment, the compute pool, the F
 as Terraform variables, declared in `iac/variables.tf`. The
 GitHub environment `terraform-cloud` holds `TF_API_TOKEN`, `TF_CLOUD_ORGANIZATION`, and `TF_WORKSPACE` for the plan
 `iac.yaml` runs on every pull request. A developer machine runs `terraform login` once and keeps the organization
-and workspace names in `.env.test.private`.
+and workspace names in `.env.confluent-test.private`.
 
 ## Play
 The application is a container image that plays one story per process, `--story=<name>`, `load` by default. Start
@@ -278,6 +278,37 @@ make run ARGS="--story=tea-party --tea-party.ttl="
 Offer offer_id: "OFF-1" product_id: "P-TOPH" price: 12.5 seller_id: "MAD_HATTER"
 Order id: "ORD-1" customer_id: "ALICE" product_id: "P-TOPH"
 ```
+
+## Transports: cli, the kafka universe, Confluent Cloud
+
+A story plays on one transport, `TRANSPORT`, see Environments. Where to look while it plays:
+
+| Transport | What plays | Where to look |
+|---|---|---|
+| `cli` | the console stands in for the topics: the log is where a story publishes, stdin is what it hears | the terminal |
+| `kafka` | the kafka universe, `compose.kafka.yaml`: a broker, a schema registry, a topic viewer, and the topics and schemas `iac/` gives Confluent Cloud; `make kafka-universe-up` starts it, `make kafka-universe-down` stops it | the topic viewer on [localhost:8082](http://localhost:8082), the registry on [localhost:8081/subjects](http://localhost:8081/subjects), the broker on localhost:9092 |
+| `confluent` | Confluent Cloud: the topics, schemas, and Flink tables Terraform Cloud creates from `iac/` | the Confluent Cloud console and the Terraform Cloud workspace, below; we ran out of trial credits :) |
+
+The kafka universe, `compose.kafka.yaml`, is what `iac/` is for Confluent Cloud. Its services:
+
+| Service | Image | Does | Where |
+|---|---|---|---|
+| `kafka` | `apache/kafka` | one KRaft node, broker and controller; a topic is created, never auto-created | localhost:9092, `kafka:19092` on the network |
+| `registry` | `confluentinc/cp-schema-registry` | Confluent's Schema Registry, the one Confluent Cloud runs | localhost:8081, `registry:8081` on the network |
+| `viewer` | `ghcr.io/kafbat/kafka-ui` | the topic viewer: the topics, their messages decoded through the registry, the consumer groups | localhost:8082 |
+| `topics` | `apache/kafka` | creates the topics of `ENV` and their dead-letter twins, their names and partition count from `iac/locals.tf`, then exits | |
+| `schemas` | `curlimages/curl` | registers the schemas of `src/main/proto` under their subjects, the transaction with its references, then exits | |
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/confluent.png" width="420" alt="Confluent Cloud"></td>
+    <td align="center"><img src="docs/tf.png" width="420" alt="Terraform Cloud"></td>
+  </tr>
+  <tr>
+    <td align="center">Powered by Confluent Cloud ...</td>
+    <td align="center">... and Terraform Cloud</td>
+  </tr>
+</table>
 
 ## Coding standards
 
@@ -316,9 +347,10 @@ A review finding cites the rule it breaks.
   carries the value, injected where needed.
 - Auto-configuration first. A `@Bean` method covers what auto-configuration cannot express and carries a one-line
   comment saying so.
-- Profiles are a transport, `cli` or `confluent`, and an environment, `test` or `prod`, played as
-  `<transport>,<env>`. `cli` publishes every envelope to the log at INFO and needs no credentials, `confluent`
-  publishes to Confluent Cloud. The environments differ in properties: the topic names.
+- Profiles are a transport, `cli`, `kafka`, or `confluent`, and an environment, `test` or `prod`, played as
+  `<transport>,<env>`. `cli` publishes every envelope to the log at INFO and needs no credentials, `kafka`
+  publishes to the kafka universe and needs none either, `confluent` publishes to Confluent Cloud. The
+  environments differ in properties: the topic names.
 - `application.properties` holds defaults, `application-<profile>.properties` holds the profile. Secrets are
   `${ENV_VAR}` placeholders that fail fast when unset. Everything else has a default.
 - `@SpringBootTest` serves one wiring test per service and the BDD suite.
@@ -391,6 +423,7 @@ BDD with Cucumber:
 - A feature we decide is not ready carries `@wip`, a check played by hand carries `@manual`. `make bdd` leaves both
   out, `make bdd-snippets` leaves out `@manual`, and `SCENARIOS=<tag expression>` picks others.
 - `TRANSPORT` picks the transport the features play on, and a transport plays the scenarios it carries.
+- `make bdd-matrix` plays the features once per transport of `make ci-transports`, locally what the `bdd` job plays.
 
 ### Naming and structure
 
@@ -449,8 +482,9 @@ BDD with Cucumber:
   image, no run.
 - `iac.yaml` runs on the same events as `cicd.yaml` and does its work when `iac/` changed, so it can be a required
   check while a run with nothing to do is green in seconds: `make tf-check`, then `make tf-plan`, the speculative plan
-  written to the job summary, with the credentials of the `terraform-cloud` environment. Terraform Cloud applies
-  `iac/` on `main` through its GitHub connection.
+  written to the job summary, with the credentials of the `terraform-cloud` environment; a plan against an environment
+  that is not up, its data sources failing to read, is written as disregarded and leaves the check green. Terraform
+  Cloud applies `iac/` on `main` through its GitHub connection.
 - `architecture-discovery.yaml` runs on the same events as `cicd.yaml` and does its work when
   `architecture-discovery/` changed, the same way: `make discovery-build`, then `make discovery-publish`, the
   library's snapshot to GitHub Packages, where `ci`, `bdd`, and `cd` resolve it.
@@ -472,7 +506,7 @@ and their gates, and one file per phase.
 | Phase | What happens | Gate that closes it |
 |---|---|---|
 | Discovery | example mapping: the story, its rules, an example per rule, the questions | Examples agreed |
-| Formulation | the examples become Gherkin scenarios and architecture rules, the steps pending | Spec signed |
+| Formulation | the examples become a feature file, `@manual` or with its steps pending, and architecture rules; the feature's section of the plan links the file | Spec signed |
 | Automation | step bodies, drivers, unit tests, code, and plumbing turn the spec green | Spec green, the ADRs complied with |
 | Verification | the release checks on the pull request, then Wonderland in each of its environments | In production |
 

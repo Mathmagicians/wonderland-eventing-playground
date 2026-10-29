@@ -38,7 +38,7 @@ tasks.register('nextVersion') {
     doLast { println next }
 }
 
-// our own libraries live on GitHub Packages, which needs a token even to read: GITHUB_ACTOR and GITHUB_TOKEN from
+// the repository's own libraries live on GitHub Packages, which needs a token even to read: GITHUB_ACTOR and GITHUB_TOKEN from
 // the environment, CI's or gh's; the same repository resolves them and receives them
 def githubPackages = {
     name = 'GitHubPackages'
@@ -49,8 +49,9 @@ def githubPackages = {
     }
 }
 
-// the rest is for a project with code: a subproject here, the root of a story's build
-if (project != rootProject || subprojects.isEmpty()) {
+// the rest is for a project with code: a subproject here, the root of a story's build, and the root of this build,
+// whose code is its own features under src/test
+if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()) {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
 
@@ -63,7 +64,7 @@ if (project != rootProject || subprojects.isEmpty()) {
     repositories {
         mavenCentral()
         maven { url = 'https://packages.confluent.io/maven/' } // the Schema Registry client and the Protobuf serializer
-        // our own libraries: the developer loop installs them locally, make platform-install and discovery-install,
+        // the repository's own libraries: the developer loop installs them locally, make platform-install and discovery-install,
         // taken first; CI publishes them to GitHub Packages
         mavenLocal {
             content { includeGroup ourGroup }
@@ -82,7 +83,7 @@ if (project != rootProject || subprojects.isEmpty()) {
         }
     }
 
-    // our libraries float: the newest published version, and a re-published snapshot, are looked up on every build
+    // the repository's own libraries float: the newest published version, and a re-published snapshot, are looked up on every build
     configurations.configureEach {
         resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
         resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
@@ -91,6 +92,11 @@ if (project != rootProject || subprojects.isEmpty()) {
     // the Cucumber runner runs from bdd, not from test; the writer of the architecture documents from arch-gen
     def cucumberRunner = '**/RunCucumberTest.class'
     def architectureGenTag = 'architecture-gen'
+
+    // lz4, the producer's compression, loads its native library from the class path, a restricted call the JDK
+    // warns about once per JVM unless native access is granted
+    def nativeAccess = '--enable-native-access=ALL-UNNAMED'
+    tasks.withType(Test).configureEach { jvmArgs nativeAccess }
 
     tasks.named('test') {
         useJUnitPlatform {
@@ -130,6 +136,11 @@ if (project != rootProject || subprojects.isEmpty()) {
         // the image under test, -Pimage=<repo>:<tag>; default is the local build from bootBuildImage
         systemProperty 'bdd.image',
                 providers.gradleProperty('image').getOrElse("${rootProject.name}:${project.version}")
+        // the network of the kafka universe and the broker's and registry's addresses on it, -Pnetwork=<network>
+        // -Pflock="NAME=value ...", from make on kafka; the drivers put the containers they start on the network
+        // with the addresses in their environment
+        systemProperty 'bdd.network', providers.gradleProperty('network').getOrElse('')
+        systemProperty 'bdd.flock', providers.gradleProperty('flock').getOrElse('')
         testLogging.showStandardStreams = true
         outputs.upToDateWhen { false }
     }
@@ -160,13 +171,15 @@ if (project != rootProject || subprojects.isEmpty()) {
         // the local profile reads the console, so a run from source gets the terminal's input
         tasks.named('bootRun') {
             standardInput = System.in
+            jvmArgs nativeAccess
         }
 
         tasks.named('bootBuildImage') {
             // the image name is the Makefile's, -Pimage=<name>:<tag>; the build's name when Gradle runs alone
             imageName = providers.gradleProperty('image').getOrElse("${rootProject.name}:${project.version}")
             // launch environment of the image, inherited by compose, docker run, and the integration tests
-            environment = ['BPE_BPL_JAVA_NMT_ENABLED': 'false']
+            environment = ['BPE_BPL_JAVA_NMT_ENABLED': 'false',
+                           'BPE_DELIM_JAVA_TOOL_OPTIONS': ' ', 'BPE_APPEND_JAVA_TOOL_OPTIONS': nativeAccess]
             // the image is no file, so a build record is the output; with it Gradle skips the task while the jar
             // and the image name are unchanged
             def record = layout.buildDirectory.file("image/${project.version}.txt")

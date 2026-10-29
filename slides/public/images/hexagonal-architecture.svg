@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <!-- chalk: small warp of the stroke plus speckled alpha -->
+    <filter id="chalk" filterUnits="userSpaceOnUse" x="0" y="0" width="1600" height="900">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="4" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="wobbly"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" seed="9" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 2.5 -0.5" result="speckle"/>
+      <feComposite in="wobbly" in2="speckle" operator="in"/>
+    </filter>
+  </defs>
+
+  <!-- column headers -->
+  <g text-anchor="middle">
+    <text x="235" y="250" font-size="24" font-weight="700" fill="#2b6cb0">Primary adapters</text>
+    <text x="235" y="278" font-size="15" fill="#6b7280">driving side · they call the application</text>
+    <text x="1385" y="250" font-size="24" font-weight="700" fill="#1b9e4f">Secondary adapters</text>
+    <text x="1385" y="278" font-size="15" fill="#6b7280">driven side · the application calls them</text>
+  </g>
+
+  <!-- application hexagon -->
+  <path d="M800,150 L540,300 L540,600 L800,750 L1060,600 L1060,300 Z" fill="#dcecee" stroke="#1f6f78" stroke-width="3"/>
+  <g text-anchor="middle">
+    <text x="800" y="218" font-size="30" font-weight="700" fill="#1f6f78">Application</text>
+    <text x="800" y="246" font-size="15" fill="#3f7a82">use cases · orchestration</text>
+    <text x="800" y="660" font-size="14" font-style="italic" fill="#3f7a82">ports: interfaces</text>
+    <text x="800" y="680" font-size="14" font-style="italic" fill="#3f7a82">owned by the inside</text>
+  </g>
+
+  <!-- domain hexagon -->
+  <path d="M800,280 L653,365 L653,535 L800,620 L947,535 L947,365 Z" fill="#1f6f78"/>
+  <g text-anchor="middle">
+    <text x="800" y="442" font-size="34" font-weight="700" fill="#ffffff">Domain</text>
+    <text x="800" y="474" font-size="16" fill="#e6f2f3">entities · rules · invariants</text>
+  </g>
+
+  <!-- primary ports: entrance signs on the left edge (figure runs into the hexagon) -->
+  <g fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(512,312)">
+      <rect width="56" height="56" rx="7" fill="#2b6cb0" stroke="#163d66" stroke-width="2"/>
+      <circle cx="16" cy="15" r="4" fill="#ffffff" stroke="none"/>
+      <path d="M19,21 L27,32 M20,22 L13,28 M20,22 L29,20 M27,32 L35,38 L33,46 M27,32 L19,39 L14,37"/>
+      <rect x="39" y="10" width="11" height="36" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(512,422)">
+      <rect width="56" height="56" rx="7" fill="#2b6cb0" stroke="#163d66" stroke-width="2"/>
+      <circle cx="16" cy="15" r="4" fill="#ffffff" stroke="none"/>
+      <path d="M19,21 L27,32 M20,22 L13,28 M20,22 L29,20 M27,32 L35,38 L33,46 M27,32 L19,39 L14,37"/>
+      <rect x="39" y="10" width="11" height="36" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(512,532)">
+      <rect width="56" height="56" rx="7" fill="#2b6cb0" stroke="#163d66" stroke-width="2"/>
+      <circle cx="16" cy="15" r="4" fill="#ffffff" stroke="none"/>
+      <path d="M19,21 L27,32 M20,22 L13,28 M20,22 L29,20 M27,32 L35,38 L33,46 M27,32 L19,39 L14,37"/>
+      <rect x="39" y="10" width="11" height="36" fill="#ffffff" stroke="none"/>
+    </g>
+  </g>
+
+  <!-- secondary ports: exit signs on the right edge (figure runs out of the hexagon) -->
+  <g fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(1032,312)">
+      <rect width="56" height="56" rx="7" fill="#1b9e4f" stroke="#0f5e2e" stroke-width="2"/>
+      <circle cx="16" cy="15" r="4" fill="#ffffff" stroke="none"/>
+      <path d="M19,21 L27,32 M20,22 L13,28 M20,22 L29,20 M27,32 L35,38 L33,46 M27,32 L19,39 L14,37"/>
+      <rect x="39" y="10" width="11" height="36" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(1032,422)">
+      <rect width="56" height="56" rx="7" fill="#1b9e4f" stroke="#0f5e2e" stroke-width="2"/>
+      <circle cx="16" cy="15" r="4" fill="#ffffff" stroke="none"/>
+      <path d="M19,21 L27,32 M20,22 L13,28 M20,22 L29,20 M27,32 L35,38 L33,46 M27,32 L19,39 L14,37"/>
+      <rect x="39" y="10" width="11" height="36" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(1032,532)">
+      <rect width="56" height="56" rx="7" fill="#1b9e4f" stroke="#0f5e2e" stroke-width="2"/>
+      <circle cx="16" cy="15" r="4" fill="#ffffff" stroke="none"/>
+      <path d="M19,21 L27,32 M20,22 L13,28 M20,22 L29,20 M27,32 L35,38 L33,46 M27,32 L19,39 L14,37"/>
+      <rect x="39" y="10" width="11" height="36" fill="#ffffff" stroke="none"/>
+    </g>
+  </g>
+
+  <!-- primary adapters (elongated hexagons, centre x=235) -->
+  <g fill="#dbe7f5" stroke="#2b6cb0" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M115,340 L147,302 L323,302 L355,340 L323,378 L147,378 Z"/>
+    <path d="M115,450 L147,412 L323,412 L355,450 L323,488 L147,488 Z"/>
+    <path d="M115,560 L147,522 L323,522 L355,560 L323,598 L147,598 Z"/>
+  </g>
+  <g font-size="19" font-weight="500" fill="#163d66" text-anchor="middle">
+    <text x="235" y="347">HTTP / REST controller</text>
+    <text x="235" y="457">Message consumer</text>
+    <text x="235" y="567">Test harness</text>
+  </g>
+
+  <!-- secondary adapters (elongated hexagons, centre x=1385) -->
+  <g fill="#d8f0e1" stroke="#1b9e4f" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M1265,340 L1297,302 L1473,302 L1505,340 L1473,378 L1297,378 Z"/>
+    <path d="M1265,450 L1297,412 L1473,412 L1505,450 L1473,488 L1297,488 Z"/>
+    <path d="M1265,560 L1297,522 L1473,522 L1505,560 L1473,598 L1297,598 Z"/>
+  </g>
+  <g font-size="19" font-weight="500" fill="#0f5e2e" text-anchor="middle">
+    <text x="1385" y="347">Database repository</text>
+    <text x="1385" y="457">Message publisher</text>
+    <text x="1385" y="567">External service client</text>
+  </g>
+
+  <!-- left arrows: call and dependency both point inward (hand-drawn wobble, chalk filter) -->
+  <g fill="none" stroke="#3a3a3a" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#chalk)">
+    <path d="M353,330 C395,327 455,334 506,330"/>
+    <path d="M493,321 L506,330 L494,338"/>
+    <path d="M353,440 C405,443 445,436 506,440"/>
+    <path d="M494,431 L506,440 L493,448"/>
+    <path d="M353,550 C390,553 470,546 506,550"/>
+    <path d="M493,541 L506,550 L494,559"/>
+  </g>
+  <g fill="none" stroke="#8a8f99" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#chalk)">
+    <path d="M353,350 C410,347 450,353 506,350" stroke-dasharray="11 7 15 8 9 7"/>
+    <path d="M494,342 L506,350 L493,359"/>
+    <path d="M353,460 C390,457 465,464 506,460" stroke-dasharray="11 7 15 8 9 7"/>
+    <path d="M493,451 L506,460 L494,468"/>
+    <path d="M353,570 C400,573 460,567 506,570" stroke-dasharray="11 7 15 8 9 7"/>
+    <path d="M494,561 L506,570 L493,579"/>
+  </g>
+
+  <!-- right arrows: call points outward, dependency points inward -->
+  <g fill="none" stroke="#3a3a3a" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#chalk)">
+    <path d="M1094,330 C1140,327 1210,334 1259,330"/>
+    <path d="M1246,321 L1259,330 L1247,338"/>
+    <path d="M1094,440 C1150,443 1200,436 1259,440"/>
+    <path d="M1247,431 L1259,440 L1246,448"/>
+    <path d="M1094,550 C1130,553 1220,546 1259,550"/>
+    <path d="M1246,541 L1259,550 L1247,559"/>
+  </g>
+  <g fill="none" stroke="#8a8f99" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#chalk)">
+    <path d="M1259,350 C1210,347 1150,353 1094,350" stroke-dasharray="11 7 15 8 9 7"/>
+    <path d="M1107,342 L1094,350 L1106,359"/>
+    <path d="M1259,460 C1220,463 1140,457 1094,460" stroke-dasharray="11 7 15 8 9 7"/>
+    <path d="M1106,451 L1094,460 L1107,468"/>
+    <path d="M1259,570 C1200,567 1160,573 1094,570" stroke-dasharray="11 7 15 8 9 7"/>
+    <path d="M1107,562 L1094,570 L1106,579"/>
+  </g>
+
+  <!-- legend: arrows (row 1) and ports (row 2) -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#chalk)">
+    <path d="M300,808 C325,806 355,810 380,808 M368,800 L380,808 L369,816" stroke="#3a3a3a" stroke-width="4.5"/>
+    <path d="M700,808 C725,810 755,806 780,808" stroke="#8a8f99" stroke-width="4" stroke-dasharray="11 7 15 8 9 7"/>
+    <path d="M769,800 L780,808 L768,816" stroke="#8a8f99" stroke-width="4"/>
+  </g>
+  <g font-size="16" fill="#4b5563">
+    <text x="392" y="814">calls</text>
+    <text x="792" y="814">depends on</text>
+  </g>
+  <g fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(300,842) scale(0.64)">
+      <rect width="56" height="56" rx="7" fill="#2b6cb0" stroke="#163d66" stroke-width="2"/>
+      <circle cx="16" cy="15" r="4" fill="#ffffff" stroke="none"/>
+      <path d="M19,21 L27,32 M20,22 L13,28 M20,22 L29,20 M27,32 L35,38 L33,46 M27,32 L19,39 L14,37"/>
+      <rect x="39" y="10" width="11" height="36" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(700,842) scale(0.64)">
+      <rect width="56" height="56" rx="7" fill="#1b9e4f" stroke="#0f5e2e" stroke-width="2"/>
+      <circle cx="16" cy="15" r="4" fill="#ffffff" stroke="none"/>
+      <path d="M19,21 L27,32 M20,22 L13,28 M20,22 L29,20 M27,32 L35,38 L33,46 M27,32 L19,39 L14,37"/>
+      <rect x="39" y="10" width="11" height="36" fill="#ffffff" stroke="none"/>
+    </g>
+  </g>
+  <g font-size="16" fill="#4b5563">
+    <text x="348" y="866">primary port</text>
+    <text x="748" y="866">secondary port</text>
+  </g>
+</svg>

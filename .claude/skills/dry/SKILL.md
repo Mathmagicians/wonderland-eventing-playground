@@ -13,7 +13,7 @@ is the trigger to extract, and the question before writing anything is: where do
 | Fact | Its one home | Who refers to it |
 |---|---|---|
 | Variable names | `.env.private.sample` | Makefile, `compose.yaml`, workflows, properties, test drivers, by name |
-| Credentials | `.env.<ENV>.private`, GitHub environments, the Terraform Cloud workspace | `make` sources the file into the command it runs; nothing else reads it |
+| Credentials | `.env.<transport>-<env>.private`, the GitHub environment of the same name, the Terraform Cloud workspace | `make` sources the file into the command it runs; nothing else reads it |
 | Kafka client settings | the `kafka` profile, `application-kafka.properties` | the app, the admin client, the consumer, the registry client, through `KafkaProperties` |
 | Topic per payload | `topics.*` in the profile | `Topics`, features by the plain word, `ParameterTypes` resolves it |
 | The schema | the proto file under `src/main/proto` | protoc, Terraform, the BDD comparison |
@@ -25,6 +25,7 @@ is the trigger to extract, and the question before writing anything is: where do
 | Environments and names | `locals` in `iac/` | every `for_each`, never a second list |
 | What we do and how | README | `CLAUDE.md` and the skills point at it and never restate it |
 | A release's features, their states, and gate dates | the overview's catalog in `docs/releases/<folder>/`, headed `# Release <version>` | the folder's phase files, by link; a feature's rules are its map's |
+| A release's branch | the overview's **Branch** cell | the sync, the milestone, the maps and the skills by "the release's branch"; `git` and `gh` by `BRANCH` |
 | Architecture decisions | `docs/adr.md` | plans by `ADR-NNN [Title]`, the enforcing rules by name |
 | Generated code and documents | their generator | committed output; `proto-check`, `arch-check`, `generated-check` catch drift |
 | History | git, written by the human | agents read: `status`, `diff`, `log`, `show` |
