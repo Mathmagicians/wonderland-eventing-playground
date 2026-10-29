@@ -25,30 +25,35 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/// The tea party over offers and orders built by hand: an offer is one thing for sale, an order one thing wanted,
-/// and what it publishes is what it settled. Every test gets a party of its own, so nothing waits over from one
-/// test to the next.
+/// The tea party over offers and orders built by hand: an offer is one thing for sale, an order one
+/// thing wanted, and what it publishes is what it settled. Every test gets a party of its own, so
+/// nothing waits over from one test to the next.
 class SettleAtTheTeaPartyTest {
 
     private static final Duration TTL = Duration.ofSeconds(30);
 
     /// Envelopes as the tea party publishes them.
     private final List<Envelope> published = new ArrayList<>();
+
     private final SettleAtTheTeaParty teaParty =
             new SettleAtTheTeaParty(REGION, publishMessage(published), CLOCK, TTL);
 
     private List<String> settledOrders() {
-        return published.stream().map(envelope -> ((Transaction) envelope.payload()).orderRef().id()).toList();
+        return published.stream()
+                .map(envelope -> ((Transaction) envelope.payload()).orderRef().id())
+                .toList();
     }
 
     private List<String> takenOffers() {
-        return published.stream().map(envelope -> ((Transaction) envelope.payload()).offerRef().id()).toList();
+        return published.stream()
+                .map(envelope -> ((Transaction) envelope.payload()).offerRef().id())
+                .toList();
     }
 
     @Test
     void isTheTeaPartyStoryListeningToOffersAndOrders() {
         assertThat(teaParty.name()).isEqualTo("tea-party");
-        assertThat(teaParty.listensTo()).containsExactlyInAnyOrder(Offer.class, Order.class);
+        assertThat(teaParty.subscribesTo()).containsExactlyInAnyOrder(Offer.class, Order.class);
         assertThat(teaParty.playsFor()).hasValue(TTL);
         assertThat(teaParty.region()).hasValue(REGION);
     }
@@ -59,14 +64,17 @@ class SettleAtTheTeaPartyTest {
 
         teaParty.on(envelope(order("ORD-1", ALICE, TOP_HAT)));
 
-        assertThat(published).singleElement().satisfies(envelope -> {
-            var transaction = (Transaction) envelope.payload();
-            assertThat(transaction.customerId()).isEqualTo(ALICE);
-            assertThat(transaction.sellerId()).isEqualTo(MARCH_HARE);
-            assertThat(transaction.price()).isEqualTo(12);
-            assertThat(transaction.orderRef().id()).isEqualTo("ORD-1");
-            assertThat(transaction.offerRef().id()).isEqualTo("OFF-1");
-        });
+        assertThat(published)
+                .singleElement()
+                .satisfies(
+                        envelope -> {
+                            var transaction = (Transaction) envelope.payload();
+                            assertThat(transaction.customerId()).isEqualTo(ALICE);
+                            assertThat(transaction.sellerId()).isEqualTo(MARCH_HARE);
+                            assertThat(transaction.price()).isEqualTo(12);
+                            assertThat(transaction.orderRef().id()).isEqualTo("ORD-1");
+                            assertThat(transaction.offerRef().id()).isEqualTo("OFF-1");
+                        });
     }
 
     @Test
@@ -89,7 +97,8 @@ class SettleAtTheTeaPartyTest {
         assertThat(takenOffers()).containsExactly("OFF-1");
     }
 
-    /// One offer, one order: the second order waits for the next offer, and the tarts wait for their own.
+    /// One offer, one order: the second order waits for the next offer, and the tarts wait for
+    /// their own.
     @Test
     void takesAnOfferOnceAndLetsTheNextOrderWait() {
         teaParty.on(envelope(order("ORD-1", ALICE, TOP_HAT)));

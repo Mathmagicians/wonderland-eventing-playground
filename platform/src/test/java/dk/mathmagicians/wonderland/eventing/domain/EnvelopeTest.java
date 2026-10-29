@@ -4,14 +4,13 @@ import static dk.mathmagicians.wonderland.eventing.domain.Envelope.*;
 import static dk.mathmagicians.wonderland.eventing.domain.EventFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
-
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 
 class EnvelopeTest {
 
     static Stream<Envelope> envelopes() {
-        return Stream.of( envelope(product()), envelope(offer()), envelope(order()));
+        return Stream.of(envelope(product()), envelope(offer()), envelope(order()));
     }
 
     @Test
@@ -24,14 +23,18 @@ class EnvelopeTest {
     void keyOfAProductIsItsId() {
         var product = product();
         var key = envelope(product).key();
-        assertThat(key).isEqualTo( PRODUCT_KEY_STRATEGY.key(REGION, product)).isEqualTo(product.id());
+        assertThat(key)
+                .isEqualTo(PRODUCT_KEY_STRATEGY.key(REGION, product))
+                .isEqualTo(product.id());
     }
 
     @Test
     void keyOfAnOfferIsTheRegionAndTheProductId() {
         var offer = offer();
         var key = envelope(offer).key();
-        assertThat(key).isEqualTo(OFFER_KEY_STRATEGY.key(REGION, offer)).isEqualTo(REGION + "/" + offer.productId());
+        assertThat(key)
+                .isEqualTo(OFFER_KEY_STRATEGY.key(REGION, offer))
+                .isEqualTo(REGION + "/" + offer.productId());
     }
 
     @Test
@@ -44,6 +47,8 @@ class EnvelopeTest {
     void keyOfATransactionIsTheCustomerId() {
         var transaction = EventFixtures.transaction();
         var key = envelope(transaction).key();
-        assertThat(key).isEqualTo(TRANSACTION_KEY_STRATEGY.key(REGION, transaction)).isEqualTo(transaction.customerId());
+        assertThat(key)
+                .isEqualTo(TRANSACTION_KEY_STRATEGY.key(REGION, transaction))
+                .isEqualTo(transaction.customerId());
     }
 }

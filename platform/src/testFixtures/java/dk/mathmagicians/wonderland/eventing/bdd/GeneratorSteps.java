@@ -4,10 +4,10 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import java.util.List;
 
-/// Steps of a generator placing events in the scenario's region, shared by every feature that needs data on the
-/// cluster: "a generator in region EMEA has placed offers and orders", "the generator places offers", "the
-/// generator has placed products again". What it placed is in `Published`, read back in the order it landed,
-/// for the steps that look for the outcome.
+/// Steps of a generator placing events in the scenario's region, shared by every feature that needs
+/// data on the cluster: "a generator in region EMEA has placed offers and orders", "the generator
+/// places offers", "the generator has placed products again". What it placed is in `Published`,
+/// read back in the order it landed, for the steps that look for the outcome.
 public class GeneratorSteps {
 
     private final GeneratorContainer generator;
@@ -15,7 +15,8 @@ public class GeneratorSteps {
     private final Published published;
     private final Region region;
 
-    public GeneratorSteps(GeneratorContainer generator, Transport transport, Published published, Region region) {
+    public GeneratorSteps(
+            GeneratorContainer generator, Transport transport, Published published, Region region) {
         this.generator = generator;
         this.transport = transport;
         this.published = published;

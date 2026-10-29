@@ -5,8 +5,8 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-/// Steps of "I can publish messages". Glue scope is one instance per scenario, so the generator's region and its
-/// receipt live here from the Given to the last Then.
+/// Steps of "I can publish messages". Glue scope is one instance per scenario, so the generator's
+/// region and its receipt live here from the Given to the last Then.
 public class PublishSteps {
 
     private final GeneratorContainer generator;

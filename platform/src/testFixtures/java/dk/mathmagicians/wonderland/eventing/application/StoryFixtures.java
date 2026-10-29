@@ -19,20 +19,21 @@ import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import org.jspecify.annotations.Nullable;
 
-/// Stories for the tests of the substrate, one that says only its name and one with everything spelled out, and
-/// what a story publishes with.
+/// Stories for the tests of the substrate, one that says only its name and one with everything
+/// spelled out, and what a story publishes with.
 public final class StoryFixtures {
 
-    /// A story with every answer given, that counts its starts and keeps every message it gets. No ttl is until
-    /// stopped, no region is every region.
+    /// A story with every answer given, that counts its starts and keeps every message it gets. No
+    /// ttl is until stopped, no region is every region.
     public record Fake(
             String name,
             String group,
             @Nullable String from,
-            Set<Class<? extends Payload>> listensTo,
+            Set<Class<? extends Payload>> subscribesTo,
             @Nullable Duration ttl,
             AtomicInteger starts,
-            List<Envelope> heard) implements Story {
+            List<Envelope> heard)
+            implements Story {
 
         @Override
         public Optional<String> region() {
@@ -66,26 +67,29 @@ public final class StoryFixtures {
     }
 
     /// A story that listens to the types given under its own name, for the ttl given.
-    public static Fake listening(String name, Set<Class<? extends Payload>> types, @Nullable Duration ttl) {
+    public static Fake listening(
+            String name, Set<Class<? extends Payload>> types, @Nullable Duration ttl) {
         return new Fake(name, name, null, types, ttl, new AtomicInteger(), new ArrayList<>());
     }
 
     /// A story from a region that listens to the types given under its own name, until stopped.
-    public static Fake listeningFrom(String region, String name, Set<Class<? extends Payload>> types) {
+    public static Fake listeningFrom(
+            String region, String name, Set<Class<? extends Payload>> types) {
         return new Fake(name, name, region, types, null, new AtomicInteger(), new ArrayList<>());
     }
 
-    /// What a story publishes with in a test: envelopes stamped `APP` at `AT`, for `REGION` unless the story says
-    /// another, kept in `published`, their ids from the random source given.
-    public static Publishing publishing(Collection<Envelope> published, Supplier<RandomGenerator> random) {
+    /// What a story publishes with in a test: envelopes stamped `APP` at `AT`, for `REGION` unless
+    /// the story says another, kept in `published`, their ids from the random source given.
+    public static Publishing publishing(
+            Collection<Envelope> published, Supplier<RandomGenerator> random) {
         return new Publishing(APP, REGION, publisher(published), CLOCK, random);
     }
 
-    /// The use case of `REGION`, every id from a fresh seeded generator, so one publish has one known id.
+    /// The use case of `REGION`, every id from a fresh seeded generator, so one publish has one
+    /// known id.
     public static PublishMessage publishMessage(Collection<Envelope> published) {
         return publishing(published, EventFixtures::dice).from(REGION);
     }
 
-    private StoryFixtures() {
-    }
+    private StoryFixtures() {}
 }

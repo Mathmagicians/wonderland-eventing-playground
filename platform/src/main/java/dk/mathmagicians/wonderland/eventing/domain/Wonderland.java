@@ -1,15 +1,15 @@
 package dk.mathmagicians.wonderland.eventing.domain;
 
-import org.jmolecules.ddd.annotation.Factory;
-
 import java.util.List;
 import java.util.random.RandomGenerator;
+import org.jmolecules.ddd.annotation.Factory;
 
-/// Vocabulary for generated events, Alice likes games. Every draw is a function of the generator passed in.
+/// Vocabulary for generated events, Alice likes games. Every draw is a function of the generator
+/// passed in.
 @Factory
 public enum Wonderland {
-
-    CHARACTERS("Alice",
+    CHARACTERS(
+            "Alice",
             "White Rabbit",
             "Cheshire Cat",
             "Mad Hatter",
@@ -21,7 +21,7 @@ public enum Wonderland {
             "Duchess",
             "Mock Turtle",
             "Gryphon"),
-PLACES(
+    PLACES(
             "Rabbit Hole",
             "Pool of Tears",
             "Caucus Race Shore",
@@ -30,7 +30,7 @@ PLACES(
             "Queen's Croquet Ground",
             "Court of Hearts",
             "Looking-Glass Land"),
-THINGS(
+    THINGS(
             "Pocket Watch",
             "Drink Me Bottle",
             "Eat Me Cake",
@@ -52,7 +52,8 @@ THINGS(
             "Why, sometimes I've believed as many as six impossible things before breakfast.",
             "It's no use going back to yesterday, because I was a different person then.",
             "Who in the world am I? Ah, that's the great puzzle."),
-    /// Templates for `formatted`: `%1$s` a thing, `%2$s` a place, `%3$s` a character, `%4$s` a quote.
+    /// Templates for `formatted`: `%1$s` a thing, `%2$s` a place, `%3$s` a character, `%4$s` a
+    /// quote.
     DESCRIPTIONS(
             "Our verrry, verrry fine %1$s is carefully imported from %2$s by %3$s, who has been tending to every"
                     + " detail of it. As %3$s says: %4$s",
@@ -72,7 +73,8 @@ THINGS(
         return words.get(random.nextInt(words.size()));
     }
 
-    /// The id of a character, its key on the wire: `Mad Hatter` is `MAD_HATTER`. Not a character, not an id.
+    /// The id of a character, its key on the wire: `Mad Hatter` is `MAD_HATTER`. Not a character,
+    /// not an id.
     public static String characterId(String name) {
         if (!CHARACTERS.words.contains(name)) {
             throw new IllegalArgumentException(name + " is not in Wonderland");

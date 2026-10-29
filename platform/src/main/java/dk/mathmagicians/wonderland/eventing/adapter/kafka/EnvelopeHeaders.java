@@ -11,28 +11,32 @@ import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeader;
 
-/// The envelope's header fields travel as record headers, strings named as CloudEvents names them, binary mode.
-/// The names, and the headers each way: written by the publisher, read by the consumer.
+/// The envelope's header fields travel as record headers, strings named as CloudEvents names them,
+/// binary mode. The names, and the headers each way: written by the publisher, read by the
+/// consumer.
 public final class EnvelopeHeaders {
 
     public static final String SPECVERSION = "ce_specversion";
     public static final String SPECVERSION_VALUE = "1.0";
+
     /// The payload's message full name, as its Protobuf descriptor names it.
     public static final String TYPE = "ce_type";
+
     public static final String ID = "ce_id";
     public static final String SOURCE = "ce_source";
     public static final String TIME = "ce_time";
+
     /// A CloudEvents extension attribute, so it carries the same prefix.
     public static final String REGION = "ce_region";
 
-    private EnvelopeHeaders() {
-    }
+    private EnvelopeHeaders() {}
 
     public static Header header(String name, String value) {
         return new RecordHeader(name, value.getBytes(UTF_8));
     }
 
-    /// The last value under the name, as a record with the envelope in its headers carries exactly one.
+    /// The last value under the name, as a record with the envelope in its headers carries exactly
+    /// one.
     public static String text(Headers headers, String name) {
         var header = headers.lastHeader(name);
         if (header == null) {
@@ -41,8 +45,8 @@ public final class EnvelopeHeaders {
         return new String(header.value(), UTF_8);
     }
 
-    /// The envelope's header fields as record headers, UTF-8, the instant in ISO-8601, the type the message's
-    /// full name.
+    /// The envelope's header fields as record headers, UTF-8, the instant in ISO-8601, the type the
+    /// message's full name.
     public static List<Header> headers(Envelope envelope, Message message) {
         return List.of(
                 header(ID, envelope.id()),

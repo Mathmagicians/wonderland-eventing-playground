@@ -25,12 +25,15 @@ class PublishMessageTest {
 
         useCase.publish(order);
 
-        assertThat(published).singleElement().satisfies(envelope -> {
-            assertThat(envelope.region()).isEqualTo(REGION);
-            assertThat(envelope.app()).isEqualTo(APP);
-            assertThat(envelope.at()).isEqualTo(AT);
-            assertThat(envelope.payload()).isEqualTo(order);
-        });
+        assertThat(published)
+                .singleElement()
+                .satisfies(
+                        envelope -> {
+                            assertThat(envelope.region()).isEqualTo(REGION);
+                            assertThat(envelope.app()).isEqualTo(APP);
+                            assertThat(envelope.at()).isEqualTo(AT);
+                            assertThat(envelope.payload()).isEqualTo(order);
+                        });
     }
 
     @Test

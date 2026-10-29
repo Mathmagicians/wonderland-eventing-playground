@@ -1,3 +1,4 @@
+@story:load
 Feature: I can publish messages
   A generator in a region puts a payload in an envelope and publishes it as a message to the payload's topic.
 

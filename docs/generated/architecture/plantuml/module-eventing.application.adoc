@@ -1,5 +1,5 @@
 [%autowidth.stretch, cols="h,a"]
 |===
 |Base package
-|`dk.mathmagicians.playground.confluent.eventing.application`
+|`dk.mathmagicians.wonderland.eventing.application`
 |===

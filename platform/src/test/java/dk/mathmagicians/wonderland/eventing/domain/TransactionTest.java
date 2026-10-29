@@ -37,7 +37,8 @@ class TransactionTest {
         assertThat(transaction.createdAt()).isEqualTo(AT);
     }
 
-    /// One settlement, one id: the order's and the offer's behind the prefix, the same however often it runs.
+    /// One settlement, one id: the order's and the offer's behind the prefix, the same however
+    /// often it runs.
     @Test
     void namesTheSettlementAfterTheOrderAndTheOffer() {
         assertThat(Transaction.settle(ORDER, OFFER, AT).id()).isEqualTo("TX-ORD-1-OFF-1");

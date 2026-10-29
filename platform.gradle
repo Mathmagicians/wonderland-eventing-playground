@@ -54,10 +54,22 @@ def githubPackages = {
 if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()) {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'com.diffplug.spotless'
 
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
+    // google-java-format in the AOSP style, the README's Formatting, at the version Spotless ships with: a newer
+    // one fails inside Spotless on this JDK. spotlessCheck joins check. The generated sources stay as protoc
+    // writes them.
+    spotless {
+        java {
+            target 'src/*/java/**/*.java'
+            targetExclude 'src/generated/**'
+            googleJavaFormat().aosp()
         }
     }
 
@@ -89,20 +101,65 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
         resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
     }
 
-    // the Cucumber runner runs from bdd, not from test; the writer of the architecture documents from arch-gen
+    // the Cucumber runner runs from bdd, the architecture-discovery runner from archBdd, neither from test; the
+    // architecture tests from archVerify as well; the writer of the architecture documents from arch-gen
     def cucumberRunner = '**/RunCucumberTest.class'
+    def archBddRunner = '**/ArchBddTest.class'
+    def archTests = ['**/ArchUnitTest.class', '**/ArchModulithTest.class']
     def architectureGenTag = 'architecture-gen'
 
     // lz4, the producer's compression, loads its native library from the class path, a restricted call the JDK
-    // warns about once per JVM unless native access is granted
+    // warns about once per JVM unless native access is granted; protobuf-java reaches sun.misc.Unsafe, which the
+    // JDK warns about unless allowed; the mock maker's agent appends to the boot class path, which the JDK warns
+    // about unless class data sharing is off
     def nativeAccess = '--enable-native-access=ALL-UNNAMED'
-    tasks.withType(Test).configureEach { jvmArgs nativeAccess }
+    def quietJvm = [nativeAccess, '--sun-misc-unsafe-memory-access=allow', '-Xshare:off']
+    // Mockito's inline mock maker loads as an agent from the start, as Mockito asks, instead of attaching itself
+    // while a test runs, which the JDK warns about
+    configurations {
+        mockitoAgent { transitive = false }
+    }
+    dependencies {
+        mockitoAgent 'org.mockito:mockito-core'
+    }
+    def mockitoAgent = configurations.mockitoAgent
+    tasks.withType(Test).configureEach {
+        jvmArgs quietJvm
+        inputs.files(mockitoAgent)
+        jvmArgumentProviders.add({ ["-javaagent:${mockitoAgent.singleFile}"] } as CommandLineArgumentProvider)
+    }
 
     tasks.named('test') {
         useJUnitPlatform {
             excludeTags architectureGenTag
         }
         exclude cucumberRunner
+        exclude archBddRunner
+    }
+
+    // the architecture tests: the ArchUnit rules and Modulith's module boundaries
+    tasks.register('archVerify', Test) {
+        description = 'Runs the architecture tests, ArchUnitTest and ArchModulithTest.'
+        group = 'verification'
+        testClassesDirs = sourceSets.test.output.classesDirs
+        classpath = sourceSets.test.runtimeClasspath
+        useJUnitPlatform {
+            excludeTags architectureGenTag
+        }
+        include archTests
+    }
+
+    // the architecture-discovery features, which read what the build wrote, no image; their scenarios print as
+    // they play
+    tasks.register('archBdd', Test) {
+        description = 'Runs the architecture-discovery features, ArchBddTest.'
+        group = 'verification'
+        testClassesDirs = sourceSets.test.output.classesDirs
+        classpath = sourceSets.test.runtimeClasspath
+        useJUnitPlatform()
+        include archBddRunner
+        failOnNoDiscoveredTests = false
+        testLogging.showStandardStreams = true
     }
 
     // the features of the project, against the image under test; a project without features has nothing to run
@@ -130,7 +187,10 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
             }
         }
         systemProperty 'spring.profiles.active', profiles
-        def scenarios = providers.gradleProperty('scenarios').getOrElse(dryRun ? 'not @manual' : 'not @wip and not @manual')
+        // the architecture-discovery features play with the unit tests, make arch-verify, never against the image
+        def scenarios = providers.gradleProperty('scenarios').getOrElse(dryRun
+                ? 'not @manual and not @architecture-discovery'
+                : 'not @wip and not @manual and not @architecture-discovery')
         systemProperty 'cucumber.filter.tags',
                 (["(${scenarios})"] + uncarried.getOrDefault(transport, []).collect { "not ${it}" }).join(' and ')
         // the image under test, -Pimage=<repo>:<tag>; default is the local build from bootBuildImage
@@ -165,7 +225,7 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
     // the project that builds the image: a distribution of the platform and its stories
     plugins.withId('org.springframework.boot') {
         springBoot {
-            mainClass = 'dk.mathmagicians.playground.confluent.EventingPlatform'
+            mainClass = 'dk.mathmagicians.wonderland.EventingPlatform'
         }
 
         // the local profile reads the console, so a run from source gets the terminal's input
@@ -211,22 +271,60 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
                 includeTags architectureGenTag
             }
             exclude cucumberRunner
+            exclude archBddRunner
             systemProperty 'architecture.docs', docs.asFile.path
+            // the features of every project in the build, where the stories' behaviour features are found
+            systemProperty 'architecture.features', rootProject.allprojects
+                    .collect { it.file('src/test/resources/features') }
+                    .findAll { it.directory }
+                    .collect { it.path }
+                    .join(File.pathSeparator)
             outputs.upToDateWhen { false }
+        }
+
+        // the model as specified, <story>.textproto written by hand under the test resources, -ParchitectureSpec for
+        // another place, against the model generateArchitecture wrote: parsed and compared as messages, so the layout
+        // of either does not count
+        def spec = layout.projectDirectory.dir(findProperty('architectureSpec') ?: 'src/test/resources/architecture')
+        tasks.register('archCheck', JavaExec) {
+            description = 'Compares the specified .textproto files with the model generateArchitecture wrote.'
+            group = 'verification'
+            dependsOn tasks.named('generateArchitecture')
+            classpath = sourceSets.test.runtimeClasspath
+            mainClass = 'dk.mathmagicians.playground.architecture.model.ModelCheck'
+            args spec.asFile.path, docs.dir('model').asFile.path
+        }
+
+        // the look of the hexagon, hexagon.style.puml in the architecture-discovery jar, taken out for PlantUML to
+        // read as its config before each diagram
+        def style = layout.buildDirectory.file('plantuml/hexagon.style.puml')
+        tasks.register('diagramStyle') {
+            description = 'Takes the diagram style out of the architecture-discovery jar.'
+            group = 'documentation'
+            def jar = configurations.testRuntimeClasspath.filter { it.name.startsWith('architecture-discovery-') }
+            inputs.files(jar)
+            outputs.file(style)
+            doLast {
+                new java.util.zip.ZipFile(jar.singleFile).withCloseable { zip ->
+                    style.get().asFile.text = zip.getInputStream(zip.getEntry('hexagon.style.puml')).text
+                }
+            }
         }
 
         tasks.register('renderDiagrams', JavaExec) {
             description = 'Renders the PlantUML diagrams written by generateArchitecture to SVG.'
             group = 'documentation'
-            dependsOn tasks.named('generateArchitecture')
+            dependsOn tasks.named('generateArchitecture'), tasks.named('diagramStyle')
             def sources = docs.dir('plantuml')
             def rendered = docs.dir('svg')
             inputs.files(fileTree(sources) { include '*.puml' })
+            inputs.file(style)
             outputs.dir(rendered)
             classpath = configurations.plantuml
             mainClass = 'net.sourceforge.plantuml.Run'
             jvmArgs '-Djava.awt.headless=true'
-            args '-tsvg', '-Playout=smetana', '-o', rendered.asFile.path, "${sources.asFile}/*.puml"
+            args '-tsvg', '-Playout=smetana', '-config', style.get().asFile.path, '-o', rendered.asFile.path,
+                    "${sources.asFile}/*.puml"
         }
     }
 }

@@ -1,15 +1,15 @@
 [%autowidth.stretch, cols="h,a"]
 |===
 |Base package
-|`dk.mathmagicians.playground.confluent.stories.load`
+|`dk.mathmagicians.wonderland.stories.load`
 |Spring components
 |_Primary ports_
 
-* `d.m.p.c.s.l.GenerateLoad`
+* `d.m.w.s.l.GenerateLoad`
 
 _Configuration properties_
 
-* `d.m.p.c.s.l.LoadProperties`
+* `d.m.w.s.l.LoadProperties`
 |Bean references
-|* `d.m.p.c.e.a.PublishMessage` (in Application)
+|* `d.m.w.e.a.PublishMessage` (in Application)
 |===

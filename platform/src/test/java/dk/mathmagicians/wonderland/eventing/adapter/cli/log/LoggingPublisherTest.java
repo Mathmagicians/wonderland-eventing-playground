@@ -32,8 +32,16 @@ class LoggingPublisherTest {
 
         new LoggingPublisher().publish(envelope);
 
-        assertThat(output.getOut()).contains("Published " + envelope.id() + " to log-0 at offset 0, key "
-                + envelope.key() + ", region " + envelope.region() + ": " + Converter.text(envelope.payload()));
+        assertThat(output.getOut())
+                .contains(
+                        "Published "
+                                + envelope.id()
+                                + " to log-0 at offset 0, key "
+                                + envelope.key()
+                                + ", region "
+                                + envelope.region()
+                                + ": "
+                                + Converter.text(envelope.payload()));
     }
 
     @Test
@@ -42,10 +50,15 @@ class LoggingPublisherTest {
         var first = envelope(offer());
         var second = envelope(order());
 
-        var receipts = Stream.of(first, second).map(publisher::publish).map(CompletableFuture::join).toList();
+        var receipts =
+                Stream.of(first, second)
+                        .map(publisher::publish)
+                        .map(CompletableFuture::join)
+                        .toList();
 
-        assertThat(receipts).containsExactly(
-                new Receipt(first.id(), LoggingPublisher.TOPIC, 0, 0),
-                new Receipt(second.id(), LoggingPublisher.TOPIC, 0, 1));
+        assertThat(receipts)
+                .containsExactly(
+                        new Receipt(first.id(), LoggingPublisher.TOPIC, 0, 0),
+                        new Receipt(second.id(), LoggingPublisher.TOPIC, 0, 1));
     }
 }

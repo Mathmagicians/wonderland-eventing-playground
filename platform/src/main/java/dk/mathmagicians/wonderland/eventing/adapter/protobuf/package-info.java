@@ -1,5 +1,6 @@
-/// The wire's translation, shared at the rim: the payload records and their Protobuf messages, each way. The
-/// Kafka publisher and consumer put the messages on the wire and take them off, the console types them as text.
+/// The wire's translation, shared at the rim: the payload records and their Protobuf messages, each
+/// way. The Kafka publisher and consumer put the messages on the wire and take them off, the
+/// console types them as text.
 @Adapter
 @Module(name = "Protobuf")
 package dk.mathmagicians.wonderland.eventing.adapter.protobuf;

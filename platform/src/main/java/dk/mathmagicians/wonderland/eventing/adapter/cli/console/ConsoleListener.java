@@ -3,7 +3,7 @@ package dk.mathmagicians.wonderland.eventing.adapter.cli.console;
 import dk.mathmagicians.wonderland.eventing.adapter.protobuf.Converter;
 import dk.mathmagicians.wonderland.eventing.application.Publishing;
 import dk.mathmagicians.wonderland.eventing.application.Story;
-
+import dk.mathmagicians.wonderland.eventing.domain.Payload;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,8 +16,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import dk.mathmagicians.wonderland.eventing.domain.Payload;
 import org.jmolecules.architecture.hexagonal.PrimaryAdapter;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -27,18 +25,19 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-/// Driving adapter for `cli`: the console stands in for the topics. When the context starts and the selected
-/// story listens, a thread reads the input line by line, a session of five kinds of line, and hands every
-/// message to the story as an envelope stamped with the session's region. A story that listens to nothing gets no
-/// console. The thread keeps the process alive while the input is open: EOF ends it, `q` or `quit` does, and so
-/// does the story's ttl, through `stop()`.
+/// Driving adapter for `cli`: the console stands in for the topics. When the context starts and the
+/// selected story listens, a thread reads the input line by line, a session of five kinds of line,
+/// and hands every message to the story as an envelope stamped with the session's region. A story
+/// that listens to nothing gets no console. The thread keeps the process alive while the input is
+/// open: EOF ends it, `q` or `quit` does, and so does the story's ttl, through `stop()`.
 ///
-/// The kinds of line, each a record of `Line` that knows itself from its text and acts on the session: blank,
-/// `help`, which prints the kinds and a template per type the story listens to, at the start and on request;
-/// `q` or `quit`; `region: <name>`, the region of every message after it, the platform's to begin with; and
-/// anything else, a message, the type's name and its fields as Protobuf text, `Offer offer_id: "OFF-1"
-/// product_id: "P-TOPH" price: 12.5 seller_id: "MAD_HATTER"`. A line the console cannot read prints the reason
-/// and the help, and the story never sees it; what the story throws is printed, and the console goes on.
+/// The kinds of line, each a record of `Line` that knows itself from its text and acts on the
+/// session: blank, `help`, which prints the kinds and a template per type the story listens to, at
+/// the start and on request; `q` or `quit`; `region: <name>`, the region of every message after it,
+/// the platform's to begin with; and anything else, a message, the type's name and its fields as
+/// Protobuf text, `Offer offer_id: "OFF-1" product_id: "P-TOPH" price: 12.5 seller_id:
+/// "MAD_HATTER"`. A line the console cannot read prints the reason and the help, and the story
+/// never sees it; what the story throws is printed, and the console goes on.
 @PrimaryAdapter
 @Component
 @Profile("cli")
@@ -47,7 +46,8 @@ public final class ConsoleListener implements SmartLifecycle {
     private static final Logger log = LoggerFactory.getLogger(ConsoleListener.class);
     private static final String THREAD = ConsoleListener.class.getSimpleName() + "-Thread";
 
-    /// the line once the story has a message: the payload's id, its type, the region it was stamped with
+    /// the line once the story has a message: the payload's id, its type, the region it was stamped
+    /// with
     public static final String HEARD = ">>> Published {} to {} in region {}";
 
     private final Story story;
@@ -68,24 +68,27 @@ public final class ConsoleListener implements SmartLifecycle {
         this.publishing = publishing;
         this.in = in;
         this.out = out;
-        this.typesThatWeListenTo = story.listensTo().stream().map(Class::getSimpleName).collect(Collectors.toSet());
+        this.typesThatWeListenTo =
+                story.subscribesTo().stream().map(Class::getSimpleName).collect(Collectors.toSet());
     }
 
     @Override
     public void start() {
-        if (story.listensTo().isEmpty()) {
-            log.info("{} listens to nothing, no console", story.name());
+        if (story.subscribesTo().isEmpty()) {
+            log.info("{} subscribes to nothing, no console", story.name());
             return;
         }
         var session = new Session();
-        log.info("""
+        log.info(
+                """
                             Welcome to the Console Listener - we make it easy to test your story without a Kafka cluster, using just the console.
-                            This story - {} -  listens to events from the console, accepting events of type: {}, for region {}.
+                            This story - {} -  subscribes to events from the console, accepting events of type: {}, for region {}.
                         """,
-                story.name(), typesThatWeListenTo, publishing.region());
+                story.name(),
+                typesThatWeListenTo,
+                publishing.region());
         new Line.Help().act(session);
         reading = Thread.ofPlatform().name(THREAD).start(() -> session.read(in));
-
     }
 
     /// Closing the input ends the reading thread, wherever it waits.
@@ -112,18 +115,25 @@ public final class ConsoleListener implements SmartLifecycle {
 
         static Line of(String line) {
             var tokens = line.strip().split("\\s+", 2);
-            Stream<Function<String[], Optional<Line>>> streamFroms = Stream.of(Blank::from, Help::from, Quit::from, Region::from, Message::from);
-            return streamFroms.flatMap(kind -> kind.apply(tokens).stream()).findFirst().orElseThrow();
+            Stream<Function<String[], Optional<Line>>> streamFroms =
+                    Stream.of(Blank::from, Help::from, Quit::from, Region::from, Message::from);
+            return streamFroms
+                    .flatMap(kind -> kind.apply(tokens).stream())
+                    .findFirst()
+                    .orElseThrow();
         }
 
         record Blank() implements Line {
             static Optional<Line> from(String[] tokens) {
-                return tokens.length == 0 || tokens[0].isBlank() ? Optional.of(new Blank()) : Optional.empty();
+                return tokens.length == 0 || tokens[0].isBlank()
+                        ? Optional.of(new Blank())
+                        : Optional.empty();
             }
 
             @Override
             public void act(Session session) {
-                session.say("Hey, you entered a blank line, nothing to do, try `help` for instructions. If you don't know where you are going, any road takes you there.");
+                session.say(
+                        "Hey, you entered a blank line, nothing to do, try `help` for instructions. If you don't know where you are going, any road takes you there.");
             }
         }
 
@@ -131,29 +141,36 @@ public final class ConsoleListener implements SmartLifecycle {
             static final String HELP = "help";
 
             static Optional<Line> from(String[] tokens) {
-                return tokens.length == 1 && tokens[0].equalsIgnoreCase(HELP) ? Optional.of(new Help()) : Optional.empty();
+                return tokens.length == 1 && tokens[0].equalsIgnoreCase(HELP)
+                        ? Optional.of(new Help())
+                        : Optional.empty();
             }
 
             @Override
             public void act(Session session) {
-                var recordShapes = session.listensTo().
-                        stream().map(Converter::shape).sorted().collect(Collectors.joining("\n"));
-                var helpText = """
+                var recordShapes =
+                        session.subscribesTo().stream()
+                                .map(Converter::shape)
+                                .sorted()
+                                .collect(Collectors.joining("\n"));
+                var helpText =
+                        """
                         The Console Listener accepts three kinds of line:
-                        
+
                         * %s <name> sets the region of every message after it, the platform's default is %s.
                           When you enter a region, every event after it will be stamped with that region.
-                        
+
                         * You may enter an event using protobuf text format, starting with the type's name, then its fields, all on the same line.
-                        
+
                         * Type help for instructions, q or quit to end the session, Ctrl+D does the same.
-                        
-                        **************** The types you can input as events are: ****************  
-                        
+
+                        **************** The types you can input as events are: ****************
+
                         %s
-                        
-                        **************** Curiouser and curiouser! Type a line and see where it goes; Ctrl+D closes the rabbit hole. **************** 
-                        """.formatted(Region.REGION, session.region(), recordShapes);
+
+                        **************** Curiouser and curiouser! Type a line and see where it goes; Ctrl+D closes the rabbit hole. ****************
+                        """
+                                .formatted(Region.REGION, session.region(), recordShapes);
                 session.say(helpText);
             }
         }
@@ -162,7 +179,9 @@ public final class ConsoleListener implements SmartLifecycle {
             static final Set<String> QUIT_COMMANDS = Set.of("q", "quit");
 
             static Optional<Line> from(String[] tokens) {
-                return tokens.length == 1 && QUIT_COMMANDS.contains(tokens[0].toLowerCase()) ? Optional.of(new Quit()) : Optional.empty();
+                return tokens.length == 1 && QUIT_COMMANDS.contains(tokens[0].toLowerCase())
+                        ? Optional.of(new Quit())
+                        : Optional.empty();
             }
 
             @Override
@@ -189,7 +208,10 @@ public final class ConsoleListener implements SmartLifecycle {
                     return;
                 }
                 session.region = name;
-                session.say("The region is now " + session.region + ", will be used for all the following messages.");
+                session.say(
+                        "The region is now "
+                                + session.region
+                                + ", will be used for all the following messages.");
             }
         }
 
@@ -210,7 +232,8 @@ public final class ConsoleListener implements SmartLifecycle {
                 try {
                     payload = Converter.from(typeClass.get(), body);
                     session.publish(payload);
-                    log.info(HEARD, payload.id(), typeClass.get().getSimpleName(), session.region());
+                    log.info(
+                            HEARD, payload.id(), typeClass.get().getSimpleName(), session.region());
                 } catch (IllegalArgumentException e) {
                     session.say(">>> Failed to read the message: " + e.getMessage());
                     new Help().act(session);
@@ -241,19 +264,21 @@ public final class ConsoleListener implements SmartLifecycle {
             region = name;
         }
 
-        /// The types the story listens to, what a message may be.
-        Set<Class<? extends Payload>> listensTo() {
-            return story.listensTo();
+        /// The types the story subscribes to, what a message may be.
+        Set<Class<? extends Payload>> subscribesTo() {
+            return story.subscribesTo();
         }
 
-        /// return a type the story listens to by its name, case-insensitive, or empty when none is.
+        /// return a type the story subscribes to by its name, case-insensitive, or empty when none
+        /// is.
         Optional<Class<? extends Payload>> findTypeListenedToFromName(String word) {
-            return story.listensTo().stream()
+            return story.subscribesTo().stream()
                     .filter(type -> type.getSimpleName().equalsIgnoreCase(word))
                     .findFirst();
         }
 
-        /// The payload to the story, as an envelope of the region in force; what the story throws comes back.
+        /// The payload to the story, as an envelope of the region in force; what the story throws
+        /// comes back.
         void publish(Payload payload) {
             story.on(publishing.envelope(region, payload));
         }
@@ -265,7 +290,8 @@ public final class ConsoleListener implements SmartLifecycle {
 
         /// Every line until EOF, each on its own so a bad one costs nothing but its help.
         void read(InputStream in) {
-            try (var lines = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            try (var lines =
+                    new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
                 for (var line = lines.readLine(); line != null; line = lines.readLine()) {
                     line(line);
                 }
@@ -275,7 +301,8 @@ public final class ConsoleListener implements SmartLifecycle {
             log.info("The console is closed, {} heard everything", story.name());
         }
 
-        /// One line: blank is nothing, `help`, `q` or `quit`, `region: <name>`, or a message for the story.
+        /// One line: blank is nothing, `help`, `q` or `quit`, `region: <name>`, or a message for
+        /// the story.
         void line(String line) {
             switch (Line.of(line)) {
                 case Line.Blank blank -> blank.act(this);
@@ -285,6 +312,5 @@ public final class ConsoleListener implements SmartLifecycle {
                 case Line.Message message -> message.act(this);
             }
         }
-
     }
 }

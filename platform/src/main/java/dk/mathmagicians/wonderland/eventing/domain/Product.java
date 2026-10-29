@@ -1,16 +1,17 @@
 package dk.mathmagicians.wonderland.eventing.domain;
 
-import org.jmolecules.ddd.annotation.ValueObject;
-
 import java.time.Instant;
 import java.util.random.RandomGenerator;
+import org.jmolecules.ddd.annotation.ValueObject;
+
 @ValueObject
 public record Product(
         String producerId,
         String id,
         String productName,
         String productDescription,
-        Instant createdAt) implements Payload {
+        Instant createdAt)
+        implements Payload {
     static final String ID_PREFIX = "P";
 
     /// Product is the partition key, and twelve things make a small key space.
@@ -20,8 +21,8 @@ public record Product(
         return String.join("-", ID_PREFIX, (base + last.repeat(4)).substring(0, 4).toUpperCase());
     }
 
-    /// A product from the vocabulary: producer a character, name a thing, description a template filled with the
-    /// thing, a place, a character, and a quote.
+    /// A product from the vocabulary: producer a character, name a thing, description a template
+    /// filled with the thing, a place, a character, and a quote.
     public static Product random(RandomGenerator random, Instant at) {
         var person = Wonderland.CHARACTERS.next(random);
         var product = Wonderland.THINGS.next(random);

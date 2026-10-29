@@ -25,11 +25,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 @ExtendWith(MockitoExtension.class)
 class KafkaPublisherTest {
 
-    @Mock
-    private KafkaTemplate<String, Message> template;
+    @Mock private KafkaTemplate<String, Message> template;
 
-    @Captor
-    private ArgumentCaptor<ProducerRecord<String, Message>> record;
+    @Captor private ArgumentCaptor<ProducerRecord<String, Message>> record;
 
     @Test
     void sendsThePayloadMessageToItsTopicUnderTheKeyWithTheEnvelopeAsHeaders() {
@@ -45,7 +43,8 @@ class KafkaPublisherTest {
         assertThat(sent.topic()).isEqualTo("test.offers");
         assertThat(sent.key()).isEqualTo(envelope.key());
         assertThat(sent.value()).isEqualTo(Converter.to(envelope.payload()));
-        assertThat(EnvelopeHeaders.envelope(sent.headers(), envelope.payload())).isEqualTo(envelope);
+        assertThat(EnvelopeHeaders.envelope(sent.headers(), envelope.payload()))
+                .isEqualTo(envelope);
     }
 
     @Test

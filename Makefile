@@ -29,11 +29,12 @@ SLIDES := $(MAKE) --no-print-directory -C slides COMPOSE='cd $(CURDIR) && $(COMP
 ##@ Generated code and documents
 generated-check: proto-check arch-check   ## fail when generated code or documents are stale
 
-proto-gen:     ## regenerate platform/src/generated from src/main/proto
+proto-gen:     ## regenerate platform/src/generated from src/main/proto, and architecture-discovery/src/generated from its own
 	@$(GRADLE) :platform:generateProto --no-configuration-cache
+	@$(DISCOVERY) generateProto
 
-proto-check: proto-gen   ## fail when platform/src/generated is not regenerated and staged
-	@git status --porcelain -- platform/src/generated | grep "^.[^ ]" && { echo "platform/src/generated is out of date: make proto-gen, then git add platform/src/generated"; exit 1; } || true
+proto-check: proto-gen   ## fail when platform/src/generated or architecture-discovery/src/generated is not regenerated and staged
+	@git status --porcelain -- platform/src/generated architecture-discovery/src/generated | grep "^.[^ ]" && { echo "generated code is out of date: make proto-gen, then git add platform/src/generated architecture-discovery/src/generated"; exit 1; } || true
 
 ##@ Smoke, the load story at its smallest
 run-tiny:  ## from source on TRANSPORT and ENV

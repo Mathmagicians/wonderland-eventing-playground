@@ -1,0 +1,164 @@
+# proto-file: hexagon.proto
+# proto-message: Platform
+
+name: "Wonderland"
+module {
+  name: "Boot"
+  package: "dk.mathmagicians.wonderland.eventing.adapter.cli.boot"
+  ring: DRIVING
+  stereotype: ["Module", "PrimaryAdapter"]
+  type { name: "StoryRunner"  stereotype: ["PrimaryAdapter"]  wiring: ["Component"] }
+}
+module {
+  name: "Console"
+  package: "dk.mathmagicians.wonderland.eventing.adapter.cli.console"
+  ring: DRIVING
+  stereotype: ["Module", "PrimaryAdapter"]
+  type { name: "ConsoleListener"  stereotype: ["PrimaryAdapter"]  wiring: ["Component", "Profile(cli)"] }
+  type { name: "ConsoleListener.ConsoleListener"  wiring: ["Autowired"]  parameter: ["Story", "Publishing"] }
+}
+module {
+  name: "Kafka Consumer"
+  package: "dk.mathmagicians.wonderland.eventing.adapter.kafka.consumer"
+  ring: DRIVING
+  stereotype: ["Module", "PrimaryAdapter"]
+  type { name: "DeadLetters"  stereotype: ["PrimaryAdapter"]  wiring: ["Configuration", "Profile(kafka)"] }
+  type { name: "DeadLetters.setAside"  wiring: ["Bean(CommonErrorHandler)"]  parameter: ["KafkaProperties"] }
+  type { name: "Reader"  stereotype: ["PrimaryAdapter"]  wiring: ["Component", "Profile(kafka)"] }
+  type { name: "StoryListener"  stereotype: ["PrimaryAdapter"]  wiring: ["Component", "Profile(kafka)"] }
+}
+module {
+  name: "Application"
+  package: "dk.mathmagicians.wonderland.eventing.application"
+  ring: APPLICATION
+  stereotype: ["Module"]
+  type { name: "PublishMessage"  stereotype: ["PrimaryPort"] }
+  type { name: "Story"  stereotype: ["PrimaryPort"] }
+  type { name: "Publisher"  stereotype: ["SecondaryPort"] }
+  type { name: "Publishing"  stereotype: ["Factory"] }
+}
+module {
+  name: "Load Story"
+  package: "dk.mathmagicians.wonderland.stories.load"
+  ring: APPLICATION
+  stereotype: ["Module"]
+  type { name: "GenerateLoad"  stereotype: ["PrimaryPort"] }
+  type { name: "LoadStory"  wiring: ["AutoConfiguration", "EnableConfigurationProperties(LoadProperties)"] }
+  type { name: "LoadStory.load"  wiring: ["Bean(GenerateLoad)"]  parameter: ["LoadProperties", "Publishing", "Clock"] }
+  type { name: "LoadProperties"  wiring: ["ConfigurationProperties(load)"] }
+}
+module {
+  name: "Tea Party Story"
+  package: "dk.mathmagicians.wonderland.stories.teaparty"
+  ring: APPLICATION
+  stereotype: ["Module"]
+  type { name: "SettleAtTheTeaParty"  stereotype: ["PrimaryPort"] }
+  type { name: "TeaPartyStory"  wiring: ["AutoConfiguration", "EnableConfigurationProperties(TeaPartyProperties)"] }
+  type { name: "TeaPartyStory.teaParty"  wiring: ["Bean(SettleAtTheTeaParty)"]  parameter: ["TeaPartyProperties", "Publishing", "Clock"] }
+  type { name: "TeaPartyProperties"  wiring: ["ConfigurationProperties(tea-party)"] }
+}
+module {
+  name: "Domain"
+  package: "dk.mathmagicians.wonderland.eventing.domain"
+  ring: DOMAIN
+  stereotype: ["Module"]
+  type { name: "Wonderland"  stereotype: ["Factory"] }
+  type { name: "Envelope"  stereotype: ["ValueObject"] }
+  type { name: "Payload"  stereotype: ["ValueObject"] }
+  type { name: "Offer"  stereotype: ["ValueObject"] }
+  type { name: "Order"  stereotype: ["ValueObject"] }
+  type { name: "Product"  stereotype: ["ValueObject"] }
+  type { name: "Transaction"  stereotype: ["ValueObject"] }
+  type { name: "Receipt"  stereotype: ["ValueObject"] }
+}
+module {
+  name: "Kafka Publisher"
+  package: "dk.mathmagicians.wonderland.eventing.adapter.kafka.publisher"
+  ring: DRIVEN
+  stereotype: ["Module", "SecondaryAdapter"]
+  type { name: "KafkaPublisher"  stereotype: ["SecondaryAdapter"]  wiring: ["Component", "Profile(kafka)"] }
+}
+module {
+  name: "Log"
+  package: "dk.mathmagicians.wonderland.eventing.adapter.cli.log"
+  ring: DRIVEN
+  stereotype: ["Module", "SecondaryAdapter"]
+  type { name: "LoggingPublisher"  stereotype: ["SecondaryAdapter"]  wiring: ["Component", "Profile(cli)"] }
+}
+module {
+  name: "Protobuf"
+  package: "dk.mathmagicians.wonderland.eventing.adapter.protobuf"
+  ring: SHARED
+  stereotype: ["Adapter", "Module"]
+  type { name: "Converter"  stereotype: ["Adapter"] }
+}
+arrow { from { module: "Application"  type: "PublishMessage" }  to { module: "Application"  type: "Publisher" }  relation: USES }
+arrow { from { module: "Application"  type: "PublishMessage" }  to { module: "Domain"  type: "Envelope" }  relation: DEPENDS_ON }
+arrow { from { module: "Application"  type: "PublishMessage" }  to { module: "Domain"  type: "Payload" }  relation: DEPENDS_ON }
+arrow { from { module: "Application"  type: "PublishMessage" }  to { module: "Domain"  type: "Receipt" }  relation: DEPENDS_ON }
+arrow { from { module: "Application"  type: "Publisher" }  to { module: "Domain"  type: "Envelope" }  relation: DEPENDS_ON }
+arrow { from { module: "Application"  type: "Publisher" }  to { module: "Domain"  type: "Receipt" }  relation: DEPENDS_ON }
+arrow { from { module: "Application"  type: "Publishing" }  to { module: "Application"  type: "PublishMessage" }  relation: DEPENDS_ON }
+arrow { from { module: "Application"  type: "Publishing" }  to { module: "Application"  type: "Publisher" }  relation: USES }
+arrow { from { module: "Application"  type: "Publishing" }  to { module: "Domain"  type: "Envelope" }  relation: DEPENDS_ON }
+arrow { from { module: "Application"  type: "Publishing" }  to { module: "Domain"  type: "Payload" }  relation: DEPENDS_ON }
+arrow { from { module: "Application"  type: "Story" }  to { module: "Domain"  type: "Envelope" }  relation: DEPENDS_ON }
+arrow { from { module: "Application"  type: "Story" }  to { module: "Domain"  type: "Payload" }  relation: DEPENDS_ON }
+arrow { from { module: "Boot"  type: "StoryRunner" }  to { module: "Application"  type: "Story" }  relation: USES }
+arrow { from { module: "Console"  type: "ConsoleListener" }  to { module: "Application"  type: "Publishing" }  relation: USES }
+arrow { from { module: "Console"  type: "ConsoleListener" }  to { module: "Application"  type: "Story" }  relation: USES }
+arrow { from { module: "Console"  type: "ConsoleListener" }  to { module: "Protobuf"  type: "Converter" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Envelope" }  to { module: "Domain"  type: "Offer" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Envelope" }  to { module: "Domain"  type: "Order" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Envelope" }  to { module: "Domain"  type: "Payload" }  relation: USES }
+arrow { from { module: "Domain"  type: "Envelope" }  to { module: "Domain"  type: "Product" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Envelope" }  to { module: "Domain"  type: "Transaction" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Offer" }  to { module: "Domain"  type: "Payload" }  relation: IMPLEMENTS }
+arrow { from { module: "Domain"  type: "Offer" }  to { module: "Domain"  type: "Product" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Offer" }  to { module: "Domain"  type: "Wonderland" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Order" }  to { module: "Domain"  type: "Payload" }  relation: IMPLEMENTS }
+arrow { from { module: "Domain"  type: "Order" }  to { module: "Domain"  type: "Product" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Order" }  to { module: "Domain"  type: "Wonderland" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Product" }  to { module: "Domain"  type: "Payload" }  relation: IMPLEMENTS }
+arrow { from { module: "Domain"  type: "Product" }  to { module: "Domain"  type: "Wonderland" }  relation: DEPENDS_ON }
+arrow { from { module: "Domain"  type: "Transaction" }  to { module: "Domain"  type: "Offer" }  relation: USES }
+arrow { from { module: "Domain"  type: "Transaction" }  to { module: "Domain"  type: "Order" }  relation: USES }
+arrow { from { module: "Domain"  type: "Transaction" }  to { module: "Domain"  type: "Payload" }  relation: IMPLEMENTS }
+arrow { from { module: "Kafka Consumer"  type: "Reader" }  to { module: "Protobuf"  type: "Converter" }  relation: DEPENDS_ON }
+arrow { from { module: "Kafka Consumer"  type: "StoryListener" }  to { module: "Application"  type: "Story" }  relation: USES }
+arrow { from { module: "Kafka Publisher"  type: "KafkaPublisher" }  to { module: "Application"  type: "Publisher" }  relation: IMPLEMENTS }
+arrow { from { module: "Kafka Publisher"  type: "KafkaPublisher" }  to { module: "Protobuf"  type: "Converter" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "GenerateLoad" }  to { module: "Application"  type: "PublishMessage" }  relation: USES }
+arrow { from { module: "Load Story"  type: "GenerateLoad" }  to { module: "Application"  type: "Story" }  relation: IMPLEMENTS }
+arrow { from { module: "Load Story"  type: "GenerateLoad" }  to { module: "Domain"  type: "Payload" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "LoadProperties" }  to { module: "Domain"  type: "Offer" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "LoadProperties" }  to { module: "Domain"  type: "Order" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "LoadProperties" }  to { module: "Domain"  type: "Payload" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "LoadProperties" }  to { module: "Domain"  type: "Product" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "LoadProperties" }  to { module: "Load Story"  type: "GenerateLoad" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "LoadStory" }  to { module: "Application"  type: "Publishing" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "LoadStory" }  to { module: "Load Story"  type: "GenerateLoad" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "LoadStory" }  to { module: "Load Story"  type: "LoadProperties" }  relation: DEPENDS_ON }
+arrow { from { module: "Log"  type: "LoggingPublisher" }  to { module: "Application"  type: "Publisher" }  relation: IMPLEMENTS }
+arrow { from { module: "Log"  type: "LoggingPublisher" }  to { module: "Protobuf"  type: "Converter" }  relation: DEPENDS_ON }
+arrow { from { module: "Tea Party Story"  type: "SettleAtTheTeaParty" }  to { module: "Application"  type: "PublishMessage" }  relation: USES }
+arrow { from { module: "Tea Party Story"  type: "SettleAtTheTeaParty" }  to { module: "Application"  type: "Story" }  relation: IMPLEMENTS }
+arrow { from { module: "Tea Party Story"  type: "SettleAtTheTeaParty" }  to { module: "Domain"  type: "Envelope" }  relation: DEPENDS_ON }
+arrow { from { module: "Tea Party Story"  type: "SettleAtTheTeaParty" }  to { module: "Domain"  type: "Offer" }  relation: SUBSCRIBES }
+arrow { from { module: "Tea Party Story"  type: "SettleAtTheTeaParty" }  to { module: "Domain"  type: "Order" }  relation: SUBSCRIBES }
+arrow { from { module: "Tea Party Story"  type: "SettleAtTheTeaParty" }  to { module: "Domain"  type: "Payload" }  relation: DEPENDS_ON }
+arrow { from { module: "Tea Party Story"  type: "SettleAtTheTeaParty" }  to { module: "Domain"  type: "Receipt" }  relation: DEPENDS_ON }
+arrow { from { module: "Tea Party Story"  type: "SettleAtTheTeaParty" }  to { module: "Domain"  type: "Transaction" }  relation: PUBLISHES }
+arrow { from { module: "Tea Party Story"  type: "TeaPartyProperties" }  to { module: "Application"  type: "Story" }  relation: DEPENDS_ON }
+arrow { from { module: "Tea Party Story"  type: "TeaPartyStory" }  to { module: "Application"  type: "PublishMessage" }  relation: DEPENDS_ON }
+arrow { from { module: "Tea Party Story"  type: "TeaPartyStory" }  to { module: "Application"  type: "Publishing" }  relation: DEPENDS_ON }
+arrow {
+  from { module: "Tea Party Story"  type: "TeaPartyStory" }
+  to { module: "Tea Party Story"  type: "SettleAtTheTeaParty" }
+  relation: DEPENDS_ON
+}
+arrow {
+  from { module: "Tea Party Story"  type: "TeaPartyStory" }
+  to { module: "Tea Party Story"  type: "TeaPartyProperties" }
+  relation: DEPENDS_ON
+}

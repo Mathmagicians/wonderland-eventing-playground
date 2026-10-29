@@ -2,7 +2,8 @@ package dk.mathmagicians.wonderland.eventing.bdd;
 
 import io.cucumber.java.en.Given;
 
-/// Steps about the transport, shared by every feature. Each one delegates to the suite's `Transport`.
+/// Steps about the transport, shared by every feature. Each one delegates to the suite's
+/// `Transport`.
 public class TransportSteps {
 
     private final Transport transport;

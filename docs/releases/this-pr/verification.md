@@ -11,14 +11,14 @@ checks passed, and Wonderland playing in each of its environments.
 | `ci`, `cd`, `iac`, `architecture-discovery`, `cicd-client-example` green on the PR | | |
 | Review findings above Nit resolved, or deferred with a reason | | |
 | README, `make help`, and `docs/adr.md` say what the code does | | |
-| `make arch-verify` green in the root build and in `examples/purse`; `make arch-check` exact on every `.textproto` | | |
+| `make arch-verify` and `make arch-bdd` green in the root build and in `examples/purse`; `make arch-check` exact on every `.textproto` | | |
 
 ## ADR compliance
 
 | ADR | Checked by | Evidence |
 |---|---|---|
 | [ADR-001 CI plays each transport in a matrix](../../adr.md#adr-001-ci-plays-each-transport-in-a-matrix) | `make ci-transports`, and review of `cicd.yaml` and `cicd-client-example.yaml` | |
-| The DSL is Protobuf text written from the generated PlantUML, verified by Gherkin, proposed | `make arch-verify` and `make arch-check` | |
+| The DSL is Protobuf text written from the generated PlantUML, verified by Gherkin, proposed | `make arch-bdd` and `make arch-check` | |
 
 ## In production
 

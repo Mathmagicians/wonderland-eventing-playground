@@ -12,11 +12,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.boot.convert.DurationUnit;
 
-/// The settings of the load story, `load.*`: `--load.type`, `--load.concurrent` producers, each sleeping
-/// `--load.interval` milliseconds between events, for `--load.region`, the platform's `region` unless given,
-/// until `--load.ttl` seconds have passed.
-/// Every value has a default, so the bundle binds at every start whatever the story; a wrong value fails
-/// startup.
+/// The settings of the load story, `load.*`: `--load.type`, `--load.concurrent` producers, each
+/// sleeping `--load.interval` milliseconds between events, for `--load.region`, the platform's
+/// `region` unless given, until `--load.ttl` seconds have passed. Every value has a default, so the
+/// bundle binds at every start whatever the story; a wrong value fails startup.
 @ConfigurationProperties("load")
 public record LoadProperties(
         @DefaultValue("offer") Type type,
@@ -35,16 +34,20 @@ public record LoadProperties(
 
     public LoadProperties {
         if (type == null) {
-            throw new IllegalArgumentException("load.type is required: one of " + Arrays.toString(Type.values()));
+            throw new IllegalArgumentException(
+                    "load.type is required: one of " + Arrays.toString(Type.values()));
         }
         if (concurrent <= 0) {
-            throw new IllegalArgumentException("load.concurrent must be positive, was " + concurrent);
+            throw new IllegalArgumentException(
+                    "load.concurrent must be positive, was " + concurrent);
         }
         if (interval <= 0) {
-            throw new IllegalArgumentException("load.interval must be positive milliseconds, was " + interval);
+            throw new IllegalArgumentException(
+                    "load.interval must be positive milliseconds, was " + interval);
         }
         if (region != null && region.isBlank()) {
-            throw new IllegalArgumentException("load.region cannot be blank; leave it out for the platform's");
+            throw new IllegalArgumentException(
+                    "load.region cannot be blank; leave it out for the platform's");
         }
         if (ttl == null || ttl.isZero() || ttl.isNegative() || ttl.compareTo(MAX_TTL) > 0) {
             throw new IllegalArgumentException(

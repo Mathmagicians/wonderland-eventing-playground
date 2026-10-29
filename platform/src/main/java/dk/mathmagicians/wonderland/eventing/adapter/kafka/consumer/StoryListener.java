@@ -16,11 +16,12 @@ import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.stereotype.Component;
 
-/// Driving adapter for `confluent`: the consumer. When the context starts it subscribes to the topics of
-/// what the selected story listens to, under the story's group, `spring.kafka.consumer.group-id` when a
-/// deployment names one, and hands every record the story hears to it as an envelope: a story from a region
-/// hears its region only. A story that listens to nothing gets no consumer. What the story throws propagates
-/// to the container's error handler, `DeadLetters`, which sets the record aside on the dead-letter topic.
+/// Driving adapter for `confluent`: the consumer. When the context starts it subscribes to the
+/// topics of what the selected story listens to, under the story's group,
+/// `spring.kafka.consumer.group-id` when a deployment names one, and hands every record the story
+/// hears to it as an envelope: a story from a region hears its region only. A story that listens to
+/// nothing gets no consumer. What the story throws propagates to the container's error handler,
+/// `DeadLetters`, which sets the record aside on the dead-letter topic.
 @PrimaryAdapter
 @Component
 @Profile("kafka")
@@ -35,8 +36,12 @@ public final class StoryListener implements SmartLifecycle {
     private final String group;
     private @Nullable MessageListenerContainer container;
 
-    StoryListener(Story story, Topics topics, Reader reader,
-                  ConcurrentKafkaListenerContainerFactory<?, ?> containers, KafkaProperties properties) {
+    StoryListener(
+            Story story,
+            Topics topics,
+            Reader reader,
+            ConcurrentKafkaListenerContainerFactory<?, ?> containers,
+            KafkaProperties properties) {
         this.story = story;
         this.topics = topics;
         this.reader = reader;
@@ -47,17 +52,23 @@ public final class StoryListener implements SmartLifecycle {
 
     @Override
     public void start() {
-        var subscribed = story.listensTo().stream().map(topics::of).sorted().toArray(String[]::new);
+        var subscribed =
+                story.subscribesTo().stream().map(topics::of).sorted().toArray(String[]::new);
         if (subscribed.length == 0) {
             log.info("{} listens to nothing, no consumer", story.name());
             return;
         }
         var listening = containers.createContainer(subscribed);
         listening.getContainerProperties().setGroupId(group);
-        listening.setupMessageListener((MessageListener<String, byte[]>) record -> on(reader.read(record)));
+        listening.setupMessageListener(
+                (MessageListener<String, byte[]>) record -> on(reader.read(record)));
         listening.start();
         container = listening;
-        log.info("{} listens to {} as the group {}", story.name(), Arrays.toString(subscribed), group);
+        log.info(
+                "{} listens to {} as the group {}",
+                story.name(),
+                Arrays.toString(subscribed),
+                group);
     }
 
     private void on(Envelope envelope) {

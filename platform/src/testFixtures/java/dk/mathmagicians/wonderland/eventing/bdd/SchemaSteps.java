@@ -2,8 +2,8 @@ package dk.mathmagicians.wonderland.eventing.bdd;
 
 import io.cucumber.java.en.Then;
 
-/// Steps about the schema of a topic. Glue scope is one instance per scenario, so the subject under test lives
-/// here from the step that registers it to the steps that say "that schema".
+/// Steps about the schema of a topic. Glue scope is one instance per scenario, so the subject under
+/// test lives here from the step that registers it to the steps that say "that schema".
 public class SchemaSteps {
 
     private final SchemaRegistry registry;

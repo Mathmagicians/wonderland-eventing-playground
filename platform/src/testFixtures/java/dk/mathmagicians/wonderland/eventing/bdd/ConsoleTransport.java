@@ -34,10 +34,11 @@ import org.springframework.core.env.Environment;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
 
-/// The transport on `cli`: the console a story reads and the log the image writes. What the scenario publishes
-/// is typed into the story's console, the region first, then the payload as a line; what the image publishes is a
-/// line in its log, the generator's or the story's. A story has read the streams when its console has handed it
-/// every message typed. The topic of a payload is the profile's `topics.*`, as on the cluster.
+/// The transport on `cli`: the console a story reads and the log the image writes. What the
+/// scenario publishes is typed into the story's console, the region first, then the payload as a
+/// line; what the image publishes is a line in its log, the generator's or the story's. A story has
+/// read the streams when its console has handed it every message typed. The topic of a payload is
+/// the profile's `topics.*`, as on the cluster.
 @ScenarioScope
 @Profile("cli")
 class ConsoleTransport implements Transport {
@@ -66,7 +67,9 @@ class ConsoleTransport implements Transport {
     /// The console and the log need no keys: the Docker host that runs the image answers.
     @Override
     public void assertOpen() {
-        assertThat(DockerClientFactory.instance().isDockerAvailable()).as("the Docker host answers").isTrue();
+        assertThat(DockerClientFactory.instance().isDockerAvailable())
+                .as("the Docker host answers")
+                .isTrue();
     }
 
     @Override
@@ -82,7 +85,11 @@ class ConsoleTransport implements Transport {
 
     @Override
     public boolean caughtUp(String group, List<String> payloads) {
-        var heard = HEARD.matcher(running().getLogs()).results().map(line -> line.group(1)).collect(toSet());
+        var heard =
+                HEARD.matcher(running().getLogs())
+                        .results()
+                        .map(line -> line.group(1))
+                        .collect(toSet());
         return heard.containsAll(told);
     }
 
@@ -136,7 +143,9 @@ class ConsoleTransport implements Transport {
         var line = logged(receipt);
 
         assertThat(line.receipt()).isEqualTo(receipt);
-        assertThat(topics.select(line.payload())).as("the topic of %s", line.type()).isEqualTo(topic);
+        assertThat(topics.select(line.payload()))
+                .as("the topic of %s", line.type())
+                .isEqualTo(topic);
     }
 
     @Override
@@ -153,8 +162,8 @@ class ConsoleTransport implements Transport {
         assertThat(logged(receipt).region()).isEqualTo(region);
     }
 
-    /// A line the image logged as it published: the receipt, the region, and the payload, its type's name and its
-    /// fields as Protobuf text.
+    /// A line the image logged as it published: the receipt, the region, and the payload, its
+    /// type's name and its fields as Protobuf text.
     private record Logged(Receipt receipt, String region, String type, String fields) {
 
         Payload payload() {
@@ -167,18 +176,30 @@ class ConsoleTransport implements Transport {
         return logged(generator.logs())
                 .filter(line -> line.receipt().envelopeId().equals(receipt.envelopeId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("no line in the generator's log for " + receipt));
+                .orElseThrow(
+                        () ->
+                                new IllegalStateException(
+                                        "no line in the generator's log for " + receipt));
     }
 
     /// Every line of the log the image wrote as it published, in the order logged.
     private static Stream<Logged> logged(String logs) {
-        return PUBLISHED.matcher(logs).results().map(line -> {
-            var payload = line.group(7).split(" ", 2);
-            return new Logged(
-                    new Receipt(line.group(1), line.group(2), Integer.parseInt(line.group(3)),
-                            Long.parseLong(line.group(4))),
-                    line.group(6), payload[0], payload.length > 1 ? payload[1] : "");
-        });
+        return PUBLISHED
+                .matcher(logs)
+                .results()
+                .map(
+                        line -> {
+                            var payload = line.group(7).split(" ", 2);
+                            return new Logged(
+                                    new Receipt(
+                                            line.group(1),
+                                            line.group(2),
+                                            Integer.parseInt(line.group(3)),
+                                            Long.parseLong(line.group(4))),
+                                    line.group(6),
+                                    payload[0],
+                                    payload.length > 1 ? payload[1] : "");
+                        });
     }
 
     /// Types a line into the story's console, attached at the first line.
@@ -197,11 +218,12 @@ class ConsoleTransport implements Transport {
             var running = running();
             var in = new PipedInputStream();
             stdin = new PipedOutputStream(in);
-            attached = running.getDockerClient()
-                    .attachContainerCmd(running.getContainerId())
-                    .withStdIn(in)
-                    .withFollowStream(true)
-                    .exec(new ResultCallback.Adapter<>());
+            attached =
+                    running.getDockerClient()
+                            .attachContainerCmd(running.getContainerId())
+                            .withStdIn(in)
+                            .withFollowStream(true)
+                            .exec(new ResultCallback.Adapter<>());
         }
         return stdin;
     }
@@ -230,11 +252,14 @@ class ConsoleTransport implements Transport {
                 .orElseThrow(() -> new IllegalArgumentException(name + " is no payload type"));
     }
 
-    /// The pattern of an SLF4J message: its text as it is, each `{}` a word but the last, the rest of the line.
+    /// The pattern of an SLF4J message: its text as it is, each `{}` a word but the last, the rest
+    /// of the line.
     private static Pattern pattern(String message) {
         var parts = message.split("\\{}", -1);
         var last = parts.length - 1;
-        return Pattern.compile(Stream.of(parts).limit(last).map(Pattern::quote).collect(joining("(\\S+)"))
-                + "(.+)" + Pattern.quote(parts[last]));
+        return Pattern.compile(
+                Stream.of(parts).limit(last).map(Pattern::quote).collect(joining("(\\S+)"))
+                        + "(.+)"
+                        + Pattern.quote(parts[last]));
     }
 }

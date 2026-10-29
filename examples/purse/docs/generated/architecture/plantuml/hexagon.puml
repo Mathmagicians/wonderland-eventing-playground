@@ -1,55 +1,53 @@
 @startuml
-' the hexagon from the code: Spring Modulith modules placed by their jMolecules stereotypes
-skinparam shadowing false
-skinparam defaultTextAlignment left
-skinparam ranksep 24
-skinparam nodesep 24
-skinparam ArrowFontSize 10
-skinparam ArrowFontColor #666666
-<style>
-hexagon { HorizontalAlignment center }
-rectangle { HorizontalAlignment center }
-</style>
+' the hexagon from the model: Spring Modulith modules placed by their jMolecules stereotypes
 
-rectangle "DRIVING ADAPTERS" as driving #line:transparent {
-  hexagon "Cli" as m_Cli {
-    rectangle "<size:1> </size>" as m_Cli_in #line:transparent {
-      card "StoryRunner\n<size:10>«PrimaryAdapter»</size>" as m_Cli_StoryRunner
+package "DRIVING ADAPTERS" as driving {
+  hexagon "Boot\ncli/boot" as m_Boot {
+    rectangle " " as m_Boot_in {
+      card "StoryRunner" as m_Boot_StoryRunner <<PrimaryAdapter>>
     }
   }
-  hexagon "Kafka consumer" as m_Kafka_consumer {
-    rectangle "<size:1> </size>" as m_Kafka_consumer_in #line:transparent {
-      card "StoryListener\n<size:10>«PrimaryAdapter»</size>" as m_Kafka_consumer_StoryListener
+  hexagon "Console\ncli/console" as m_Console {
+    rectangle " " as m_Console_in {
+      card "ConsoleListener" as m_Console_ConsoleListener <<PrimaryAdapter>>
     }
   }
-  m_Cli_StoryRunner -[hidden]down-> m_Kafka_consumer_StoryListener
+  hexagon "Kafka Consumer\nkafka/consumer" as m_Kafka_Consumer {
+    rectangle " " as m_Kafka_Consumer_in {
+      card "DeadLetters" as m_Kafka_Consumer_DeadLetters <<PrimaryAdapter>>
+      card "Reader" as m_Kafka_Consumer_Reader <<PrimaryAdapter>>
+      card "StoryListener" as m_Kafka_Consumer_StoryListener <<PrimaryAdapter>>
+      m_Kafka_Consumer_DeadLetters -[hidden]right-> m_Kafka_Consumer_Reader
+      m_Kafka_Consumer_DeadLetters -[hidden]down-> m_Kafka_Consumer_StoryListener
+    }
+  }
+  m_Boot_StoryRunner -[hidden]down-> m_Console_ConsoleListener
+  m_Console_ConsoleListener -[hidden]down-> m_Kafka_Consumer_DeadLetters
 }
-rectangle "APPLICATION" as core #line:transparent {
-  hexagon "Application" as m_Application {
-    rectangle "<size:1> </size>" as m_Application_in #line:transparent {
-      card "PublishMessage\n<size:10>«PrimaryPort»</size>" as m_Application_PublishMessage
-      card "Story\n<size:10>«PrimaryPort»</size>" as m_Application_Story
-      card "Publisher\n<size:10>«SecondaryPort»</size>" as m_Application_Publisher
-      card "Stories\n<size:10>«Service»</size>" as m_Application_Stories
+package "APPLICATION" as core {
+  hexagon "Application\neventing/application" as m_Application {
+    rectangle " " as m_Application_in {
+      card "PublishMessage" as m_Application_PublishMessage <<PrimaryPort>>
+      card "Story" as m_Application_Story <<PrimaryPort>>
+      card "Publisher" as m_Application_Publisher <<SecondaryPort>>
+      card "Publishing" as m_Application_Publishing <<Factory>>
       m_Application_PublishMessage -[hidden]right-> m_Application_Story
       m_Application_Story -[hidden]right-> m_Application_Publisher
-      m_Application_Publisher -[hidden]right-> m_Application_Stories
-      hexagon "Domain" as m_Domain {
-        rectangle "<size:1> </size>" as m_Domain_in #line:transparent {
-          card "Wonderland\n<size:10>«Factory»</size>" as m_Domain_Wonderland
-          card "Envelope\n<size:10>«ValueObject»</size>" as m_Domain_Envelope
-          card "Payload\n<size:10>«ValueObject»</size>" as m_Domain_Payload
-          card "Offer\n<size:10>«ValueObject»</size>" as m_Domain_Offer
-          card "Order\n<size:10>«ValueObject»</size>" as m_Domain_Order
-          card "Product\n<size:10>«ValueObject»</size>" as m_Domain_Product
-          card "Transaction\n<size:10>«ValueObject»</size>" as m_Domain_Transaction
-          label "<size:1> </size>" as m_Domain_Payload_j
-          m_Domain_Offer .up. m_Domain_Payload_j
-          m_Domain_Order .up. m_Domain_Payload_j
-          m_Domain_Product .up. m_Domain_Payload_j
-          m_Domain_Transaction .up. m_Domain_Payload_j
-          m_Domain_Payload_j .up.|> m_Domain_Payload
-          card "Receipt\n<size:10>«ValueObject»</size>" as m_Domain_Receipt
+      m_Application_Publisher -[hidden]right-> m_Application_Publishing
+      hexagon "Domain\neventing/domain" as m_Domain {
+        rectangle " " as m_Domain_in {
+          card "Wonderland" as m_Domain_Wonderland <<Factory>>
+          card "Envelope" as m_Domain_Envelope <<ValueObject>>
+          card "Payload" as m_Domain_Payload <<ValueObject>>
+          card "Offer" as m_Domain_Offer <<ValueObject>>
+          card "Order" as m_Domain_Order <<ValueObject>>
+          card "Product" as m_Domain_Product <<ValueObject>>
+          card "Transaction" as m_Domain_Transaction <<ValueObject>>
+          m_Domain_Offer .up.|> m_Domain_Payload
+          m_Domain_Order .up.|> m_Domain_Payload
+          m_Domain_Product .up.|> m_Domain_Payload
+          m_Domain_Transaction .up.|> m_Domain_Payload
+          card "Receipt" as m_Domain_Receipt <<ValueObject>>
           m_Domain_Wonderland -[hidden]right-> m_Domain_Envelope
           m_Domain_Envelope -[hidden]right-> m_Domain_Payload
           m_Domain_Payload -[hidden]right-> m_Domain_Receipt
@@ -62,32 +60,54 @@ rectangle "APPLICATION" as core #line:transparent {
       m_Application_PublishMessage -[hidden]down-> m_Domain_Envelope
       m_Application_Story -[hidden]down-> m_Domain_Envelope
       m_Application_Publisher -[hidden]down-> m_Domain_Envelope
-      m_Application_Stories -[hidden]down-> m_Domain_Envelope
+      m_Application_Publishing -[hidden]down-> m_Domain_Envelope
     }
   }
-  hexagon "Purse story" as m_Purse_story {
-    rectangle "<size:1> </size>" as m_Purse_story_in #line:transparent {
-      card "KnowWhatIsLeft\n<size:10>«PrimaryPort»</size>" as m_Purse_story_KnowWhatIsLeft
+  hexagon "Purse Story\nstories/purse" as m_Purse_Story {
+    rectangle " " as m_Purse_Story_in {
+      card "KnowWhatIsLeft" as m_Purse_Story_KnowWhatIsLeft <<PrimaryPort>>
     }
   }
-  m_Domain_Offer -[hidden]down-> m_Purse_story_KnowWhatIsLeft
-  m_Domain_Order -[hidden]down-> m_Purse_story_KnowWhatIsLeft
-  m_Domain_Product -[hidden]down-> m_Purse_story_KnowWhatIsLeft
-  m_Domain_Transaction -[hidden]down-> m_Purse_story_KnowWhatIsLeft
+  m_Domain_Offer -[hidden]down-> m_Purse_Story_KnowWhatIsLeft
+  m_Domain_Order -[hidden]down-> m_Purse_Story_KnowWhatIsLeft
+  m_Domain_Product -[hidden]down-> m_Purse_Story_KnowWhatIsLeft
+  m_Domain_Transaction -[hidden]down-> m_Purse_Story_KnowWhatIsLeft
 }
-rectangle "DRIVEN ADAPTERS" as driven #line:transparent {
-  hexagon "Kafka publisher" as m_Kafka_publisher {
-    rectangle "<size:1> </size>" as m_Kafka_publisher_in #line:transparent {
-      card "KafkaPublisher\n<size:10>«SecondaryAdapter»</size>" as m_Kafka_publisher_KafkaPublisher
+package "DRIVEN ADAPTERS" as driven {
+  hexagon "Kafka Publisher\nkafka/publisher" as m_Kafka_Publisher {
+    rectangle " " as m_Kafka_Publisher_in {
+      card "KafkaPublisher" as m_Kafka_Publisher_KafkaPublisher <<SecondaryAdapter>>
     }
   }
-  hexagon "Log" as m_Log {
-    rectangle "<size:1> </size>" as m_Log_in #line:transparent {
-      card "LoggingPublisher\n<size:10>«SecondaryAdapter»</size>" as m_Log_LoggingPublisher
+  hexagon "Log\ncli/log" as m_Log {
+    rectangle " " as m_Log_in {
+      card "LoggingPublisher" as m_Log_LoggingPublisher <<SecondaryAdapter>>
     }
   }
-  m_Kafka_publisher_KafkaPublisher -[hidden]down-> m_Log_LoggingPublisher
+  m_Kafka_Publisher_KafkaPublisher -[hidden]down-> m_Log_LoggingPublisher
 }
+package "SHARED ADAPTERS" as shared {
+  hexagon "Protobuf\nadapter/protobuf" as m_Protobuf {
+    rectangle " " as m_Protobuf_in {
+      card "Converter" as m_Protobuf_Converter <<Adapter>>
+    }
+  }
+}
+label " " as t_driving
+t_driving -[hidden]down-> m_Boot_StoryRunner
+label " " as t_core
+t_driving -[hidden]right-> t_core
+driving -[hidden]right-> core
+t_core -[hidden]down-> m_Application_Story
+label " " as t_driven
+t_core -[hidden]right-> t_driven
+core -[hidden]right-> driven
+t_driven -[hidden]down-> m_Kafka_Publisher_KafkaPublisher
+m_Domain_Offer -[hidden]down-> m_Protobuf_Converter
+m_Domain_Order -[hidden]down-> m_Protobuf_Converter
+m_Domain_Product -[hidden]down-> m_Protobuf_Converter
+m_Domain_Transaction -[hidden]down-> m_Protobuf_Converter
+m_Purse_Story_KnowWhatIsLeft -[hidden]down-> m_Protobuf_Converter
 
 m_Application_PublishMessage -right-> m_Application_Publisher
 m_Application_PublishMessage ..> m_Domain_Envelope
@@ -95,21 +115,41 @@ m_Application_PublishMessage ..> m_Domain_Payload
 m_Application_PublishMessage ..> m_Domain_Receipt
 m_Application_Publisher ..> m_Domain_Envelope
 m_Application_Publisher ..> m_Domain_Receipt
-m_Application_Stories -right-> m_Application_Story
+m_Application_Publishing .right.> m_Application_PublishMessage
+m_Application_Publishing -right-> m_Application_Publisher
+m_Application_Publishing ..> m_Domain_Envelope
+m_Application_Publishing ..> m_Domain_Payload
 m_Application_Story ..> m_Domain_Envelope
 m_Application_Story ..> m_Domain_Payload
-m_Cli_StoryRunner -right-> m_Application_Stories
-m_Cli_StoryRunner .right.> m_Application_Story
-m_Kafka_consumer_StoryListener -right-> m_Application_Stories
-m_Kafka_consumer_StoryListener .right.> m_Application_Story
-m_Kafka_publisher_KafkaPublisher .left.|> m_Application_Publisher
+m_Boot_StoryRunner -right-> m_Application_Story
+m_Console_ConsoleListener -right-> m_Application_Publishing
+m_Console_ConsoleListener -right-> m_Application_Story
+m_Console_ConsoleListener .[norank].> m_Protobuf_Converter
+m_Domain_Envelope .right.> m_Domain_Offer
+m_Domain_Envelope .right.> m_Domain_Order
+m_Domain_Envelope -right-> m_Domain_Payload
+m_Domain_Envelope .right.> m_Domain_Product
+m_Domain_Envelope .right.> m_Domain_Transaction
+m_Domain_Offer .right.> m_Domain_Product
+m_Domain_Offer .right.> m_Domain_Wonderland
+m_Domain_Order .right.> m_Domain_Product
+m_Domain_Order .right.> m_Domain_Wonderland
+m_Domain_Product .right.> m_Domain_Wonderland
+m_Domain_Transaction -right-> m_Domain_Offer
+m_Domain_Transaction -right-> m_Domain_Order
+m_Kafka_Consumer_Reader .[norank].> m_Protobuf_Converter
+m_Kafka_Consumer_StoryListener -right-> m_Application_Story
+m_Kafka_Publisher_KafkaPublisher .left.|> m_Application_Publisher
+m_Kafka_Publisher_KafkaPublisher .[norank].> m_Protobuf_Converter
 m_Log_LoggingPublisher .left.|> m_Application_Publisher
-m_Purse_story_KnowWhatIsLeft ..|> m_Application_Story
-m_Purse_story_KnowWhatIsLeft ..> m_Domain_Envelope
-m_Purse_story_KnowWhatIsLeft ..> m_Domain_Payload
-m_Purse_story_KnowWhatIsLeft ..> m_Domain_Transaction
+m_Log_LoggingPublisher .[norank].> m_Protobuf_Converter
+m_Purse_Story_KnowWhatIsLeft ..|> m_Application_Story
+m_Purse_Story_KnowWhatIsLeft ..> m_Domain_Envelope
+m_Purse_Story_KnowWhatIsLeft ..> m_Domain_Order
+m_Purse_Story_KnowWhatIsLeft ..> m_Domain_Payload
+m_Purse_Story_KnowWhatIsLeft ..> m_Domain_Transaction : subscribes
 
-rectangle "<size:10>legend</size>" as legend #line:BBBBBB;text:666666 {
+frame "legend" as legend {
   label " " as l_uses_from
   label " " as l_uses_to
   l_uses_from -right-> l_uses_to : uses
@@ -122,9 +162,8 @@ rectangle "<size:10>legend</size>" as legend #line:BBBBBB;text:666666 {
   l_uses_to -[hidden]right-> l_implements_from
   l_implements_to -[hidden]right-> l_depends_on_from
 }
-m_Log_LoggingPublisher -[hidden]down-> l_uses_from
-m_Purse_story_KnowWhatIsLeft -[hidden]down-> l_uses_from
+m_Protobuf_Converter -[hidden]down-> l_uses_from
 legend right
-  EventingPlatform
+  Wonderland
 endlegend
 @enduml

@@ -1,15 +1,15 @@
 [%autowidth.stretch, cols="h,a"]
 |===
 |Base package
-|`dk.mathmagicians.playground.confluent.stories.teaparty`
+|`dk.mathmagicians.wonderland.stories.teaparty`
 |Spring components
 |_Primary ports_
 
-* `d.m.p.c.s.t.SettleAtTheTeaParty`
+* `d.m.w.s.t.SettleAtTheTeaParty`
 
 _Configuration properties_
 
-* `d.m.p.c.s.t.TeaPartyProperties`
+* `d.m.w.s.t.TeaPartyProperties`
 |Bean references
-|* `d.m.p.c.e.a.PublishMessage` (in Application)
+|* `d.m.w.e.a.PublishMessage` (in Application)
 |===

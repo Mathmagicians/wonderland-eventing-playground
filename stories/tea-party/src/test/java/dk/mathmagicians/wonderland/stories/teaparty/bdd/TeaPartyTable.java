@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-/// Test driver of the tea party's outcome: the orders the scenario placed are the oracle, the transactions on
-/// the transport the result, an order settled when a transaction names it.
+/// Test driver of the tea party's outcome: the orders the scenario placed are the oracle, the
+/// transactions on the transport the result, an order settled when a transaction names it.
 class TeaPartyTable {
 
     /// the party sits long enough for a scenario; the container is stopped when the scenario ends
@@ -35,14 +35,16 @@ class TeaPartyTable {
     /// A tea party in the scenario's region, at the table before anything is placed.
     void sit(String word) {
         var settings = SettleAtTheTeaParty.NAME + ".";
-        story.start(SettleAtTheTeaParty.NAME,
+        story.start(
+                SettleAtTheTeaParty.NAME,
                 Map.of(settings + "region", region.of(word), settings + "ttl", SITS_FOR));
     }
 
     void assertEveryOrderSettled() {
         var settled = settled();
         for (var order : orders()) {
-            assertThat(settled).filteredOn(transaction -> transaction.orderRef().id().equals(order.id()))
+            assertThat(settled)
+                    .filteredOn(transaction -> transaction.orderRef().id().equals(order.id()))
                     .as("transactions settling %s", order.id())
                     .hasSize(1);
         }
@@ -51,19 +53,23 @@ class TeaPartyTable {
     void assertPaid(String customer, String seller, BigDecimal price, String thing) {
         assertThat(settled())
                 .as("%s paid %s %s for %s", customer, seller, price, thing)
-                .anySatisfy(transaction -> {
-                    assertThat(transaction.customerId()).isEqualTo(customer);
-                    assertThat(transaction.sellerId()).isEqualTo(seller);
-                    assertThat(BigDecimal.valueOf(transaction.price())).isEqualByComparingTo(price);
-                    assertThat(transaction.orderRef().productId()).isEqualTo(thing);
-                });
+                .anySatisfy(
+                        transaction -> {
+                            assertThat(transaction.customerId()).isEqualTo(customer);
+                            assertThat(transaction.sellerId()).isEqualTo(seller);
+                            assertThat(BigDecimal.valueOf(transaction.price()))
+                                    .isEqualByComparingTo(price);
+                            assertThat(transaction.orderRef().productId()).isEqualTo(thing);
+                        });
     }
 
     void assertStillWaiting(String customer, String thing) {
         assertThat(settled())
                 .as("%s's order for %s", customer, thing)
-                .noneMatch(transaction -> transaction.customerId().equals(customer)
-                        && transaction.orderRef().productId().equals(thing));
+                .noneMatch(
+                        transaction ->
+                                transaction.customerId().equals(customer)
+                                        && transaction.orderRef().productId().equals(thing));
     }
 
     void assertNothingSettled() {

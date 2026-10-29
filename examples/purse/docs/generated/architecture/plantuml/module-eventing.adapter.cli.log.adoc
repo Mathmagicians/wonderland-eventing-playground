@@ -1,0 +1,9 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`dk.mathmagicians.wonderland.eventing.adapter.cli.log`
+|Spring components
+|_Secondary adapters_
+
+* `d.m.w.e.a.c.l.LoggingPublisher`
+|===

@@ -1,4 +1,4 @@
-@architecture
+@architecture-discovery
 Feature: The White Rabbit's hexagon
   The White Rabbit, a story playing in Wonderland. This is the architecture definition; this feature verifies
   that the architecture is built as specified.
@@ -9,7 +9,7 @@ Feature: The White Rabbit's hexagon
 
   Scenario: NoTimeToHaggle is the White Rabbit's story
     Then its @PrimaryPort is NoTimeToHaggle, which implements Story
-    And NoTimeToHaggle listensTo Offer
+    And NoTimeToHaggle subscribesTo Offer
     And NoTimeToHaggle publishes Order through PublishMessage
 
   Scenario: WhiteRabbitStory wires the White Rabbit from its settings
@@ -21,7 +21,8 @@ Feature: The White Rabbit's hexagon
     Then the module depends on application and domain only
 
   Scenario: Every arrow of the White Rabbit is tested
-    Then every arrow of the module names a scenario of the_white_rabbit_has_no_time_to_haggle.feature
+    Then every payload it subscribes to or publishes is driven by a scenario of its feature
 
   Scenario: Nothing else is annotated
-    Then the module carries no annotation this feature does not state
+    Then the module carries no Hexagonal Architecture stereotypes this feature does not state
+    And the module carries no Spring wiring this feature does not state

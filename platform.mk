@@ -67,7 +67,7 @@ SCENARIOS_ARG = $(if $(SCENARIOS),-Pscenarios='$(SCENARIOS)')
 ON_TRANSPORT = -Ptransport=$(TRANSPORT) -Pprofiles=$(PROFILES) $(if $(ON_KAFKA),-Pnetwork=$(KAFKA_NETWORK) -Pflock="$(FLOCK_KAFKA)")
 
 .DEFAULT_GOAL := build
-.PHONY: help check build test run clean version next-version docker-image docker-repo docker-publish docker-tag docker-image-exists docker-run bdd bdd-published bdd-matrix bdd-snippets ci-transports up down kafka-universe-up kafka-universe-down arch-verify arch-gen arch-check changed
+.PHONY: help check build test run clean version next-version docker-image docker-repo docker-publish docker-tag docker-image-exists docker-run bdd bdd-published bdd-matrix bdd-snippets ci-transports up down kafka-universe-up kafka-universe-down arch-verify arch-bdd arch-gen arch-forest arch-streams arch-hexagon arch-check changed
 
 # sections are the ##@ lines, targets the ## comments, this file's first
 HELP_FILES := $(lastword $(MAKEFILE_LIST)) $(filter-out $(lastword $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
@@ -77,7 +77,7 @@ help:      ## this list
 	@echo
 
 ##@ Build, the CI gate
-check: arch-verify build docker-image bdd   ## architecture, build, image, features, in this order
+check: arch-verify build docker-image bdd arch-bdd   ## architecture, build, image, features, then the architecture features on the run's report, in this order
 
 build:     ## compile, unit tests, jars
 	@$(GRADLE) build
@@ -149,20 +149,30 @@ bdd-snippets:  ## print a snippet for each undefined step, playing none
 ci-transports:   ## print CI_TRANSPORTS as a JSON list, the matrix of the bdd job
 	@printf '%s\n' $(CI_TRANSPORTS) | jq -Rnc '[inputs]'
 
-##@ Architecture, the hexagon from the annotations in the code, verified by tests and drawn under docs/generated/architecture
-arch-verify:   ## the hexagonal rule and the module boundaries
-	@$(GRADLE) $(BOOT):test --tests '*ArchitectureTest' --tests '*ArchitectureDocumentationTest'
+##@ Architecture, arch-: the model from the code and its three levels, the forest, the streams, the hexagon of each, drawn under docs/generated/architecture
+arch-verify:   ## the ArchUnit rules and Modulith's boundaries: ArchUnitTest, ArchModulithTest
+	@$(GRADLE) $(BOOT):archVerify
 
-arch-gen:      ## write docs/generated/architecture from the code
+arch-bdd:      ## the architecture-discovery features, no image: ArchBddTest, reports under build/reports/arch
+	@$(GRADLE) $(BOOT):archBdd
+
+arch-gen: arch-hexagon   ## the model and the three levels from the code: arch-forest, arch-streams, arch-hexagon
+
+arch-forest:   ## level 1, the forest: the landscape, the platform and its stories
+	@echo "arch-forest: not drawn yet, the three levels from the DSL, docs/releases/this-pr/automation.md"; exit 1
+
+arch-streams:  ## level 2, the streams: the stories with what they hear and publish
+	@echo "arch-streams: not drawn yet, the three levels from the DSL, docs/releases/this-pr/automation.md"; exit 1
+
+arch-hexagon:  ## level 3, the hexagon of each story and of the platform, with the model and Modulith's canvases
 	@$(GRADLE) $(BOOT):renderDiagrams
 
-# the plantuml sources are compared line-sorted, the Documenter writes dependency lines in varying order; the svg
-# files follow, so they must be in git but are not compared
-arch-check: arch-gen   ## fail when docs/generated/architecture is not regenerated and staged
-	@git status --porcelain -- docs/generated/architecture | grep '^??' && { echo "docs/generated/architecture has files not in git: git add docs/generated/architecture"; exit 1; } || true
-	@for f in $$(git status --porcelain -- docs/generated/architecture/plantuml | awk '/^.[^ ]/ { print $$2 }'); do \
-	  [ "$$(git show ":$$f" | sort | cksum)" = "$$(sort "$$f" | cksum)" ] || { echo "$$f is out of date: make arch-gen, then git add docs/generated/architecture"; exit 1; }; \
-	done
+# the architecture as specified: <story>.textproto written by hand under the project's test resources, what the build
+# must build; the plantuml sources and the svg files are drawn from the model and follow, not compared
+SPEC ?= src/test/resources/architecture
+
+arch-check: arch-gen   ## fail when the model the build wrote differs from the one specified under SPEC, layout aside
+	@$(GRADLE) $(BOOT):archCheck -ParchitectureSpec=$(SPEC)
 
 ##@ Repository
 changed:   ## true when a file under PATHS changed between commit BASE and HEAD, false when not; no or unknown BASE is true

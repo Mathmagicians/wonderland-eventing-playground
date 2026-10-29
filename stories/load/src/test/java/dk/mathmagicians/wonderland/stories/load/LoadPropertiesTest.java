@@ -3,9 +3,9 @@ package dk.mathmagicians.wonderland.stories.load;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import dk.mathmagicians.wonderland.stories.load.LoadProperties.Type;
 import dk.mathmagicians.wonderland.eventing.domain.EventFixtures;
 import dk.mathmagicians.wonderland.eventing.domain.Order;
+import dk.mathmagicians.wonderland.stories.load.LoadProperties.Type;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +24,8 @@ class LoadPropertiesTest {
     void answersTheRecipeOfItsType() {
         var orders = new LoadProperties(Type.ORDER, 10, 250, "EMEA", TTL);
 
-        assertThat(orders.recipe().from(EventFixtures.dice(), EventFixtures.AT)).isInstanceOf(Order.class);
+        assertThat(orders.recipe().from(EventFixtures.dice(), EventFixtures.AT))
+                .isInstanceOf(Order.class);
     }
 
     @Test

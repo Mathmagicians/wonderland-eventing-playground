@@ -1,17 +1,15 @@
 package dk.mathmagicians.wonderland.eventing.domain;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import static dk.mathmagicians.wonderland.eventing.domain.EventFixtures.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import static dk.mathmagicians.wonderland.eventing.domain.EventFixtures.*;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class PayloadTest {
-
 
     static final Pattern ID_PATTERN = Pattern.compile(("(?<prefix>[^-]+)-(?<uuid>.+)"));
 
@@ -19,6 +17,7 @@ class PayloadTest {
     static Stream<String> idIsAPrefixDashUUIDVersion3() {
         return Stream.of(offer().id(), order().id(), envelope(offer()).id());
     }
+
     @MethodSource
     @ParameterizedTest
     void idIsAPrefixDashUUIDVersion3(String id) {

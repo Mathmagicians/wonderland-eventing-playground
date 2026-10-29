@@ -114,7 +114,7 @@ class: text-xs
 
 | | | Run |
 |---|---|---|
-| **Java 25 + Spring Boot**<br>[EventingPlatform.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/playground/confluent/EventingPlatform.java) | The Spring Boot application is the substrate for the ports and the adapters; a process plays one story | `make run ARGS="--story=tea-party"` |
+| **Java 25 + Spring Boot**<br>[EventingPlatform.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/wonderland/EventingPlatform.java) | The Spring Boot application is the substrate for the ports and the adapters; a process plays one story | `make run ARGS="--story=tea-party"` |
 | **Docker + Compose**<br>[compose.yaml](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/compose.yaml) | Starts the flock from one image: a generator per region and the tea party | `TTL=300 make up` |
 
 ---
@@ -126,8 +126,8 @@ Testing: TDD: JUnit, BDD: Cucumber, Testcontainers
 
 | | | Run |
 |---|---|---|
-| **TDD**<br>[TransactionTest.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/test/java/dk/mathmagicians/playground/confluent/eventing/domain/TransactionTest.java) · [ArchitectureTest.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/app/src/test/java/dk/mathmagicians/playground/confluent/ArchitectureTest.java) | Unit tests with JUnit 5, AssertJ, and Mockito, one class per production class; the architecture rules are unit tests too | `make test` |
-| **BDD**<br>[i_can_generate_events.feature](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/test/resources/features/i_can_generate_events.feature) · [StreamSteps.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/playground/confluent/eventing/bdd/StreamSteps.java) | Cucumber features and step definitions; each feature plays against the image in Testcontainers, a red feature blocks the build | `make bdd` |
+| **TDD**<br>[TransactionTest.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/test/java/dk/mathmagicians/wonderland/eventing/domain/TransactionTest.java) · [ArchitectureTest.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/app/src/test/java/dk/mathmagicians/wonderland/ArchUnitTest.java) | Unit tests with JUnit 5, AssertJ, and Mockito, one class per production class; the architecture rules are unit tests too | `make test` |
+| **BDD**<br>[i_can_generate_events.feature](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/test/resources/features/i_can_generate_events.feature) · [StreamSteps.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/wonderland/eventing/bdd/StreamSteps.java) | Cucumber features and step definitions; each feature plays against the image in Testcontainers, a red feature blocks the build | `make bdd` |
 | **Spec Driven**<br>[How we work](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/README.md#how-we-work) · [discovery.md](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/docs/releases/release-0.0.7/discovery.md) | Discovery → Formulation → Automation → Verification; a release plan per folder, the board follows it | `make gh-project-sync` |
 
 ---
@@ -139,8 +139,8 @@ Eventing Platforms: Kafka, Confluent, Cloudflare, CLI
 
 | | | Run |
 |---|---|---|
-| **Kafka on Confluent Cloud**<br>[KafkaPublisher.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/playground/confluent/eventing/adapter/kafka/publisher/KafkaPublisher.java) · [kafka.properties](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/resources/kafka.properties) | Records carry CloudEvents headers and a Protobuf payload; the key picks the partition | `make run-tiny TRANSPORT=confluent` |
-| **CLI**<br>[ConsoleListener.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/playground/confluent/eventing/adapter/cli/console/ConsoleListener.java) | Without a cluster: a story publishes to the log and hears what is typed on stdin | `make run ARGS="--story=tea-party --tea-party.ttl="` |
+| **Kafka on Confluent Cloud**<br>[KafkaPublisher.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/wonderland/eventing/adapter/kafka/publisher/KafkaPublisher.java) · [kafka.properties](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/resources/kafka.properties) | Records carry CloudEvents headers and a Protobuf payload; the key picks the partition | `make run-tiny TRANSPORT=confluent` |
+| **CLI**<br>[ConsoleListener.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/wonderland/eventing/adapter/cli/console/ConsoleListener.java) | Without a cluster: a story publishes to the log and hears what is typed on stdin | `make run ARGS="--story=tea-party --tea-party.ttl="` |
 
 ---
 class: text-sm
@@ -167,7 +167,7 @@ jMolecules stereotypes on ports and adapters; one ArchUnit rule fails the build 
 make arch-verify
 ```
 
-[HexagonalArchitecture.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/playground/confluent/architecture/HexagonalArchitecture.java)
+[HexagonalArchitecture.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/wonderland/architecture/HexagonalArchitecture.java)
 
 ---
 
@@ -351,7 +351,7 @@ layout: section
 
 # The annotation is the spec
 
-The platform's driving port, [`Story`](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/playground/confluent/eventing/application/Story.java)
+The platform's driving port, [`Story`](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/wonderland/eventing/application/Story.java)
 
 ```java
 @PrimaryPort
@@ -359,13 +359,13 @@ public interface Story {
 
     String name();
 
-    default Set<Class<? extends Payload>> listensTo() {
+    default Set<Class<? extends Payload>> subscribesTo() {
         return Set.of();
     }
 }
 ```
 
-Its twin in the purse, a client's story, [`KnowWhatIsLeft`](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/examples/purse/src/main/java/dk/mathmagicians/playground/confluent/stories/purse/KnowWhatIsLeft.java)
+Its twin in the purse, a client's story, [`KnowWhatIsLeft`](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/examples/purse/src/main/java/dk/mathmagicians/wonderland/examples/stories/purse/KnowWhatIsLeft.java)
 
 ```java
 @PrimaryPort
@@ -409,20 +409,60 @@ layout: section
 # 4 · One model, three levels
 
 ---
+class: text-xs
+---
 
 # Code in, model out
+The build reads the classes once; everything else reads the model
+
+```text
+ code                         ArchUnit + Modulith          model                                   views and checks
+ @Module @PrimaryPort         read once, make arch-gen     docs/generated/architecture/model/      hexagon.svg      roles, arrows
+ @AutoConfiguration @Bean  ─────────────────────────────►  <story>.textproto, platform.textproto ──► streams.svg     who hears what
+ @ConfigurationProperties                                  port, hears, publishes, depends_on,       landscape.svg   the platform, its stories
+ @Component @Profile                                       annotated, scenario                       the features    make arch-bdd
+                                                                                                     arch-check      exact against git
+```
+
+[hexagon.proto](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/architecture-discovery/src/main/proto/hexagon.proto)
 
 ---
 
 # Three levels
+One model, three pictures drawn from it, one target each; `make arch-gen` writes the model and all three
+
+| Level | | Shows | |
+|---|---|---|---|
+| 1 | **the forest** | the landscape: the platform and its stories, the purse beside them | `make arch-forest` |
+| 2 | **the streams** | each story with what it hears and what it publishes | `make arch-streams` |
+| 3 | **the hexagon** | a story or the platform: the rings, the modules, the roles, the arrows | `make arch-hexagon` |
 
 ---
 
 # The model
 
+```text
+name: "Purse Story"
+base_package: "dk.mathmagicians.wonderland.examples.stories.purse"
+feature: ["alices_purse_knows_what_is_left.feature"]
+primary_port { name: "KnowWhatIsLeft"  implements: "Story" }
+subscribes { payload: "Transaction" }
+depends_on: ["Application", "Domain"]
+wiring {
+  configuration: "PurseStory"
+  settings { type: "PurseProperties"  prefix: "purse" }
+  bean { name: "purse"  builds: "KnowWhatIsLeft"  from: ["PurseProperties"] }
+}
+```
+
 ---
 
 # Facts found, views chosen
+The model holds every fact; a view leaves out what its reader does not need
+
+- Found: every module, type, role, annotation, dependency, and the scenario that drives each arrow
+- Chosen: the hexagon shows roles and arrows, the wiring stays in the model and in the feature that states it
+- Checked: `make arch-bdd` reads the model against the feature, `make arch-check` against git
 
 ---
 

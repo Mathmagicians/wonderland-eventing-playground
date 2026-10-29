@@ -1,11 +1,11 @@
 package dk.mathmagicians.wonderland.eventing.domain;
 
-import org.jmolecules.ddd.annotation.ValueObject;
-
 import java.time.Instant;
 import java.util.random.RandomGenerator;
+import org.jmolecules.ddd.annotation.ValueObject;
 
-/// An event is an envelope with a payload. The header names the event, where it came from, and when. We use the CloudEvent approach, but express it as a domain object
+/// An event is an envelope with a payload. The header names the event, where it came from, and
+/// when. We use the CloudEvent approach, but express it as a domain object
 @ValueObject
 public record Envelope(String id, String region, String app, Instant at, Payload payload) {
     static final String ID_PREFIX = "ENVL";
@@ -17,10 +17,12 @@ public record Envelope(String id, String region, String app, Instant at, Payload
     interface KeyStrategy<T extends Payload> {
         String key(String region, T payload);
     }
+
     static final KeyStrategy<Product> PRODUCT_KEY_STRATEGY = (_, p) -> p.id();
-    static final KeyStrategy<Offer> OFFER_KEY_STRATEGY = (region, o) -> String.join("/", region, o.productId());
+    static final KeyStrategy<Offer> OFFER_KEY_STRATEGY =
+            (region, o) -> String.join("/", region, o.productId());
     static final KeyStrategy<Order> ORDER_KEY_STRATEGY = (region, o) -> region;
-    static final KeyStrategy<Transaction> TRANSACTION_KEY_STRATEGY = (region, t) ->  t.customerId();
+    static final KeyStrategy<Transaction> TRANSACTION_KEY_STRATEGY = (region, t) -> t.customerId();
 
     public String key() {
         return switch (payload) {
@@ -31,8 +33,8 @@ public record Envelope(String id, String region, String app, Instant at, Payload
         };
     }
 
-    public static Envelope of(RandomGenerator random, String region, String app, Instant at, Payload payload) {
+    public static Envelope of(
+            RandomGenerator random, String region, String app, Instant at, Payload payload) {
         return new Envelope(id(random), region, app, at, payload);
     }
-
 }

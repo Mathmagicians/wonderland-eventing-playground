@@ -41,11 +41,9 @@ import org.springframework.kafka.listener.MessageListener;
 @ExtendWith(MockitoExtension.class)
 class StoryListenerTest {
 
-    @Mock
-    private ConcurrentKafkaListenerContainerFactory<String, byte[]> containers;
+    @Mock private ConcurrentKafkaListenerContainerFactory<String, byte[]> containers;
 
-    @Mock
-    private ConcurrentMessageListenerContainer<String, byte[]> container;
+    @Mock private ConcurrentMessageListenerContainer<String, byte[]> container;
 
     private final Reader reader = mock(Reader.class);
 
@@ -58,7 +56,7 @@ class StoryListenerTest {
     }
 
     @Test
-    void subscribesToTheTopicsOfWhatTheStoryListensToAsTheStorysGroup() {
+    void subscribesToTheTopicsOfWhatTheStorySubscribesToAsTheStorysGroup() {
         var properties = new ContainerProperties("test.offers", "test.orders");
         when(containers.createContainer(any(String[].class))).thenReturn(container);
         when(container.getContainerProperties()).thenReturn(properties);
@@ -77,8 +75,15 @@ class StoryListenerTest {
     @Test
     void subscribesUnderTheGroupTheStoryAnswers() {
         var group = "purse-" + ALICE;
-        var story = new StoryFixtures.Fake(
-                "purse", group, null, Set.of(Order.class), null, new AtomicInteger(), new ArrayList<>());
+        var story =
+                new StoryFixtures.Fake(
+                        "purse",
+                        group,
+                        null,
+                        Set.of(Order.class),
+                        null,
+                        new AtomicInteger(),
+                        new ArrayList<>());
         var properties = new ContainerProperties("test.orders");
         when(containers.createContainer(any(String[].class))).thenReturn(container);
         when(container.getContainerProperties()).thenReturn(properties);
@@ -88,7 +93,8 @@ class StoryListenerTest {
         assertThat(properties.getGroupId()).isEqualTo(group);
     }
 
-    /// A deployment that names the group, `spring.kafka.consumer.group-id`, has its way: a test run of its own.
+    /// A deployment that names the group, `spring.kafka.consumer.group-id`, has its way: a test run
+    /// of its own.
     @Test
     void subscribesUnderTheGroupTheDeploymentNamesInstead() {
         var kafka = new KafkaProperties();
@@ -102,7 +108,8 @@ class StoryListenerTest {
         assertThat(properties.getGroupId()).isEqualTo("tea-party-testrun-3f9a");
     }
 
-    /// What the container hands the listener: the story gets the envelopes of its region, the others pass by.
+    /// What the container hands the listener: the story gets the envelopes of its region, the
+    /// others pass by.
     @Test
     void handsTheStoryTheEnvelopesOfItsRegionOnly() {
         var story = listeningFrom(OTHER_REGION, "tea-party", Set.of(Order.class));
@@ -125,7 +132,7 @@ class StoryListenerTest {
     }
 
     @Test
-    void startsNoConsumerForAStoryThatListensToNothing() {
+    void startsNoConsumerForAStoryThatSubscribesToNothing() {
         var listener = listener(acting("load", null));
 
         listener.start();

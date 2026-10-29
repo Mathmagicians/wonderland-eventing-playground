@@ -19,15 +19,16 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/// The defaults of the contract: a story that says only its name listens to nothing, reads under its name, plays
-/// until stopped, and does nothing on start. And the two inputs the contract reads, the ttl and the name.
+/// The defaults of the contract: a story that says only its name listens to nothing, reads under
+/// its name, plays until stopped, and does nothing on start. And the two inputs the contract reads,
+/// the ttl and the name.
 class StoryTest {
 
     private final Story quiet = named("quiet");
 
     @Test
-    void listensToNothingByDefault() {
-        assertThat(quiet.listensTo()).isEmpty();
+    void subscribesToNothingByDefault() {
+        assertThat(quiet.subscribesTo()).isEmpty();
     }
 
     @Test
@@ -46,12 +47,12 @@ class StoryTest {
     }
 
     @Test
-    void refusesWhatItDoesNotListenTo() {
+    void refusesWhatItDoesNotSubscribeTo() {
         var envelope = envelope();
 
         assertThatIllegalStateException()
                 .isThrownBy(() -> quiet.on(envelope))
-                .withMessageContaining("quiet does not listen to")
+                .withMessageContaining("quiet does not subscribe to")
                 .withMessageContaining(envelope.payload().toString());
     }
 

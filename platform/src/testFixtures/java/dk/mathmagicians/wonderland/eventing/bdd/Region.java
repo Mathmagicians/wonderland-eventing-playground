@@ -6,10 +6,10 @@ import io.cucumber.spring.ScenarioScope;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
-/// The scenario's own corner of the cluster: the feature's region with a salt nobody else has, `EMEA` as
-/// `EMEA-3f9a2c1d`, one salt per scenario. Every generator, story, and event of the scenario uses it, so two
-/// runs at once, or a run beside the flock, never hear each other. The region in force is the last one a step
-/// named, the fixtures' to begin with.
+/// The scenario's own corner of the cluster: the feature's region with a salt nobody else has,
+/// `EMEA` as `EMEA-3f9a2c1d`, one salt per scenario. Every generator, story, and event of the
+/// scenario uses it, so two runs at once, or a run beside the flock, never hear each other. The
+/// region in force is the last one a step named, the fixtures' to begin with.
 @Component
 @ScenarioScope
 public class Region {

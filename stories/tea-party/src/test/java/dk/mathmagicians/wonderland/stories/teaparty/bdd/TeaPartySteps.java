@@ -8,13 +8,15 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import java.math.BigDecimal;
 
-/// Steps of "At the tea party an order meets an offer", glue to `TeaPartyTable`: how the party sits down, and
-/// what it settled. The offers and orders on the streams, the reading, and the transport are the platform's steps.
+/// Steps of "At the tea party an order meets an offer", glue to `TeaPartyTable`: how the party sits
+/// down, and what it settled. The offers and orders on the streams, the reading, and the transport
+/// are the platform's steps.
 public class TeaPartySteps {
 
     private final TeaPartyTable table;
 
-    public TeaPartySteps(StoryContainer story, Transport transport, Published published, Region region) {
+    public TeaPartySteps(
+            StoryContainer story, Transport transport, Published published, Region region) {
         this.table = new TeaPartyTable(story, transport, published, region);
     }
 
@@ -29,7 +31,8 @@ public class TeaPartySteps {
     }
 
     @Then("{wonderlander} paid {wonderlander} {bigdecimal} coins for the {thing}")
-    public void paidCoinsForTheThing(String customer, String seller, BigDecimal price, String thing) {
+    public void paidCoinsForTheThing(
+            String customer, String seller, BigDecimal price, String thing) {
         table.assertPaid(customer, seller, price, thing);
     }
 

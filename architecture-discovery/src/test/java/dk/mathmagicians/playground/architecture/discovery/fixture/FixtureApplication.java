@@ -5,6 +5,5 @@ public final class FixtureApplication {
 
     public static final String PACKAGE = FixtureApplication.class.getPackageName();
 
-    private FixtureApplication() {
-    }
+    private FixtureApplication() {}
 }

@@ -1,4 +1,5 @@
 @confluent
+@story:load
 Feature: The Flink cluster in the cloud keeps the latest value snapshot of the products
   Every product record is a new version of the same thing: the name stays, the description and the producer are
   fresh. The snapshot, products.lvs, keeps each product once per region, as it was last described, and counts its

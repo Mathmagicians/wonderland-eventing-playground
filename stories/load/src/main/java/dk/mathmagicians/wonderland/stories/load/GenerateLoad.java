@@ -18,10 +18,10 @@ import org.jmolecules.architecture.hexagonal.PrimaryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/// The load story, `i_can_generate_events.feature`: `concurrent` producers, each publishing one payload from the
-/// recipe every `interval` milliseconds until the ttl has passed. Producers are virtual threads, each with its own
-/// `ThreadLocalRandom`, reading the clock, publishing through `PublishMessage`. The story listens to nothing; it
-/// starts, runs, and the process ends with it.
+/// The load story, `i_can_generate_events.feature`: `concurrent` producers, each publishing one
+/// payload from the recipe every `interval` milliseconds until the ttl has passed. Producers are
+/// virtual threads, each with its own `ThreadLocalRandom`, reading the clock, publishing through
+/// `PublishMessage`. The story listens to nothing; it starts, runs, and the process ends with it.
 @PrimaryPort
 public record GenerateLoad(
         PublishMessage publishMessage,
@@ -29,7 +29,8 @@ public record GenerateLoad(
         Recipe<? extends Payload> payloads,
         int concurrent,
         int interval,
-        Duration ttl) implements Story {
+        Duration ttl)
+        implements Story {
 
     public static final String NAME = "load";
 
@@ -66,7 +67,11 @@ public record GenerateLoad(
     /// Starts the producers, waits for all of them, answers the number of messages published.
     public long run() {
         var deadline = clock.instant().plus(ttl);
-        log.info("Starting {} threads, each sleeping {} ms, until {}", concurrent, interval, deadline);
+        log.info(
+                "Starting {} threads, each sleeping {} ms, until {}",
+                concurrent,
+                interval,
+                deadline);
         var threadFactory = Thread.ofVirtual().name("generator-", 0).factory();
         try (var executor = Executors.newThreadPerTaskExecutor(threadFactory)) {
             Callable<Long> looper = () -> loop(deadline);
@@ -105,7 +110,8 @@ public record GenerateLoad(
         } catch (RuntimeException e) {
             log.error("Thread failed in loop after producing {} events", produced, e);
             throw new IllegalStateException(
-                    "Thread %s failed after producing %d events".formatted(Thread.currentThread().getName(), produced),
+                    "Thread %s failed after producing %d events"
+                            .formatted(Thread.currentThread().getName(), produced),
                     e);
         }
     }

@@ -8,24 +8,24 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
+import dk.mathmagicians.playground.eventing.OfferDTO;
+import dk.mathmagicians.playground.eventing.OrderDTO;
+import dk.mathmagicians.playground.eventing.ProductDTO;
+import dk.mathmagicians.playground.eventing.TransactionDTO;
 import dk.mathmagicians.wonderland.eventing.domain.Offer;
 import dk.mathmagicians.wonderland.eventing.domain.Order;
 import dk.mathmagicians.wonderland.eventing.domain.Payload;
 import dk.mathmagicians.wonderland.eventing.domain.Product;
 import dk.mathmagicians.wonderland.eventing.domain.Transaction;
-import dk.mathmagicians.playground.eventing.OfferDTO;
-import dk.mathmagicians.playground.eventing.OrderDTO;
-import dk.mathmagicians.playground.eventing.ProductDTO;
-import dk.mathmagicians.playground.eventing.TransactionDTO;
 import java.time.Instant;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/// The wire format. Outbound, the payload becomes its generated message, one exhaustive switch over the records;
-/// inbound, the message's full name picks the record it becomes, one parser per payload type. `Instant` travels
-/// as `google.protobuf.Timestamp`, a nested record as a nested message. The console types a message as Protobuf
-/// text for a record type, so a record is read from text by its type, and the shape of a type is had as such
-/// text, for the help.
+/// The wire format. Outbound, the payload becomes its generated message, one exhaustive switch over
+/// the records; inbound, the message's full name picks the record it becomes, one parser per
+/// payload type. `Instant` travels as `google.protobuf.Timestamp`, a nested record as a nested
+/// message. The console types a message as Protobuf text for a record type, so a record is read
+/// from text by its type, and the shape of a type is had as such text, for the help.
 public final class Converter {
 
     /// From the message's bytes to the payload record of its type.
@@ -34,22 +34,26 @@ public final class Converter {
         Payload parse(byte[] bytes) throws InvalidProtocolBufferException;
     }
 
-    private static final Map<String, Parser> PARSERS = Map.of(
-            ProductDTO.Product.getDescriptor().getFullName(), bytes -> from(ProductDTO.Product.parseFrom(bytes)),
-            OfferDTO.Offer.getDescriptor().getFullName(), bytes -> from(OfferDTO.Offer.parseFrom(bytes)),
-            OrderDTO.Order.getDescriptor().getFullName(), bytes -> from(OrderDTO.Order.parseFrom(bytes)),
-            TransactionDTO.Transaction.getDescriptor().getFullName(),
-            bytes -> from(TransactionDTO.Transaction.parseFrom(bytes)));
+    private static final Map<String, Parser> PARSERS =
+            Map.of(
+                    ProductDTO.Product.getDescriptor().getFullName(),
+                    bytes -> from(ProductDTO.Product.parseFrom(bytes)),
+                    OfferDTO.Offer.getDescriptor().getFullName(),
+                    bytes -> from(OfferDTO.Offer.parseFrom(bytes)),
+                    OrderDTO.Order.getDescriptor().getFullName(),
+                    bytes -> from(OrderDTO.Order.parseFrom(bytes)),
+                    TransactionDTO.Transaction.getDescriptor().getFullName(),
+                    bytes -> from(TransactionDTO.Transaction.parseFrom(bytes)));
 
     /// A fresh builder of the message per record type.
-    private static final Map<Class<? extends Payload>, Supplier<Message.Builder>> BUILDERS = Map.of(
-            Product.class, ProductDTO.Product::newBuilder,
-            Offer.class, OfferDTO.Offer::newBuilder,
-            Order.class, OrderDTO.Order::newBuilder,
-            Transaction.class, TransactionDTO.Transaction::newBuilder);
+    private static final Map<Class<? extends Payload>, Supplier<Message.Builder>> BUILDERS =
+            Map.of(
+                    Product.class, ProductDTO.Product::newBuilder,
+                    Offer.class, OfferDTO.Offer::newBuilder,
+                    Order.class, OrderDTO.Order::newBuilder,
+                    Transaction.class, TransactionDTO.Transaction::newBuilder);
 
-    private Converter() {
-    }
+    private Converter() {}
 
     public static Message to(Payload payload) {
         return switch (payload) {
@@ -102,11 +106,14 @@ public final class Converter {
     }
 
     private static Timestamp to(Instant at) {
-        return Timestamp.newBuilder().setSeconds(at.getEpochSecond()).setNanos(at.getNano()).build();
+        return Timestamp.newBuilder()
+                .setSeconds(at.getEpochSecond())
+                .setNanos(at.getNano())
+                .build();
     }
 
-    /// The payload record of a message, whichever class the deserializer gave it: the message's full name picks
-    /// the parser, and the bytes go through it.
+    /// The payload record of a message, whichever class the deserializer gave it: the message's
+    /// full name picks the parser, and the bytes go through it.
     public static Payload from(Message message) {
         var name = message.getDescriptorForType().getFullName();
         var parser = PARSERS.get(name);
@@ -139,7 +146,11 @@ public final class Converter {
     }
 
     public static Order from(OrderDTO.Order order) {
-        return new Order(order.getId(), order.getCustomerId(), order.getProductId(), from(order.getCreatedAt()));
+        return new Order(
+                order.getId(),
+                order.getCustomerId(),
+                order.getProductId(),
+                from(order.getCreatedAt()));
     }
 
     public static Transaction from(TransactionDTO.Transaction transaction) {
@@ -157,9 +168,10 @@ public final class Converter {
         return Instant.ofEpochSecond(at.getSeconds(), at.getNanos());
     }
 
-    /// The record of the type read from Protobuf text, the fields of its message as the console types them,
-    /// `offer_id: "OFF-1" product_id: "P-TOPH" price: 12.5 seller_id: "MAD_HATTER"`. Text the schema refuses,
-    /// a field it does not know, a value of the wrong kind, fails with the reason.
+    /// The record of the type read from Protobuf text, the fields of its message as the console
+    /// types them, `offer_id: "OFF-1" product_id: "P-TOPH" price: 12.5 seller_id: "MAD_HATTER"`.
+    /// Text the schema refuses, a field it does not know, a value of the wrong kind, fails with the
+    /// reason.
     public static <T extends Payload> T from(Class<T> type, String text) {
         var builder = builder(type);
         try {
@@ -171,18 +183,21 @@ public final class Converter {
         return type.cast(from(builder.build()));
     }
 
-    /// The shape of a type as a line the console accepts: its name, then every field with an empty value, `""`
-    /// for text, `0` for a number, `false`, an enum's first value, a nested message with its own fields.
+    /// The shape of a type as a line the console accepts: its name, then every field with an empty
+    /// value, `""` for text, `0` for a number, `false`, an enum's first value, a nested message
+    /// with its own fields.
     public static String shape(Class<? extends Payload> type) {
         var descriptor = builder(type).getDescriptorForType();
         return descriptor.getName() + " " + fields(descriptor);
     }
 
-    /// The payload as a line the console reads: its type's name, then its message as Protobuf text on one line,
-    /// `Offer offer_id: "OFF-1" product_id: "P-TOPH" price: 12.5 seller_id: "MAD_HATTER" created_at { ... }`.
+    /// The payload as a line the console reads: its type's name, then its message as Protobuf text
+    /// on one line, `Offer offer_id: "OFF-1" product_id: "P-TOPH" price: 12.5 seller_id:
+    /// "MAD_HATTER" created_at { ... }`.
     public static String text(Payload payload) {
         var message = to(payload);
-        return message.getDescriptorForType().getName() + " "
+        return message.getDescriptorForType().getName()
+                + " "
                 + TextFormat.printer().emittingSingleLine(true).printToString(message).strip();
     }
 
@@ -194,11 +209,17 @@ public final class Converter {
         return builder.get();
     }
 
-    /// A scalar as `name: value`, a nested message as `name { fields }`, the way Protobuf prints them.
+    /// A scalar as `name: value`, a nested message as `name { fields }`, the way Protobuf prints
+    /// them.
     private static String fields(Descriptor message) {
         return message.getFields().stream()
-                .map(field -> field.getName() + (field.getJavaType() == FieldDescriptor.JavaType.MESSAGE ? " " : ": ")
-                        + placeholder(field))
+                .map(
+                        field ->
+                                field.getName()
+                                        + (field.getJavaType() == FieldDescriptor.JavaType.MESSAGE
+                                                ? " "
+                                                : ": ")
+                                        + placeholder(field))
                 .collect(joining(" "));
     }
 

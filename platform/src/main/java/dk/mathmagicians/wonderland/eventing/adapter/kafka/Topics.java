@@ -8,8 +8,8 @@ import dk.mathmagicians.wonderland.eventing.domain.Transaction;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Profile;
 
-/// The topic per payload type. One set per environment, named in the profile's properties as `iac/topics.tf`
-/// creates them.
+/// The topic per payload type. One set per environment, named in the profile's properties as
+/// `iac/topics.tf` creates them.
 @ConfigurationProperties("topics")
 @Profile("kafka")
 public record Topics(String products, String offers, String orders, String transactions) {

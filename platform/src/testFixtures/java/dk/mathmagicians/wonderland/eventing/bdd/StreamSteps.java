@@ -15,10 +15,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/// Steps putting events on the streams by hand, in the scenario's region, one Wonderlander at a time: "Mad
-/// Hatter offers a Top Hat for 12.5 coins", "Alice orders a Top Hat", "Mad Hatter paid Alice 20.25 coins for a
-/// thing". What was placed is in `Published`, for the steps that look for the outcome. Ids carry the scenario's
-/// salt, so they are the scenario's own on the wire.
+/// Steps putting events on the streams by hand, in the scenario's region, one Wonderlander at a
+/// time: "Mad Hatter offers a Top Hat for 12.5 coins", "Alice orders a Top Hat", "Mad Hatter paid
+/// Alice 20.25 coins for a thing". What was placed is in `Published`, for the steps that look for
+/// the outcome. Ids carry the scenario's salt, so they are the scenario's own on the wire.
 public class StreamSteps {
 
     private final Transport transport;
@@ -49,12 +49,19 @@ public class StreamSteps {
 
     private void place(Payload payload) {
         var where = region.current();
-        var receipt = transport.publish(Envelope.of(ThreadLocalRandom.current(), where, APP, Instant.now(), payload));
+        var receipt =
+                transport.publish(
+                        Envelope.of(
+                                ThreadLocalRandom.current(), where, APP, Instant.now(), payload));
         published.add(where, List.of(receipt), List.of(payload));
     }
 
     /// `OFF-3f9a2c1d-1`: the type, the scenario's salt, the count so far.
     private String id(Class<? extends Payload> type) {
-        return type.getSimpleName().substring(0, 3).toUpperCase() + "-" + region.salt() + "-" + ++placed;
+        return type.getSimpleName().substring(0, 3).toUpperCase()
+                + "-"
+                + region.salt()
+                + "-"
+                + ++placed;
     }
 }

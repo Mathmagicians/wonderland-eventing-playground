@@ -1,4 +1,4 @@
-@architecture
+@architecture-discovery
 Feature: The purse has a hexagonal architecture
   Alice's purse, a story playing in Wonderland. This is the architecture definition; this feature verifies that
   the architecture is built as specified.
@@ -9,7 +9,7 @@ Feature: The purse has a hexagonal architecture
 
   Scenario: KnowWhatIsLeft is the purse's story
     Then its @PrimaryPort is KnowWhatIsLeft, which implements Story
-    And KnowWhatIsLeft listensTo Transaction
+    And KnowWhatIsLeft subscribesTo Transaction
     And KnowWhatIsLeft publishes nothing
 
   Scenario: PurseStory wires the purse from its settings
@@ -21,7 +21,8 @@ Feature: The purse has a hexagonal architecture
     Then the module depends on application and domain only
 
   Scenario: Every arrow of the purse is tested
-    Then every arrow of the module names a scenario of alices_purse_knows_what_is_left.feature
+    Then every payload it subscribes to or publishes is driven by a scenario of its feature
 
   Scenario: Nothing else is annotated
-    Then the module carries no annotation this feature does not state
+    Then the module carries no Hexagonal Architecture stereotypes this feature does not state
+    And the module carries no Spring wiring this feature does not state

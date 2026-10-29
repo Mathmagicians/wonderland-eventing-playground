@@ -138,7 +138,7 @@ A use case takes what the generator has, a payload, and the driven port takes wh
 `PublishMessage` makes the one from the other, and a story publishes through it. Use cases are records Spring never
 sees: a story's auto-configuration wires them by hand from their ports, the clock, and the random source, and
 `UseCases` picks the story `--story` names. The stereotypes are
-jMolecules annotations, and `ArchitectureTest` runs `ensureHexagonal()` over them: a use case reaches driven ports,
+jMolecules annotations, and `ArchUnitTest` runs `ensureHexagonal()` over them: a use case reaches driven ports,
 other use cases, and the domain only, a driving adapter reaches use cases only, a driven adapter reaches driven ports
 only, both reach the shared adapters, which reach the domain only, and nothing inside reaches an adapter.
 
@@ -187,7 +187,7 @@ only, both reach the shared adapters, which reach the domain only, and nothing i
     └── adr.md                the architecture decisions
 ```
 
-Root package: `dk.mathmagicians.playground.confluent`. Packages by ring inside the platform: `domain` in the
+Root package: `dk.mathmagicians.wonderland`. Packages by ring inside the platform: `domain` in the
 centre, `application` around it, and `adapter` at the edge with one package per technology, `cli/boot`,
 `cli/console`, `cli/log`, `protobuf`, `kafka/publisher`, `kafka/consumer`, see Hexagon under Architecture. A story is one package under `stories`. The
 domain is one package, so a sealed type and its records stay package-private neighbours.
@@ -330,7 +330,7 @@ A review finding cites the rule it breaks.
 3. **Functional style.** Immutable data, pure functions, side effects at the edges: Kafka, clock, logging.
 4. **Behaviour first.** A change starts with the Gherkin scenario or unit test that describes it.
 5. **Hexagonal architecture.** Domain in the centre, use cases around it, Kafka and Spring in adapters at the edges,
-   see Hexagon under Architecture. The architecture is a test: `ArchitectureTest` fails the build when the core
+   see Hexagon under Architecture. The architecture is a test: `ArchUnitTest` fails the build when the core
    reaches an adapter or an adapter bypasses its port.
 
 ### Java 25
@@ -468,7 +468,7 @@ BDD with Cucumber:
 - The version is Gradle's, derived from git tags: `1.2.3` at tag `v1.2.3`, `1.2.4-SNAPSHOT` after it,
   `0.0.1-SNAPSHOT` before the first tag. `make version` and `make next-version` print them.
 - `cicd.yaml`, job `ci`, runs on pull requests to `main`, on pushes to `main`, and on `workflow_dispatch`:
-  generated-check, arch-verify, build with unit tests, the platform, its test fixtures, and the stories as a
+  generated-check, arch-verify, arch-bdd, build with unit tests, the platform, its test fixtures, and the stories as a
   snapshot to GitHub Packages, container image, then publishes the build to
   `ghcr.io/mathmagicians/wonderland-eventing-playground` as a candidate tagged `sha-<short sha>`.
 - `cicd.yaml`, job `bdd`, follows `ci`: it deploys to test by running the integration tests, `make bdd-published`,

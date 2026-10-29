@@ -16,7 +16,9 @@ class TopicsTest {
 
         var selected = payloads().stream().map(topics::select).toList();
 
-        assertThat(selected).containsExactly("test.products", "test.offers", "test.orders", "test.transactions");
+        assertThat(selected)
+                .containsExactly(
+                        "test.products", "test.offers", "test.orders", "test.transactions");
     }
 
     @Test
@@ -31,7 +33,8 @@ class TopicsTest {
 
     @Test
     void rejectsABlankName() {
-        assertThatThrownBy(() -> new Topics("test.products", " ", "test.orders", "test.transactions"))
+        assertThatThrownBy(
+                        () -> new Topics("test.products", " ", "test.orders", "test.transactions"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("topics.offers");
     }

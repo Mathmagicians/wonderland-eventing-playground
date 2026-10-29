@@ -1,0 +1,13 @@
+' the look of the hexagon, read by PlantUML as its config before hexagon.puml: a ring is a package, seen by its
+' title alone; a module a hexagon; a type a card with its role as the stereotype; the legend a frame
+skinparam ranksep 24
+skinparam nodesep 24
+<style>
+document { Shadowing 0 }
+arrow { FontSize 10; FontColor #666666 }
+package { HorizontalAlignment center; LineColor transparent; BackgroundColor transparent }
+hexagon { HorizontalAlignment center; FontStyle plain }
+rectangle { LineColor transparent; BackgroundColor transparent }
+card { stereotype { FontSize 10; FontStyle plain } }
+frame { FontSize 10; FontColor #666666; LineColor #BBBBBB }
+</style>

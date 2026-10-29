@@ -2,18 +2,13 @@
 # proto-message: Story
 
 name: "Purse Story"
-base_package: "dk.mathmagicians.playground.confluent.stories.purse"
-port { name: "KnowWhatIsLeft"  implements: "Story" }
-hears {
-  payload: "Transaction"
-  scenario: "alices_purse_knows_what_is_left.feature:9"
-  scenario: "alices_purse_knows_what_is_left.feature:24"
+base_package: "dk.mathmagicians.wonderland.examples.stories.purse"
+feature: ["alices_purse_knows_what_is_left.feature"]
+primary_port { name: "KnowWhatIsLeft"  implements: "Story" }
+subscribes { payload: "Transaction" }
+depends_on: ["Application", "Domain"]
+wiring {
+  configuration: "PurseStory"
+  settings { type: "PurseProperties"  prefix: "purse" }
+  bean { name: "purse"  builds: "KnowWhatIsLeft"  from: ["PurseProperties"] }
 }
-depends_on: "application"
-depends_on: "domain"
-annotated { type: "package-info"  annotation: "@Module"  value: "Purse Story" }
-annotated { type: "KnowWhatIsLeft"  annotation: "@PrimaryPort" }
-annotated { type: "PurseStory"  annotation: "@AutoConfiguration" }
-annotated { type: "PurseStory"  annotation: "@EnableConfigurationProperties"  value: "PurseProperties" }
-annotated { type: "PurseStory.purse"  annotation: "@Bean"  value: "KnowWhatIsLeft" }
-annotated { type: "PurseProperties"  annotation: "@ConfigurationProperties"  value: "purse" }

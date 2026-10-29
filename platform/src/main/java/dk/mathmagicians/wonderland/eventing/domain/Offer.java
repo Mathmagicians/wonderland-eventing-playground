@@ -1,9 +1,9 @@
 package dk.mathmagicians.wonderland.eventing.domain;
 
-import org.jmolecules.ddd.annotation.ValueObject;
-
 import java.time.Instant;
 import java.util.random.RandomGenerator;
+import org.jmolecules.ddd.annotation.ValueObject;
+
 @ValueObject
 public record Offer(String id, String productId, double price, String sellerId, Instant createdAt)
         implements Payload {

@@ -24,8 +24,7 @@ class StoryRunnerTest {
 
     private static final Duration SHORT = Duration.ofMillis(20);
 
-    @Mock
-    private ConfigurableApplicationContext context;
+    @Mock private ConfigurableApplicationContext context;
 
     private final Clock clock = Clock.systemUTC();
 
@@ -44,7 +43,8 @@ class StoryRunnerTest {
 
     @Test
     void leavesAConsumerWithoutATtlUntilStopped() throws InterruptedException {
-        runner(listening("forever", Set.of(Order.class), null)).run(new DefaultApplicationArguments());
+        runner(listening("forever", Set.of(Order.class), null))
+                .run(new DefaultApplicationArguments());
 
         verify(context, never()).close();
     }
@@ -60,7 +60,8 @@ class StoryRunnerTest {
     void closesTheContextOfAConsumerWhenItsTtlHasPassed() throws InterruptedException {
         var before = Instant.now();
 
-        runner(listening("brief", Set.of(Order.class), SHORT)).run(new DefaultApplicationArguments());
+        runner(listening("brief", Set.of(Order.class), SHORT))
+                .run(new DefaultApplicationArguments());
 
         assertThat(Duration.between(before, Instant.now())).isGreaterThanOrEqualTo(SHORT);
         verify(context).close();

@@ -11,7 +11,8 @@ public class ClusterSteps {
         this.cluster = cluster;
     }
 
-    /// `the topic orders exists`, `the dead-letter topic for orders exists`, see `ParameterTypes.topic`
+    /// `the topic orders exists`, `the dead-letter topic for orders exists`, see
+    /// `ParameterTypes.topic`
     @Then("the {topic} exists")
     public void theTopicExists(String topic) {
         cluster.assertTopicExists(topic);

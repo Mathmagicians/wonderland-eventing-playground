@@ -1,0 +1,167 @@
+// The architecture of a build as its DSL, in Protobuf text format: a Story per story the build plays, and a Platform
+// for the hexagon itself. ModelWriter reads them out of the classes, TextProtoWriter prints them under
+// docs/generated/architecture/model, <story>.textproto and platform.textproto, and ModelCheck compares what was
+// specified by hand with what was built. A field the code does not carry is absent, never guessed. The field names
+// are the DSL's words: the hexagon's, as jMolecules names its stereotypes, and Spring's under wiring, kept apart.
+syntax = "proto3";
+
+package dk.mathmagicians.playground.architecture;
+
+option java_package = "dk.mathmagicians.playground.architecture.model";
+option java_multiple_files = true;
+option java_outer_classname = "HexagonProto";
+
+// A story: a module of the hexagon whose PrimaryPort implements Story, with its ports, what it subscribes to and
+// publishes, the modules it reaches, its other stereotyped types, and how Spring wires it.
+message Story {
+    // the module's name, as @Module names it: "Purse Story"
+    string name = 1;
+    // the story's package: "dk.mathmagicians.wonderland.examples.stories.purse"
+    string base_package = 2;
+    // the story's behaviour features, the files whose scenarios drive it, each tagged with the story's name as
+    // --story names it, @purse: "alices_purse_knows_what_is_left.feature"
+    repeated string feature = 3;
+    // the story's driving ports, @PrimaryPort, one of them implementing Story
+    repeated Port primary_port = 4;
+    // the story's own driven ports, @SecondaryPort, and what implements them
+    repeated Port secondary_port = 5;
+    // the payloads the story subscribes to, one entry per payload
+    repeated Subscribes subscribes = 6;
+    // the payloads the story publishes, one entry per payload
+    repeated Publishes publishes = 7;
+    // the modules the story's types reach, by name, in the order the arrows name them: "Application", "Domain"
+    repeated string depends_on = 8;
+    // the story's other types with a Hexagonal Architecture or DDD stereotype, a value object of its own say
+    repeated Type type = 9;
+    // how Spring wires the story into a distribution
+    Wiring wiring = 10;
+}
+
+// A port of a story: its name, the contract it implements, "Story" for the driving port, and the types that
+// implement it, the adapters of a driven port.
+message Port {
+    string name = 1;
+    string implements = 2;
+    repeated string implemented_by = 3;
+}
+
+// A payload a story subscribes to. Which scenarios of the story's features drive it is checked from the last run's
+// cucumber.json, not specified here.
+message Subscribes {
+    string payload = 1;
+}
+
+// A payload a story publishes, and the port it publishes through.
+message Publishes {
+    string payload = 1;
+    // "PublishMessage"
+    string through = 2;
+}
+
+// How Spring wires a story, as its auto-configuration declares it.
+message Wiring {
+    // the @AutoConfiguration class, listed in META-INF/spring: "PurseStory"
+    string configuration = 1;
+    // the @ConfigurationProperties the configuration enables, each with the prefix it binds
+    repeated Settings settings = 2;
+    // the configuration's @Bean methods, each with what it builds and what it builds from
+    repeated Bean bean = 3;
+}
+
+// A settings record: the @ConfigurationProperties type and its prefix.
+message Settings {
+    string type = 1;
+    // "purse"
+    string prefix = 2;
+}
+
+// A bean method: its name, the type it builds, and the types of its parameters.
+message Bean {
+    // "purse"
+    string name = 1;
+    // "KnowWhatIsLeft"
+    string builds = 2;
+    // "PurseProperties"
+    repeated string from = 3;
+}
+
+// The hexagon of the build: every module with its ring and its types, and the arrows between them.
+message Platform {
+    // the system's name, @Modulithic(systemName), else the main class: "Wonderland"
+    string name = 1;
+    // the modules in the hexagon's order: the driving adapters, the application with the domain after it, the driven
+    // adapters, the shared adapters
+    repeated Module module = 2;
+    // the arrows, sorted by their ends
+    repeated Arrow arrow = 3;
+}
+
+// A module of the hexagon, a Spring Modulith application module placed by its stereotypes.
+message Module {
+    // as @Module names it: "Kafka Consumer"
+    string name = 1;
+    // the module's package: "dk.mathmagicians.wonderland.eventing.adapter.kafka.consumer"; the hexagon's title shows
+    // its last two segments
+    string package = 2;
+    Ring ring = 3;
+    // the jMolecules stereotypes on the module's package, as the catalog names them: "Module", "PrimaryAdapter"
+    repeated string stereotype = 4;
+    // Spring's annotations on the module's package, with their value: none in Wonderland today
+    repeated string wiring = 5;
+    // the module's types with a stereotype or wiring, in the hexagon's order; a method with wiring is an entry of
+    // its own, "PurseStory.purse"
+    repeated Type type = 6;
+}
+
+// A type of a module: its jMolecules stereotypes, its role first, "PrimaryPort"; Spring's annotations on it with
+// their value, "Component", "Profile(cli)", a bean method's "Bean(KnowWhatIsLeft)"; and, for a method, the types of
+// its parameters.
+message Type {
+    string name = 1;
+    repeated string stereotype = 2;
+    repeated string wiring = 3;
+    repeated string parameter = 4;
+}
+
+// The rings of the hexagon, where a module sits.
+enum Ring {
+    RING_UNSPECIFIED = 0;
+    // the driving adapters, the left column
+    DRIVING = 1;
+    // the use cases and the ports, the centre
+    APPLICATION = 2;
+    // nested inside the application
+    DOMAIN = 3;
+    // the driven adapters, the right column
+    DRIVEN = 4;
+    // the adapters both sides use, the row below the application
+    SHARED = 5;
+}
+
+// An arrow of the hexagon: between two types, or into a module when the target has no entry.
+message Arrow {
+    End from = 1;
+    End to = 2;
+    Relation relation = 3;
+}
+
+// An arrow's end: a module, and the type in it when the arrow ends on one.
+message End {
+    string module = 1;
+    string type = 2;
+}
+
+// What an arrow says: the legend's three relations, and the two a story's port draws to a payload.
+enum Relation {
+    RELATION_UNSPECIFIED = 0;
+    // holds the other: a solid line
+    USES = 1;
+    // is one of the other's kind: dashed, with the hollow head
+    IMPLEMENTS = 2;
+    // any other reference: dashed
+    DEPENDS_ON = 3;
+    // the port subscribes to the payload
+    SUBSCRIBES = 4;
+    // the port publishes the payload
+    PUBLISHES = 5;
+}

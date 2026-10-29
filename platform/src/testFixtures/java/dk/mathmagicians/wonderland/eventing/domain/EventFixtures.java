@@ -15,10 +15,12 @@ import java.util.stream.Stream;
 public final class EventFixtures {
 
     public static final Instant AT = Instant.parse("2026-09-04T10:15:30.123456789Z");
+
     /// A clock stopped at `AT`.
     public static final Clock CLOCK = Clock.fixed(AT, ZoneOffset.UTC);
 
     public static final String REGION = "EMEA";
+
     /// A region that is not `REGION`, for what must stay apart.
     public static final String OTHER_REGION = "APAC";
 
@@ -36,7 +38,8 @@ public final class EventFixtures {
         return RandomGeneratorFactory.getDefault().create(SEED);
     }
 
-    /// `DRAWS` from one seeded generator, so the draws differ and the sample is the same in every test.
+    /// `DRAWS` from one seeded generator, so the draws differ and the sample is the same in every
+    /// test.
     public static <T> Stream<T> sample(BiFunction<RandomGenerator, Instant, T> recipe) {
         var dice = dice();
         return Stream.generate(() -> recipe.apply(dice, AT)).limit(DRAWS);
@@ -58,17 +61,19 @@ public final class EventFixtures {
         return transaction(dice(), AT);
     }
 
-    /// A settlement, the one way the domain mints a transaction: an offer drawn from the generator, and an order
-    /// for the offer's thing drawn from it too.
+    /// A settlement, the one way the domain mints a transaction: an offer drawn from the generator,
+    /// and an order for the offer's thing drawn from it too.
     public static Transaction transaction(RandomGenerator random, Instant at) {
         var offer = Offer.random(random, at);
         var order = Order.random(random, at);
-        var sameThing = new Order(order.id(), order.customerId(), offer.productId(), order.createdAt());
+        var sameThing =
+                new Order(order.id(), order.customerId(), offer.productId(), order.createdAt());
         return Transaction.settle(sameThing, offer, at);
     }
 
     /// The wonderlanders and the things the tests trade, by their ids on the wire.
     public static final String ALICE = character("Alice");
+
     public static final String WHITE_RABBIT = character("White Rabbit");
     public static final String MAD_HATTER = character("Mad Hatter");
     public static final String MARCH_HARE = character("March Hare");
@@ -104,7 +109,7 @@ public final class EventFixtures {
     }
 
     public static Envelope envelope(Payload payload) {
-        return Envelope.of( dice(),  REGION, APP, AT, payload);
+        return Envelope.of(dice(), REGION, APP, AT, payload);
     }
 
     /// A publisher that keeps every envelope it gets and answers at once with `receipt`.
@@ -130,6 +135,5 @@ public final class EventFixtures {
         return Product.id(name);
     }
 
-    private EventFixtures() {
-    }
+    private EventFixtures() {}
 }

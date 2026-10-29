@@ -14,15 +14,17 @@ import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.annotation.Profile;
 import org.testcontainers.containers.GenericContainer;
 
-/// The transport on `kafka`, Confluent Cloud included: the cluster and its registry, through `Cluster` and
-/// `SchemaRegistry`. A story listens under its group, reading its topics from their end, and has read them when
-/// the group's committed offsets reach the end of every partition that got records since it started. A record
-/// a receipt points at is read once, for the steps that go on looking at it.
+/// The transport on `kafka`, Confluent Cloud included: the cluster and its registry, through
+/// `Cluster` and `SchemaRegistry`. A story listens under its group, reading its topics from their
+/// end, and has read them when the group's committed offsets reach the end of every partition that
+/// got records since it started. A record a receipt points at is read once, for the steps that go
+/// on looking at it.
 @ScenarioScope
 @Profile("kafka")
 class ClusterTransport implements Transport {
 
-    /// Spring Kafka's line once the consumer has its partitions: from here on the story sees what is published
+    /// Spring Kafka's line once the consumer has its partitions: from here on the story sees what
+    /// is published
     private static final String LISTENING = ".*partitions assigned.*\\n";
 
     private final Cluster cluster;
@@ -44,12 +46,13 @@ class ClusterTransport implements Transport {
     @Override
     public void listen(GenericContainer<?> story, String group) {
         endAtStart = cluster.endOffsets(cluster.topics());
-        story.setCommandParts(Stream.concat(
-                        Stream.of(story.getCommandParts()),
-                        Stream.of(
-                                "--spring.kafka.consumer.group-id=" + group,
-                                "--spring.kafka.consumer.auto-offset-reset=latest"))
-                .toArray(String[]::new));
+        story.setCommandParts(
+                Stream.concat(
+                                Stream.of(story.getCommandParts()),
+                                Stream.of(
+                                        "--spring.kafka.consumer.group-id=" + group,
+                                        "--spring.kafka.consumer.auto-offset-reset=latest"))
+                        .toArray(String[]::new));
     }
 
     @Override
@@ -98,6 +101,7 @@ class ClusterTransport implements Transport {
     }
 
     private ConsumerRecord<String, byte[]> record(Receipt receipt) {
-        return records.computeIfAbsent(receipt, at -> cluster.read(at.topic(), at.partition(), at.offset()));
+        return records.computeIfAbsent(
+                receipt, at -> cluster.read(at.topic(), at.partition(), at.offset()));
     }
 }

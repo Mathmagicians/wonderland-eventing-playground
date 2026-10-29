@@ -2,56 +2,44 @@ package dk.mathmagicians.playground.architecture.discovery;
 
 import static java.util.stream.Collectors.toCollection;
 
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaPackage;
-import com.tngtech.archunit.core.domain.properties.HasAnnotations;
+import dk.mathmagicians.playground.architecture.model.Arrow;
+import dk.mathmagicians.playground.architecture.model.End;
+import dk.mathmagicians.playground.architecture.model.Module;
+import dk.mathmagicians.playground.architecture.model.Platform;
+import dk.mathmagicians.playground.architecture.model.Relation;
+import dk.mathmagicians.playground.architecture.model.Ring;
+import dk.mathmagicians.playground.architecture.model.Type;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.stream.Stream;
-import org.jmolecules.stereotype.api.Stereotype;
-import org.jmolecules.stereotype.api.StereotypeFactory;
-import org.jmolecules.stereotype.catalog.StereotypeCatalog;
-import org.jmolecules.stereotype.catalog.StereotypeDefinition;
-import org.jmolecules.stereotype.catalog.support.CatalogSource;
-import org.jmolecules.stereotype.catalog.support.JsonPathStereotypeCatalog;
-import org.jmolecules.stereotype.reflection.ArchUnitStereotypeFactory;
-import org.jmolecules.stereotype.reflection.ReflectionStereotypeFactory;
-import org.springframework.modulith.core.ApplicationModule;
-import org.springframework.modulith.core.ApplicationModuleDependency;
-import org.springframework.modulith.core.ApplicationModules;
-import org.springframework.modulith.core.DependencyDepth;
-import org.springframework.modulith.core.DependencyType;
 
-/// The hexagon of an application as PlantUML, content alone: the look is `hexagon.style.puml`, the resource
-/// PlantUML reads as its config before the diagram. Three columns, driving adapters, application, driven
-/// adapters, each a package holding the Spring Modulith application modules that belong there, placed by the
-/// jMolecules stereotypes of their types, their own or their package's, and below the application a row of the
-/// adapters both sides share, the unqualified `Adapter`. Every module is a hexagon; modules without a hexagonal
-/// stereotype, the domain, nest inside the application module, the application's own types in a row above it.
-/// Inside a module, every type with a stereotype is a card with its role as its stereotype, in a grid; the
-/// permitted types of a sealed type sit in a row under the grid, each implementing it. Types of a non-hexagonal
-/// role are listed up to the options' maximum, then an ellipsis line carries the total. The arrows, drawn in the
-/// legend: from an adapter type into the application and between the application's types and the domain's,
-/// `uses` where one holds the other, `implements` where one implements the other, `depends on` for any other
-/// reference. Everything is sorted, so the same code gives the same text.
+/// The hexagon of a model as PlantUML, a view of what `ModelWriter` read, content alone: the look
+/// is `hexagon.style.puml`, the resource PlantUML reads as its config before the diagram. Three
+/// columns, driving adapters, application, driven adapters, each a package holding the modules of
+/// its ring, and below the application a row of the adapters both sides share. Every module is a
+/// hexagon; the domain modules nest inside the first application module, whose own types sit in a
+/// row above them. Inside a module, every type with a role is a card with the role as its
+/// stereotype, in a grid; a type with wiring annotations alone, an auto-configuration, a properties
+/// record, stays in the model and off the picture. The permitted types of a sealed type sit in a
+/// row under the grid, each implementing it. Types of a non-hexagonal role are listed up to the
+/// options' maximum, then an ellipsis line carries the total. The arrows are the model's, from a
+/// card to a card, or to the module when the target has none, drawn as the legend says: `uses`
+/// solid, `implements` dashed with the hollow head, `depends on` dashed, `subscribes` and
+/// `publishes` dashed with their word. Everything follows the model's order, so the same model
+/// gives the same text.
 public final class HexagonDocumenter {
 
-    /// Choices for the picture: how many types of one role a box lists before the ellipsis line. Unlimited by
-    /// default.
+    /// Choices for the picture: how many types of one role a box lists before the ellipsis line.
+    /// Unlimited by default.
     public record Options(int maxTypes) {
 
         public static Options defaults() {
@@ -66,81 +54,63 @@ public final class HexagonDocumenter {
         }
     }
 
-    /// The group of the jMolecules hexagonal stereotypes, as their catalog names it.
-    static final String HEXAGONAL = "architecture.hexagonal";
-
-    private static final String PRIMARY_ADAPTER = HEXAGONAL + ".PrimaryAdapter";
-    private static final String SECONDARY_ADAPTER = HEXAGONAL + ".SecondaryAdapter";
-    private static final String ADAPTER = HEXAGONAL + ".Adapter";
-    private static final String PACKAGE_INFO = "package-info";
     private static final String INDENT = "  ";
-    /// The element each thing is drawn as: a ring, a module, a type, the legend. The style file keys the look on
-    /// them.
+
+    /// The element each thing is drawn as: a ring, a module, a type, the legend. The style file
+    /// keys the look on them.
     private static final String RING = "package";
+
     private static final String MODULE = "hexagon";
     private static final String TYPE = "card";
     private static final String LEGEND = "frame";
+
+    /// The space between a module's slanted sides and its cards: a rectangle around them, which the
+    /// style file draws without a line.
+    private static final String PADDING = "rectangle";
+
     /// The permitted types of a sealed type in one line, two when there are more than this.
     private static final int FAMILY_COLUMNS = 4;
 
-    /// The rings. The three columns are written left to right; the domain ring nests inside the application; the
-    /// shared adapters, what both sides of the rim use, sit in a row below the application.
-    enum Ring {
-        DRIVING("DRIVING ADAPTERS", "right", ""),
-        CORE("APPLICATION", "", ""),
-        DOMAIN("DOMAIN", "", ""),
-        DRIVEN("DRIVEN ADAPTERS", "left", ""),
-        SHARED("SHARED ADAPTERS", "up", "[norank]");
+    /// The columns and the row, each with its title and the way an arrow from a module in it points
+    /// into the hexagon; the shared row is the one target of arrows from other adapters, drawn into
+    /// it without rank, so the adapter stays at its height.
+    private record Column(Ring ring, String label, String direction) {}
 
-        final String label;
-        /// The way an arrow from this ring points into the hexagon.
-        final String direction;
-        /// The way an arrow from another adapter is drawn into this ring; only the shared ring is such a target,
-        /// and an arrow into it carries no rank, so the adapter stays at its height beside the application and
-        /// the row below it.
-        final String inbound;
+    private static final Column DRIVING = new Column(Ring.DRIVING, "DRIVING ADAPTERS", "right");
+    private static final Column CORE = new Column(Ring.APPLICATION, "APPLICATION", "");
+    private static final Column DRIVEN = new Column(Ring.DRIVEN, "DRIVEN ADAPTERS", "left");
+    private static final Column SHARED = new Column(Ring.SHARED, "SHARED ADAPTERS", "up");
+    private static final String INBOUND_SHARED = "[norank]";
 
-        Ring(String label, String direction, String inbound) {
-            this.label = label;
-            this.direction = direction;
-            this.inbound = inbound;
-        }
+    /// The line each relation is drawn with, and its word where the legend does not explain it.
+    private static String line(Relation relation, String direction) {
+        return switch (relation) {
+            case USES -> "-" + direction + "->";
+            case IMPLEMENTS -> "." + direction + ".|>";
+            default -> "." + direction + ".>";
+        };
     }
 
-    /// The relation an arrow draws, from the strongest statement down. Each has its UML line: solid for a use,
-    /// dashed with the hollow head for a realization, dashed for a dependency.
-    enum Kind {
-        USES("uses"),
-        IMPLEMENTS("implements"),
-        DEPENDS_ON("depends on");
-
-        final String relation;
-
-        Kind(String relation) {
-            this.relation = relation;
-        }
-
-        String alias() {
-            return "l_" + name().toLowerCase();
-        }
-
-        static Kind strongest(Kind one, Kind other) {
-            return one.ordinal() <= other.ordinal() ? one : other;
-        }
-
-        String line(String direction) {
-            return switch (this) {
-                case USES -> "-" + direction + "->";
-                case IMPLEMENTS -> "." + direction + ".|>";
-                case DEPENDS_ON -> "." + direction + ".>";
-            };
-        }
+    private static String label(Relation relation) {
+        return switch (relation) {
+            case SUBSCRIBES -> " : subscribes";
+            case PUBLISHES -> " : publishes";
+            default -> "";
+        };
     }
 
-    /// A cell of a grid: the alias at its left edge and at its right edge, one and the same for a card, the two
-    /// ends of a sample arrow in the legend; the alias at its top, the middle of a grid's first row, where the cell
-    /// hangs from what sits above; and the cards along its bottom edge, the card itself, or the last row of a grid,
-    /// where what hangs below attaches.
+    /// The legend's samples, the three relations the lines alone say.
+    private static final List<Relation> LEGEND_RELATIONS =
+            List.of(Relation.USES, Relation.IMPLEMENTS, Relation.DEPENDS_ON);
+
+    private static String word(Relation relation) {
+        return relation.name().toLowerCase().replace('_', ' ');
+    }
+
+    /// A cell of a grid: the alias at its left edge and at its right edge, one and the same for a
+    /// card, the two ends of a sample arrow in the legend; the alias at its top, the middle of a
+    /// grid's first row, where the cell hangs from what sits above; and the cards along its bottom
+    /// edge, the card itself, or the last row of a grid, where what hangs below attaches.
     record Cell(String left, String right, String top, List<String> bottom) {
 
         static Cell of(String alias) {
@@ -152,30 +122,35 @@ public final class HexagonDocumenter {
         }
     }
 
-    /// A type's entry in a module: its card, and the cards of its permitted types when it is sealed.
-    record Entry(Cell card, List<Cell> family) {
-    }
+    /// A type's entry in a module: its card, and the cards of its permitted types when it is
+    /// sealed.
+    record Entry(Cell card, List<Cell> family) {}
 
-    private final ApplicationModules modules;
+    private final Platform platform;
     private final Options options;
-    private final StereotypeCatalog catalog;
-    private final StereotypeFactory<JavaPackage, JavaClass, JavaMethod> stereotypes;
 
-    /// Stereotypes from every catalog on the class path, the `META-INF/jmolecules-stereotypes.json` files.
-    public HexagonDocumenter(ApplicationModules modules) {
-        this(modules, Options.defaults());
+    /// The alias of every card, by module name and type name, for the arrows.
+    private final Map<String, String> cards = new TreeMap<>();
+
+    /// The permitted types of each sealed type, by module and type name: the implements arrows
+    /// within one module.
+    private final Map<String, List<String>> families = new TreeMap<>();
+
+    public HexagonDocumenter(Platform platform) {
+        this(platform, Options.defaults());
     }
 
-    public HexagonDocumenter(ApplicationModules modules, Options options) {
-        this(modules, options, new JsonPathStereotypeCatalog(
-                CatalogSource.ofClassLoader(HexagonDocumenter.class.getClassLoader())));
-    }
-
-    HexagonDocumenter(ApplicationModules modules, Options options, JsonPathStereotypeCatalog catalog) {
-        this.modules = modules;
+    public HexagonDocumenter(Platform platform, Options options) {
+        this.platform = platform;
         this.options = options;
-        this.catalog = catalog;
-        this.stereotypes = new ArchUnitStereotypeFactory(new ReflectionStereotypeFactory(catalog));
+        platform.getArrowList().stream()
+                .filter(arrow -> arrow.getRelation() == Relation.IMPLEMENTS)
+                .filter(arrow -> arrow.getFrom().getModule().equals(arrow.getTo().getModule()))
+                .filter(arrow -> !arrow.getFrom().getType().isEmpty())
+                .forEach(
+                        arrow ->
+                                families.computeIfAbsent(key(arrow.getTo()), _ -> new ArrayList<>())
+                                        .add(arrow.getFrom().getType()));
     }
 
     /// Writes `toPlantUml()` to the file, creating its directories.
@@ -189,67 +164,77 @@ public final class HexagonDocumenter {
     }
 
     public String toPlantUml() {
-        var rings = new EnumMap<Ring, List<ApplicationModule>>(Ring.class);
-        modules.stream()
-                .sorted(Comparator.comparing(ApplicationModule::getDisplayName))
-                .forEach(module -> rings.computeIfAbsent(ring(module), _ -> new ArrayList<>()).add(module));
-
+        cards.clear();
         var out = new ArrayList<String>();
         out.add("@startuml");
-        out.add("' the hexagon from the code: Spring Modulith modules placed by their jMolecules stereotypes");
+        out.add(
+                "' the hexagon from the model: Spring Modulith modules placed by their jMolecules stereotypes");
         out.add("");
-        var cards = new TreeMap<String, String>();
-        var columns = new EnumMap<Ring, Cell>(Ring.class);
-        column(out, Ring.DRIVING, rings.getOrDefault(Ring.DRIVING, List.of()), List.of(), cards)
-                .ifPresent(cell -> columns.put(Ring.DRIVING, cell));
-        column(out, Ring.CORE, rings.getOrDefault(Ring.CORE, List.of()), rings.getOrDefault(Ring.DOMAIN, List.of()),
-                cards)
-                .ifPresent(cell -> columns.put(Ring.CORE, cell));
-        column(out, Ring.DRIVEN, rings.getOrDefault(Ring.DRIVEN, List.of()), List.of(), cards)
-                .ifPresent(cell -> columns.put(Ring.DRIVEN, cell));
-        var shared = column(out, Ring.SHARED, rings.getOrDefault(Ring.SHARED, List.of()), List.of(), cards);
+        var columns = new LinkedHashMap<Column, Cell>();
+        column(out, DRIVING, modules(Ring.DRIVING), List.of())
+                .ifPresent(cell -> columns.put(DRIVING, cell));
+        column(out, CORE, modules(Ring.APPLICATION), modules(Ring.DOMAIN))
+                .ifPresent(cell -> columns.put(CORE, cell));
+        column(out, DRIVEN, modules(Ring.DRIVEN), List.of())
+                .ifPresent(cell -> columns.put(DRIVEN, cell));
+        var shared = column(out, SHARED, modules(Ring.SHARED), List.of());
         order(out, columns);
-        var anchors = Optional.ofNullable(columns.get(Ring.CORE)).map(Cell::bottom).orElse(List.of());
-        shared.ifPresent(row -> anchors.forEach(anchor -> out.add(anchor + " -[hidden]down-> " + row.top())));
+        var anchors = Optional.ofNullable(columns.get(CORE)).map(Cell::bottom).orElse(List.of());
+        shared.ifPresent(
+                row ->
+                        anchors.forEach(
+                                anchor -> out.add(anchor + " -[hidden]down-> " + row.top())));
         out.add("");
-        arrows(out, rings, cards);
+        arrows(out);
         out.add("");
-        legend(out, shared.map(Cell::bottom).orElseGet(() -> hangers(rings, cards, anchors)));
+        legend(out, shared.map(Cell::bottom).orElseGet(() -> hangers(anchors)));
         out.add("@enduml");
         return String.join("\n", out) + "\n";
     }
 
-    /// Where the legend hangs when there is no shared row: the last driven card and the cards along the bottom
-    /// of the application column.
-    private static List<String> hangers(Map<Ring, List<ApplicationModule>> rings, Map<String, String> cards,
-                                        List<String> anchors) {
-        var driven = rings.getOrDefault(Ring.DRIVEN, List.of()).stream()
-                .flatMap(HexagonDocumenter::types)
-                .map(type -> cards.get(type.getName()))
-                .filter(Objects::nonNull)
-                .toList();
-        return Stream.concat(driven.isEmpty() ? Stream.empty() : Stream.of(driven.getLast()), anchors.stream())
+    private List<Module> modules(Ring ring) {
+        return platform.getModuleList().stream()
+                .filter(module -> module.getRing() == ring)
                 .toList();
     }
 
-    /// A column: a package with the ring's name as its title, its modules as hexagons in a grid of one column.
-    /// The nested modules go inside the first module of the column, or straight into the column when it has none
-    /// of its own. `cards` collects the alias of every stereotyped type's card by type name, for the arrows.
-    /// Answers the column as a cell, its top where it hangs from what sits above, the cards along the bottom of
-    /// every module in it where what hangs below attaches, since the arrows may float a module above its place in
-    /// the grid; nothing when the ring has no module.
-    private Optional<Cell> column(List<String> out, Ring ring, List<ApplicationModule> members,
-                                  List<ApplicationModule> nested, Map<String, String> cards) {
+    /// Where the legend hangs when there is no shared row: the last driven card and the cards along
+    /// the bottom of the application column.
+    private List<String> hangers(List<String> anchors) {
+        var driven =
+                modules(Ring.DRIVEN).stream()
+                        .flatMap(
+                                module ->
+                                        module.getTypeList().stream()
+                                                .map(type -> cards.get(key(module, type))))
+                        .filter(alias -> alias != null)
+                        .toList();
+        var hangers = new ArrayList<String>();
+        if (!driven.isEmpty()) {
+            hangers.add(driven.getLast());
+        }
+        hangers.addAll(anchors);
+        return hangers;
+    }
+
+    /// A column: a package with the ring's name as its title, its modules as hexagons in a grid of
+    /// one column. The nested modules go inside the first module of the column, or straight into
+    /// the column when it has none of its own. Answers the column as a cell, its top where it hangs
+    /// from what sits above, the cards along the bottom of every module in it where what hangs
+    /// below attaches, since the arrows may float a module above its place in the grid; nothing
+    /// when the ring has no module.
+    private Optional<Cell> column(
+            List<String> out, Column column, List<Module> members, List<Module> nested) {
         if (members.isEmpty() && nested.isEmpty()) {
             return Optional.empty();
         }
-        out.add(RING + " \"" + ring.label + "\" as " + alias(ring) + " {");
+        out.add(RING + " \"" + column.label() + "\" as " + alias(column) + " {");
         var cells = new ArrayList<Cell>();
         if (members.isEmpty()) {
-            nested.forEach(module -> cells.add(box(out, module, INDENT, List.of(), cards)));
+            nested.forEach(module -> cells.add(box(out, module, INDENT, List.of())));
         }
         for (var i = 0; i < members.size(); i++) {
-            cells.add(box(out, members.get(i), INDENT, i == 0 ? nested : List.of(), cards));
+            cells.add(box(out, members.get(i), INDENT, i == 0 ? nested : List.of()));
         }
         var cell = grid(out, "", cells, 1);
         out.add("}");
@@ -257,126 +242,201 @@ public final class HexagonDocumenter {
         return Optional.of(new Cell(cell.left(), cell.right(), cell.top(), bottom));
     }
 
-    /// The columns in their order, left to right: an empty anchor above each, the anchors in a row, each column
-    /// hung from its own, and the packages chained the same way. Without it the layout engine mirrors the
-    /// columns, or lowers one whose adapters the shared row pulls at.
-    private static void order(List<String> out, Map<Ring, Cell> columns) {
-        Ring previous = null;
+    /// The columns in their order, left to right: an empty anchor above each, the anchors in a row,
+    /// each column hung from its own, and the packages chained the same way. Without it the layout
+    /// engine mirrors the columns, or lowers one whose adapters the shared row pulls at.
+    private static void order(List<String> out, Map<Column, Cell> columns) {
+        Column previous = null;
         for (var entry : columns.entrySet()) {
-            var ring = entry.getKey();
-            out.add("label \" \" as " + anchor(ring));
+            var column = entry.getKey();
+            out.add("label \" \" as " + anchor(column));
             if (previous != null) {
-                out.add(anchor(previous) + " -[hidden]right-> " + anchor(ring));
-                out.add(alias(previous) + " -[hidden]right-> " + alias(ring));
+                out.add(anchor(previous) + " -[hidden]right-> " + anchor(column));
+                out.add(alias(previous) + " -[hidden]right-> " + alias(column));
             }
-            out.add(anchor(ring) + " -[hidden]down-> " + entry.getValue().top());
-            previous = ring;
+            out.add(anchor(column) + " -[hidden]down-> " + entry.getValue().top());
+            previous = column;
         }
     }
 
-    private static String alias(Ring ring) {
-        return ring.name().toLowerCase();
+    private static String alias(Column column) {
+        return column.ring() == Ring.APPLICATION ? "core" : column.ring().name().toLowerCase();
     }
 
-    private static String anchor(Ring ring) {
-        return "t_" + alias(ring);
+    private static String anchor(Column column) {
+        return "t_" + alias(column);
     }
 
-    /// One module: its hexagon, its name above its package. Inside, the cards of its hexagonal types, grouped by
-    /// role; then the types of every other role, up to the options' maximum and an ellipsis line beyond it; then
-    /// the modules nested inside it, each a hexagon of its own. The cards sit in a near-square grid, at least as
-    /// wide as the widest family; each sealed type's permitted types hang from it in a row of their own below the
-    /// grid; the nested modules come last, and above them the cards keep to one row. Answers the module as a
-    /// cell, its ends the module's first card, the hexagon itself when it has none.
-    private Cell box(List<String> out, ApplicationModule module, String indent, List<ApplicationModule> nested,
-                     Map<String, String> cards) {
-        out.add(indent + MODULE + " \"" + module.getDisplayName() + "\\n" + packageLine(module) + "\" as "
-                + alias(module) + " {");
-        var hexagonal = new TreeMap<String, List<JavaClass>>();
-        var others = new TreeMap<String, List<JavaClass>>();
-        var permitted = permittedTypes(module);
-        types(module)
+    /// One module: its hexagon, its name above its package. Inside, the cards of its types with a
+    /// role, grouped by role in the model's order, the hexagonal roles first, each group up to the
+    /// options' maximum and an ellipsis line beyond it; then the modules nested inside it, each a
+    /// hexagon of its own. The cards sit in a near-square grid, at least as wide as the widest
+    /// family; each sealed type's permitted types hang from it in a row of their own below the
+    /// grid; the nested modules come last, and above them the cards keep to one row. Answers the
+    /// module as a cell, its ends the module's first card, the hexagon itself when it has none.
+    private Cell box(List<String> out, Module module, String indent, List<Module> nested) {
+        out.add(
+                indent
+                        + MODULE
+                        + " \""
+                        + module.getName()
+                        + "\\n"
+                        + packageLine(module)
+                        + "\" as "
+                        + alias(module)
+                        + " {");
+        var inner = indent + INDENT;
+        out.add(inner + PADDING + " \" \" as " + alias(module) + "_in {");
+        var permitted =
+                families.entrySet().stream()
+                        .filter(entry -> entry.getKey().startsWith(module.getName() + "\t"))
+                        .flatMap(entry -> entry.getValue().stream())
+                        .collect(toCollection(TreeSet::new));
+        var groups = new LinkedHashMap<String, List<Type>>();
+        module.getTypeList().stream()
                 .filter(type -> !permitted.contains(type.getName()))
-                .forEach(type -> primary(type).ifPresent(stereotype -> {
-                    var group = stereotype.belongsToGroup(HEXAGONAL) ? hexagonal : others;
-                    group.computeIfAbsent(role(stereotype), _ -> new ArrayList<>()).add(type);
-                }));
+                .filter(HexagonDocumenter::hasRole)
+                .forEach(
+                        type ->
+                                groups.computeIfAbsent(role(type), _ -> new ArrayList<>())
+                                        .add(type));
         var entries = new ArrayList<Entry>();
-        hexagonal.forEach((role, types) ->
-                types.forEach(type -> entries.add(entry(out, indent, module, type, role, cards))));
-        others.forEach((role, types) -> {
-            var shown = types.size() <= options.maxTypes() ? types : types.subList(0, options.maxTypes() - 1);
-            shown.forEach(type -> entries.add(entry(out, indent, module, type, role, cards)));
-            if (shown.size() < types.size()) {
-                var total = card(out, indent, module, "... (" + types.size() + " total)", role, role + "_total");
-                entries.add(new Entry(Cell.of(total), List.of()));
-            }
-        });
+        groups.forEach(
+                (role, types) -> {
+                    var shown =
+                            types.size() <= options.maxTypes()
+                                    ? types
+                                    : types.subList(0, options.maxTypes() - 1);
+                    shown.forEach(type -> entries.add(entry(out, inner, module, type)));
+                    if (shown.size() < types.size()) {
+                        var total =
+                                card(
+                                        out,
+                                        inner,
+                                        module,
+                                        "... (" + types.size() + " total)",
+                                        role,
+                                        role + "_total");
+                        entries.add(new Entry(Cell.of(total), List.of()));
+                    }
+                });
         var own = entries.stream().map(Entry::card).toList();
-        var families = entries.stream().filter(entry -> !entry.family().isEmpty()).toList();
+        var withFamily = entries.stream().filter(entry -> !entry.family().isEmpty()).toList();
         var rows = new ArrayList<Cell>();
         if (!own.isEmpty()) {
-            var widest = families.stream().mapToInt(entry -> columns(entry.family())).max().orElse(1);
-            var top = grid(out, indent, own, nested.isEmpty() ? Math.max(square(own.size()), widest) : own.size());
+            var widest =
+                    withFamily.stream().mapToInt(entry -> columns(entry.family())).max().orElse(1);
+            var top =
+                    grid(
+                            out,
+                            inner,
+                            own,
+                            nested.isEmpty() ? Math.max(square(own.size()), widest) : own.size());
             var bottom = new ArrayList<String>();
-            for (var entry : families) {
-                var family = grid(out, indent, entry.family(), columns(entry.family()));
-                out.add(indent + INDENT + entry.card().left() + " -[hidden]down-> " + family.top());
+            for (var entry : withFamily) {
+                var family = grid(out, inner, entry.family(), columns(entry.family()));
+                out.add(inner + INDENT + entry.card().left() + " -[hidden]down-> " + family.top());
                 bottom.addAll(family.bottom());
             }
-            rows.add(families.isEmpty() ? top : new Cell(top.left(), top.right(), top.top(), bottom));
+            rows.add(
+                    withFamily.isEmpty()
+                            ? top
+                            : new Cell(top.left(), top.right(), top.top(), bottom));
         }
         if (!nested.isEmpty()) {
-            var children = nested.stream().map(child -> box(out, child, indent + INDENT, List.of(), cards)).toList();
-            rows.add(grid(out, indent, children, children.size()));
+            var children =
+                    nested.stream()
+                            .map(child -> box(out, child, inner + INDENT, List.of()))
+                            .toList();
+            rows.add(grid(out, inner, children, children.size()));
         }
-        var cell = rows.isEmpty() ? Cell.of(alias(module)) : grid(out, indent, rows, 1);
+        var cell = rows.isEmpty() ? Cell.of(alias(module)) : grid(out, inner, rows, 1);
+        out.add(inner + "}");
         out.add(indent + "}");
         return cell;
     }
 
-    /// A card for the type. For a sealed type, cards for its permitted types as well, its family, each with its
-    /// arrow up to the type it implements. Registers every card by type name.
-    private Entry entry(List<String> out, String indent, ApplicationModule module, JavaClass type, String role,
-                        Map<String, String> cards) {
-        var alias = card(out, indent, module, type.getSimpleName(), role, type.getSimpleName());
-        cards.put(type.getName(), alias);
+    /// A card for the type. For a sealed type, cards for its permitted types as well, its family,
+    /// each with its arrow up to the type it implements. Registers every card for the arrows.
+    private Entry entry(List<String> out, String indent, Module module, Type type) {
+        var alias = card(out, indent, module, type.getName(), role(type), type.getName());
+        cards.put(key(module, type), alias);
         var family = new ArrayList<Cell>();
-        type.getPermittedSubclasses().orElse(Set.of()).stream()
-                .filter(member -> member.getPackageName().equals(type.getPackageName()))
-                .sorted(Comparator.comparing(JavaClass::getName))
-                .forEach(member -> primary(member).ifPresent(stereotype -> {
-                    var memberAlias = card(out, indent, module, member.getSimpleName(), role(stereotype),
-                            member.getSimpleName());
-                    cards.put(member.getName(), memberAlias);
-                    family.add(Cell.of(memberAlias));
-                }));
-        family.forEach(member ->
-                out.add(indent + INDENT + member.left() + " " + Kind.IMPLEMENTS.line("up") + " " + alias));
+        for (var name : families.getOrDefault(key(module.getName(), type.getName()), List.of())) {
+            member(module, name)
+                    .ifPresent(
+                            member -> {
+                                var memberAlias =
+                                        card(out, indent, module, name, role(member), name);
+                                cards.put(key(module, member), memberAlias);
+                                family.add(Cell.of(memberAlias));
+                            });
+        }
+        family.forEach(
+                member ->
+                        out.add(
+                                indent
+                                        + INDENT
+                                        + member.left()
+                                        + " "
+                                        + line(Relation.IMPLEMENTS, "up")
+                                        + " "
+                                        + alias));
         return new Entry(Cell.of(alias), family);
     }
 
+    private static Optional<Type> member(Module module, String name) {
+        return module.getTypeList().stream()
+                .filter(type -> type.getName().equals(name))
+                .filter(HexagonDocumenter::hasRole)
+                .findFirst();
+    }
+
     /// Writes the card, the type's name with its role as the stereotype. Answers the card's alias.
-    private static String card(List<String> out, String indent, ApplicationModule module, String name, String role,
-                               String aliasName) {
+    private static String card(
+            List<String> out,
+            String indent,
+            Module module,
+            String name,
+            String role,
+            String aliasName) {
         var alias = alias(module) + "_" + aliasName.replaceAll("[^A-Za-z0-9]", "_");
         out.add(indent + INDENT + TYPE + " \"" + name + "\" as " + alias + " <<" + role + ">>");
         return alias;
     }
 
-    /// Hidden arrows lay the cells out in a grid with the columns given: right between neighbours in a row, down
-    /// from the cards along a cell's bottom to the top of the cell below it. Answers the grid as a cell: its first
-    /// cell's left, its first row's last right, the top of the middle cell of its first row, and the cards along
-    /// its bottom, those of the last row, and in a grid of several columns those of every box, since a box in a
-    /// row above may reach lower.
+    /// Whether the type has a role, a stereotype; a type with wiring alone has no card.
+    private static boolean hasRole(Type type) {
+        return type.getStereotypeCount() > 0;
+    }
+
+    private static String role(Type type) {
+        return type.getStereotype(0);
+    }
+
+    /// Hidden arrows lay the cells out in a grid with the columns given: right between neighbours
+    /// in a row, down from the cards along a cell's bottom to the top of the cell below it. Answers
+    /// the grid as a cell: its first cell's left, its first row's last right, the top of the middle
+    /// cell of its first row, and the cards along its bottom, those of the last row, and in a grid
+    /// of several columns those of every box, since a box in a row above may reach lower.
     private static Cell grid(List<String> out, String indent, List<Cell> cells, int columns) {
         for (var i = 0; i < cells.size(); i++) {
             if ((i + 1) % columns != 0 && i + 1 < cells.size()) {
-                out.add(indent + INDENT + cells.get(i).right() + " -[hidden]right-> " + cells.get(i + 1).left());
+                out.add(
+                        indent
+                                + INDENT
+                                + cells.get(i).right()
+                                + " -[hidden]right-> "
+                                + cells.get(i + 1).left());
             }
             if (i + columns < cells.size()) {
                 for (var card : cells.get(i).bottom()) {
-                    out.add(indent + INDENT + card + " -[hidden]down-> " + cells.get(i + columns).top());
+                    out.add(
+                            indent
+                                    + INDENT
+                                    + card
+                                    + " -[hidden]down-> "
+                                    + cells.get(i + columns).top());
                 }
             }
         }
@@ -388,7 +448,10 @@ public final class HexagonDocumenter {
             }
         }
         var firstRow = Math.min(columns, cells.size());
-        return new Cell(cells.getFirst().left(), cells.get(firstRow - 1).right(), cells.get((firstRow - 1) / 2).top(),
+        return new Cell(
+                cells.getFirst().left(),
+                cells.get(firstRow - 1).right(),
+                cells.get((firstRow - 1) / 2).top(),
                 bottom);
     }
 
@@ -402,210 +465,106 @@ public final class HexagonDocumenter {
         return Math.min(family.size(), FAMILY_COLUMNS);
     }
 
-    /// The arrows, sorted, one per pair of types, the strongest kind when there are several. From each adapter
-    /// type into the application type it depends on, and down into the shared adapter it uses; a dependency on
-    /// the domain from an adapter is not drawn, the domain sits inside the application and the nesting says it.
-    /// And from each application type with a card to the application and domain types it refers to, sideways
-    /// within the row, down into the domain.
-    private void arrows(List<String> out, Map<Ring, List<ApplicationModule>> rings, Map<String, String> cards) {
-        var core = rings.getOrDefault(Ring.CORE, List.of());
-        var shared = rings.getOrDefault(Ring.SHARED, List.of());
-        var lines = new TreeMap<String, Kind>();
-        for (var ring : List.of(Ring.DRIVING, Ring.DRIVEN, Ring.SHARED)) {
-            for (var module : rings.getOrDefault(ring, List.of())) {
-                module.getDependencies(modules, DependencyDepth.IMMEDIATE).stream()
-                        .filter(dependency -> core.contains(dependency.getTargetModule())
-                                || shared.contains(dependency.getTargetModule()))
-                        .forEach(dependency -> {
-                            var source = cardOr(cards, dependency.getSourceType(), module);
-                            var target = cardOr(cards, dependency.getTargetType(), dependency.getTargetModule());
-                            var direction = shared.contains(dependency.getTargetModule())
-                                    ? Ring.SHARED.inbound
-                                    : ring.direction;
-                            lines.merge(source + "\t" + target + "\t" + direction, kind(dependency), Kind::strongest);
-                        });
+    /// The model's arrows, in its order, from a card: to the card at the other end, or to the
+    /// module when the type there has none. An arrow within a module between a permitted type and
+    /// its sealed type is drawn with the family. The direction is the source column's: right from
+    /// the driving adapters, left from the driven, into the shared row without rank, sideways
+    /// within a module, down otherwise.
+    private void arrows(List<String> out) {
+        var rings = new TreeMap<String, Ring>();
+        platform.getModuleList().forEach(module -> rings.put(module.getName(), module.getRing()));
+        for (var arrow : platform.getArrowList()) {
+            var from = cards.get(key(arrow.getFrom()));
+            if (from == null || isFamily(arrow)) {
+                continue;
             }
+            var to = cards.getOrDefault(key(arrow.getTo()), alias(arrow.getTo().getModule()));
+            var direction = direction(arrow, rings);
+            out.add(
+                    from
+                            + " "
+                            + line(arrow.getRelation(), direction)
+                            + " "
+                            + to
+                            + label(arrow.getRelation()));
         }
-        var inside = Stream.concat(core.stream(), rings.getOrDefault(Ring.DOMAIN, List.of()).stream())
-                .flatMap(HexagonDocumenter::types)
-                .map(JavaClass::getName)
-                .filter(cards::containsKey)
-                .collect(toCollection(TreeSet::new));
-        for (var module : core) {
-            types(module).filter(type -> cards.containsKey(type.getName())).forEach(source ->
-                    source.getDirectDependenciesFromSelf().stream()
-                            .map(dependency -> topLevel(dependency.getTargetClass()))
-                            .filter(target -> !target.equals(source) && inside.contains(target.getName()))
-                            .forEach(target -> {
-                                var sideways = target.getPackageName().equals(source.getPackageName());
-                                lines.merge(cards.get(source.getName()) + "\t" + cards.get(target.getName()) + "\t"
-                                        + (sideways ? "right" : ""), kind(source, target), Kind::strongest);
-                            }));
-        }
-        lines.forEach((key, kind) -> {
-            var parts = key.split("\t", -1);
-            out.add(parts[0] + " " + kind.line(parts[2]) + " " + parts[1]);
-        });
     }
 
-    /// The legend: a frame in the lower right corner, one row of horizontal samples, every arrow with its
-    /// relation written on it. Hidden arrows from the hangers, the cards along the bottom of the shared row, or
-    /// the last driven card and the bottom of the application column when there is none, hang it below
-    /// everything, to the right. The text legend carries the system's name.
+    private boolean isFamily(Arrow arrow) {
+        return arrow.getRelation() == Relation.IMPLEMENTS
+                && arrow.getFrom().getModule().equals(arrow.getTo().getModule())
+                && families.getOrDefault(key(arrow.getTo()), List.of())
+                        .contains(arrow.getFrom().getType());
+    }
+
+    private static String direction(Arrow arrow, Map<String, Ring> rings) {
+        if (rings.get(arrow.getTo().getModule()) == Ring.SHARED) {
+            return INBOUND_SHARED;
+        }
+        return switch (rings.get(arrow.getFrom().getModule())) {
+            case DRIVING -> DRIVING.direction();
+            case DRIVEN -> DRIVEN.direction();
+            case SHARED -> SHARED.direction();
+            default -> arrow.getFrom().getModule().equals(arrow.getTo().getModule()) ? "right" : "";
+        };
+    }
+
+    /// The legend: a frame in the lower right corner, one row of horizontal samples, every arrow
+    /// with its relation written on it. Hidden arrows from the hangers, the cards along the bottom
+    /// of the shared row, or the last driven card and the bottom of the application column when
+    /// there is none, hang it below everything, to the right. The text legend carries the system's
+    /// name.
     private void legend(List<String> out, List<String> hangers) {
         out.add(LEGEND + " \"legend\" as legend {");
         var samples = new ArrayList<Cell>();
-        for (var kind : Kind.values()) {
-            var sample = new Cell(kind.alias() + "_from", kind.alias() + "_to", kind.alias() + "_from", List.of());
+        for (var relation : LEGEND_RELATIONS) {
+            var alias = "l_" + relation.name().toLowerCase();
+            var sample = new Cell(alias + "_from", alias + "_to", alias + "_from", List.of());
             out.add(INDENT + "label \" \" as " + sample.left());
             out.add(INDENT + "label \" \" as " + sample.right());
-            out.add(INDENT + sample.left() + " " + kind.line("right") + " " + sample.right() + " : " + kind.relation);
+            out.add(
+                    INDENT
+                            + sample.left()
+                            + " "
+                            + line(relation, "right")
+                            + " "
+                            + sample.right()
+                            + " : "
+                            + word(relation));
             samples.add(sample);
         }
         grid(out, "", samples, samples.size());
         out.add("}");
-        hangers.forEach(hanger -> out.add(hanger + " -[hidden]down-> " + samples.getFirst().left()));
+        hangers.forEach(
+                hanger -> out.add(hanger + " -[hidden]down-> " + samples.getFirst().left()));
         out.add("legend right");
-        out.add(INDENT + systemName());
+        out.add(INDENT + platform.getName());
         out.add("endlegend");
     }
 
-    /// Modulith's system name, `@Modulithic(systemName)`, or the last segment of the root package.
-    private String systemName() {
-        return modules.getSystemName().orElseGet(() -> {
-            var root = modules.getRootPackages().getFirst().getName();
-            return root.substring(root.lastIndexOf('.') + 1);
-        });
+    private static String key(Module module, Type type) {
+        return key(module.getName(), type.getName());
     }
 
-    /// The card of the type, or of the top-level type it is nested in, `Recipe` inside `GenerateLoad`; the hexagon
-    /// of the module it belongs to when neither has one, so a dependency on a type without a stereotype still
-    /// points where it belongs.
-    private static String cardOr(Map<String, String> cards, JavaClass type, ApplicationModule module) {
-        return cards.getOrDefault(topLevel(type).getName(), alias(module));
+    private static String key(End end) {
+        return key(end.getModule(), end.getType());
     }
 
-    private static JavaClass topLevel(JavaClass type) {
-        var outer = type;
-        while (outer.getEnclosingClass().isPresent()) {
-            outer = outer.getEnclosingClass().get();
-        }
-        return outer;
+    private static String key(String module, String type) {
+        return module + "\t" + type;
     }
 
-    private static Kind kind(ApplicationModuleDependency dependency) {
-        if (dependency.getDependencyType() == DependencyType.USES_COMPONENT) {
-            return Kind.USES;
-        }
-        return dependency.getSourceType().isAssignableTo(dependency.getTargetType().getName())
-                ? Kind.IMPLEMENTS
-                : Kind.DEPENDS_ON;
+    private static String alias(Module module) {
+        return alias(module.getName());
     }
 
-    /// Between two types of the hexagon: `implements` when the source is one of the target's kind, `uses` when it
-    /// holds one in a field, a record component, `depends on` for a reference in a signature or a body.
-    private static Kind kind(JavaClass source, JavaClass target) {
-        if (source.isAssignableTo(target.getName())) {
-            return Kind.IMPLEMENTS;
-        }
-        return source.getFields().stream().anyMatch(field -> field.getRawType().equals(target))
-                ? Kind.USES
-                : Kind.DEPENDS_ON;
+    private static String alias(String moduleName) {
+        return "m_" + moduleName.replaceAll("[^A-Za-z0-9]", "_");
     }
 
-    /// Which ring a module belongs to, by the hexagonal stereotypes of its types, their own and their package's.
-    /// A qualified adapter carries the unqualified `Adapter` stereotype as well, so the qualified ones decide
-    /// first; the unqualified one alone is a shared adapter.
-    private Ring ring(ApplicationModule module) {
-        var identifiers = types(module)
-                .flatMap(type -> Stream.concat(ownStereotypes(type), packageStereotypes(type)))
-                .map(Stereotype::getIdentifier)
-                .collect(toCollection(TreeSet::new));
-        if (identifiers.contains(PRIMARY_ADAPTER)) {
-            return Ring.DRIVING;
-        }
-        if (identifiers.contains(SECONDARY_ADAPTER)) {
-            return Ring.DRIVEN;
-        }
-        if (identifiers.contains(ADAPTER)) {
-            return Ring.SHARED;
-        }
-        if (identifiers.stream().anyMatch(identifier -> identifier.startsWith(HEXAGONAL + "."))) {
-            return Ring.CORE;
-        }
-        return Ring.DOMAIN;
-    }
-
-    /// The module's types, sorted by name, without the package's own class and without inner classes.
-    private static Stream<JavaClass> types(ApplicationModule module) {
-        return module.getBasePackage().stream()
-                .filter(type -> !type.getSimpleName().equals(PACKAGE_INFO))
-                .filter(type -> !type.isInnerClass() && !type.isAnonymousClass())
-                .sorted(Comparator.comparing(JavaClass::getName));
-    }
-
-    /// The names of the types a sealed type of the module permits, which are drawn after it.
-    private static Set<String> permittedTypes(ApplicationModule module) {
-        return types(module)
-                .filter(JavaClass::isSealed)
-                .flatMap(type -> type.getPermittedSubclasses().orElse(Set.of()).stream())
-                .map(JavaClass::getName)
-                .collect(toCollection(TreeSet::new));
-    }
-
-    /// The type's stereotype of highest priority, which the catalog defines: its own, or its package's hexagonal
-    /// one when it declares none.
-    private Optional<Stereotype> primary(JavaClass type) {
-        return ownStereotypes(type).sorted().findFirst()
-                .or(() -> packageStereotypes(type).sorted().findFirst());
-    }
-
-    /// The stereotypes declared on the type itself. The factory hands a type its package's stereotypes as well,
-    /// `@Module` on a `package-info` reaches every type in the package, and those are the package's role, not the
-    /// type's. A stereotype is the type's own when one of the annotations the catalog assigns it by is on the type,
-    /// directly or as a meta-annotation.
-    private Stream<Stereotype> ownStereotypes(JavaClass type) {
-        return stereotypes.fromType(type).stream().filter(stereotype -> declaredOn(type, stereotype));
-    }
-
-    /// The hexagonal stereotypes declared on the type's own package, `@Adapter` on a `package-info`: the role of
-    /// every top-level type in the package, as the architecture rule reads it. A parent package's do not reach
-    /// down, and a nested type keeps to its top-level type's card.
-    private Stream<Stereotype> packageStereotypes(JavaClass type) {
-        if (!type.isTopLevelClass()) {
-            return Stream.empty();
-        }
-        var pkg = type.getPackage();
-        return stereotypes.fromPackage(pkg).stream()
-                .filter(stereotype -> stereotype.belongsToGroup(HEXAGONAL))
-                .filter(stereotype -> declaredOn(pkg, stereotype));
-    }
-
-    private boolean declaredOn(HasAnnotations<?> target, Stereotype stereotype) {
-        return catalog.getDefinition(stereotype).getAssignments().stream()
-                .map(StereotypeDefinition.Assignment::getTarget)
-                .map(assigned -> assigned.startsWith("@") ? assigned.substring(1) : assigned)
-                .anyMatch(target::isMetaAnnotatedWith);
-    }
-
-    /// The last segment of the identifier: `PrimaryPort` from `architecture.hexagonal.PrimaryPort`.
-    private static String role(Stereotype stereotype) {
-        var identifier = stereotype.getIdentifier();
-        return identifier.substring(identifier.lastIndexOf('.') + 1);
-    }
-
-    private static String alias(ApplicationModule module) {
-        return "m_" + module.getDisplayName().replaceAll("[^A-Za-z0-9]", "_");
-    }
-
-    /// The unseen frame padding the module's hexagon, where an arrow to the module ends.
-    private static String padding(ApplicationModule module) {
-        return alias(module) + "_in";
-    }
-
-    /// The module's package as the title's first line: its last two segments, `cli/log`.
-    private static String packageLine(ApplicationModule module) {
-        var segments = module.getBasePackage().getName().split("\\.");
+    /// The module's package as the title's second line: its last two segments, `cli/log`.
+    private static String packageLine(Module module) {
+        var segments = module.getPackage().split("\\.");
         var from = Math.max(0, segments.length - 2);
         return String.join("/", Arrays.asList(segments).subList(from, segments.length));
     }

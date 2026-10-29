@@ -8,7 +8,7 @@ questions, and the decisions it raises for [docs/adr.md](../../adr.md). Examples
 **Story:** as the purse, a story playing in Wonderland, my architecture is a feature, and it passes.
 
 - The feature,
-  [the_purses_hexagon.feature](../../../examples/purse/src/test/resources/features/the_purses_hexagon.feature), and
+  [the_purse_has_hexagonal_architecture.feature](../../../examples/purse/src/test/resources/features/the_purse_has_hexagonal_architecture.feature), and
   the DSL as wished, [purse.textproto](../../../examples/purse/docs/generated/architecture/model/purse.textproto),
   written 2026-10-29. `make bdd-snippets` in `examples/purse` lists its 11 steps undefined.
 - The platform ships its behaviour steps in its test fixtures and the purse reuses 7 of its 13 lines; the
@@ -29,8 +29,13 @@ questions, and the decisions it raises for [docs/adr.md](../../adr.md). Examples
 - `When the purse reads the stream of transactions` in the behaviour feature; `listensTo Transaction` in the
   architecture feature.
 
-### Rule: an @architecture feature plays without containers
-- `make arch-verify` in `examples/purse`: the five scenarios, no image, no broker.
+### Rule: an @architecture-discovery feature plays without containers
+- `make arch-bdd` in `examples/purse`: the five scenarios, no image, no broker.
+
+### Rule: a behaviour feature belongs to the story whose build it lives in; one that lives elsewhere says which story it drives, @story:<name>
+- the purse's and the rabbit's features: no tag, the build is the story's.
+- the generator's two in the platform, `i_can_generate_events.feature` and the Flink table's: `@story:load`.
+- `arch-bdd` reads the scenarios that drove a story from the last run's report by that rule.
 
 ## architecture-discovery extracts the purse's .textproto
 
@@ -74,20 +79,24 @@ reader sees what the story hears and publishes and where its annotations go.
 2. The static home of what a story hears and publishes, so the writer reads it without starting the story: an
    annotation on the story, or a constant beside `listensTo()`. themathmagician's.
 
-## make arch-verify and make arch-check check the DSL
+## make arch-bdd and make arch-check check the DSL
 
 **Story:** as CI, I am red when the DSL and the code disagree, or the DSL and the feature.
 
 - `make arch-check` compares `docs/generated/architecture/plantuml` line-sorted,
-  [platform.mk:161](../../../platform.mk#L161); `make arch-verify` runs the architecture tests,
-  [platform.mk:153](../../../platform.mk#L153); `make check` is the CI gate.
+  [platform.mk:161](../../../platform.mk#L161); `make arch-verify` runs the architecture tests, `ArchUnitTest`
+  and `ArchModulithTest`; `make arch-bdd` the features, `ArchBddTest`; `make check` is the CI gate.
 
 ### Rule: make arch-check compares the DSL exactly, the PlantUML line-sorted
 - `purse.textproto` as committed against what `make arch-gen` writes: one line apart, red, naming the file.
 
-### Rule: make arch-verify plays the @architecture features, and the bdd targets leave them out
-- `make arch-verify`: the architecture tests and the `@architecture` features, no containers.
-- `make bdd`: every scenario but `@architecture`, `@wip`, `@manual`, and the transport's tags.
+### Rule: make arch-bdd plays the @architecture-discovery features, and the bdd targets leave them out
+- `make arch-bdd`: the `@architecture-discovery` features, no containers, reports under `build/reports/arch`.
+- `make bdd`: every scenario but `@architecture-discovery`, `@wip`, `@manual`, and the transport's tags.
+
+### Rule: the three levels are targets of their own under arch-gen
+- `make arch-forest`, `make arch-streams`, `make arch-hexagon`: one drawing each; `make arch-gen` the model and
+  all three.
 
 ### Rule: the ci job and a client's cicd run both
 - `make check` in `cicd.yaml` and in `cicd-client-example.yaml`; the purse's `cicd` red on a `.textproto` that
@@ -105,7 +114,7 @@ build says whether what was built is what was specified, and the skill does it a
 - `make platform-install` puts the platform, its test fixtures, and the stories in the local Maven repository,
   [Makefile:116](../../../Makefile#L116).
 
-### Rule: the client is done when its make check and make arch-verify are green, its .textproto matching what the build writes
+### Rule: the client is done when its make check is green, make arch-verify and make arch-bdd in it, its .textproto matching what the build writes
 ### Rule: the skill's input is the architecture rules, the offered steps, the story's features and its .textproto, and the published platform
 ### Rule: the run works offline, from make platform-install
 ### Rule: the rehearsal's code is kept as <story>-backup, the fallback of the live demo

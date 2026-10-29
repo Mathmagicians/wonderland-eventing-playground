@@ -19,13 +19,15 @@ class DeadLettersTest {
         assertThat(handler).isInstanceOf(DefaultErrorHandler.class);
     }
 
-    /// The dead-letter topic is the source's name with the suffix `iac/` uses, on the same partition.
+    /// The dead-letter topic is the source's name with the suffix `iac/` uses, on the same
+    /// partition.
     @Test
     void setsARecordAsideOnItsTopicsDeadLetterTopicAndPartition() {
         var orders = topics().of(Order.class);
         var record = new ConsumerRecord<>(orders, 3, 42L, "key", new byte[0]);
 
-        var destination = DeadLetters.DESTINATION.apply(record, new IllegalStateException("refused"));
+        var destination =
+                DeadLetters.DESTINATION.apply(record, new IllegalStateException("refused"));
 
         assertThat(destination).isEqualTo(new TopicPartition(orders + ".DLT", 3));
     }

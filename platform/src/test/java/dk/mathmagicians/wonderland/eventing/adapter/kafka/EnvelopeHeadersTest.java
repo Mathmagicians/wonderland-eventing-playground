@@ -32,7 +32,8 @@ class EnvelopeHeadersTest {
 
         assertThat(headers)
                 .extracting(Header::key)
-                .containsExactly("ce_id", "ce_region", "ce_source", "ce_time", "ce_specversion", "ce_type");
+                .containsExactly(
+                        "ce_id", "ce_region", "ce_source", "ce_time", "ce_specversion", "ce_type");
     }
 
     @Test

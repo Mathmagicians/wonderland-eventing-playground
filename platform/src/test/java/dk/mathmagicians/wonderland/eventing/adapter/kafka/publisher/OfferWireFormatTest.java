@@ -9,16 +9,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
 import org.junit.jupiter.api.Test;
 
-/// What one Offer looks like on the wire. Every field is a tag byte, `(field number << 3) | wire type`,
-/// followed by the value. Wire type 2 is length-delimited (strings, nested messages), wire type 1 is 64-bit.
+/// What one Offer looks like on the wire. Every field is a tag byte, `(field number << 3) | wire
+/// type`, followed by the value. Wire type 2 is length-delimited (strings, nested messages), wire
+/// type 1 is 64-bit.
 class OfferWireFormatTest {
 
-    private static final OfferDTO.Offer OFFER = OfferDTO.Offer.newBuilder()
-            .setOfferId("o1")
-            .setProductId("p1")
-            .setPrice(1.5)
-            .setSellerId("s1")
-            .build();
+    private static final OfferDTO.Offer OFFER =
+            OfferDTO.Offer.newBuilder()
+                    .setOfferId("o1")
+                    .setProductId("p1")
+                    .setPrice(1.5)
+                    .setSellerId("s1")
+                    .build();
 
     // field 1, wire type 2: tag 0x0a, length 2, "o1"
     private static final String OFFER_ID = "0a02" + "6f31";
@@ -38,9 +40,11 @@ class OfferWireFormatTest {
 
     @Test
     void unsetMessageFieldTakesNoBytes() {
-        var withTimestamp = OFFER.toBuilder()
-                .setCreatedAt(com.google.protobuf.Timestamp.newBuilder().setSeconds(1).build())
-                .build();
+        var withTimestamp =
+                OFFER.toBuilder()
+                        .setCreatedAt(
+                                com.google.protobuf.Timestamp.newBuilder().setSeconds(1).build())
+                        .build();
 
         // field 5, wire type 2: tag 0x2a, length 2, then Timestamp{seconds=1} as field 1 varint 1
         assertThat(HexFormat.of().formatHex(withTimestamp.toByteArray()))
@@ -66,7 +70,16 @@ class OfferWireFormatTest {
         // field 5 (payload), wire type 2: tag 0x2a, length 87, then Any:
         //   field 1 type_url: tag 0x0a, length 62, the URL
         //   field 2 value:    tag 0x12, length 21, the Offer bytes from above
-        assertThat(hex).isEqualTo("2a57" + "0a3e" + typeUrlHex + "1215" + OFFER_ID + PRODUCT_ID + PRICE + SELLER_ID);
+        assertThat(hex)
+                .isEqualTo(
+                        "2a57"
+                                + "0a3e"
+                                + typeUrlHex
+                                + "1215"
+                                + OFFER_ID
+                                + PRODUCT_ID
+                                + PRICE
+                                + SELLER_ID);
         assertThat(envelope.getSerializedSize() - OFFER.getSerializedSize()).isEqualTo(68);
     }
 }

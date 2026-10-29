@@ -23,11 +23,14 @@ class PublishingTest {
     void makesTheUseCaseOfAStorysRegionFromWhatThePlatformWiredOnce() {
         publishing.from("APAC").publish(order());
 
-        assertThat(published).singleElement().satisfies(envelope -> {
-            assertThat(envelope.region()).isEqualTo("APAC");
-            assertThat(envelope.app()).isEqualTo(APP);
-            assertThat(envelope.at()).isEqualTo(AT);
-        });
+        assertThat(published)
+                .singleElement()
+                .satisfies(
+                        envelope -> {
+                            assertThat(envelope.region()).isEqualTo("APAC");
+                            assertThat(envelope.app()).isEqualTo(APP);
+                            assertThat(envelope.at()).isEqualTo(AT);
+                        });
     }
 
     @Test

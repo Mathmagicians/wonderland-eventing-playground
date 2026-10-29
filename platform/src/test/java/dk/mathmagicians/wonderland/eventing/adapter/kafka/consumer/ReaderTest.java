@@ -17,8 +17,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 
-/// The bytes off the wire: a message serialized as the publisher's serializer does it, magic byte and schema id
-/// first, read back as its envelope. The registry is Confluent's in-memory one, `mock://`, shared by its name.
+/// The bytes off the wire: a message serialized as the publisher's serializer does it, magic byte
+/// and schema id first, read back as its envelope. The registry is Confluent's in-memory one,
+/// `mock://`, shared by its name.
 class ReaderTest {
 
     private static final String REGISTRY = "mock://reader";

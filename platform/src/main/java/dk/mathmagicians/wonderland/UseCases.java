@@ -11,8 +11,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-/// The composition root of the substrate. Use cases are plain records without Spring, so their wiring is spelled
-/// out: here what every story shares, in a story's auto-configuration the story itself.
+/// The composition root of the substrate. Use cases are plain records without Spring, so their
+/// wiring is spelled out: here what every story shares, in a story's auto-configuration the story
+/// itself.
 @Configuration
 class UseCases {
 
@@ -22,15 +23,20 @@ class UseCases {
         return Clock.systemUTC();
     }
 
-    /// What a story publishes with: named after `spring.application.name`, for the platform's `region` unless
-    /// the story has its own, through the profile's publisher, drawing ids from the calling thread's random source.
+    /// What a story publishes with: named after `spring.application.name`, for the platform's
+    /// `region` unless the story has its own, through the profile's publisher, drawing ids from the
+    /// calling thread's random source.
     @Bean
-    Publishing publishing(Publisher publisher, Clock clock,
-                          @Value("${spring.application.name}") String app, @Value("${region}") String region) {
+    Publishing publishing(
+            Publisher publisher,
+            Clock clock,
+            @Value("${spring.application.name}") String app,
+            @Value("${region}") String region) {
         return new Publishing(app, region, publisher, clock, ThreadLocalRandom::current);
     }
 
-    /// The story this process plays, `--story`, the one the adapters drive, among the ones the jars contribute.
+    /// The story this process plays, `--story`, the one the adapters drive, among the ones the jars
+    /// contribute.
     @Bean
     @Primary
     Story story(List<Story> stories, @Value("${story:}") String name) {

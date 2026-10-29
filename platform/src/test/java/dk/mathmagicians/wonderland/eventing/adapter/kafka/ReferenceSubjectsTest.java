@@ -8,7 +8,8 @@ import dk.mathmagicians.wonderland.eventing.domain.Order;
 import dk.mathmagicians.wonderland.eventing.domain.Transaction;
 import org.junit.jupiter.api.Test;
 
-/// An import of the transaction schema is the subject of the imported payload's topic, in the same environment.
+/// An import of the transaction schema is the subject of the imported payload's topic, in the same
+/// environment.
 class ReferenceSubjectsTest {
 
     private final ReferenceSubjects subjects = new ReferenceSubjects();

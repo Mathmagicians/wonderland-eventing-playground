@@ -9,6 +9,5 @@ public final class Things {
         return new Thing("thing");
     }
 
-    private Things() {
-    }
+    private Things() {}
 }

@@ -13,11 +13,12 @@ public final class KafkaFixtures {
     }
 
     /// The broker's answer to a send: the record landed on the partition at the offset.
-    public static <V> CompletableFuture<SendResult<String, V>> landed(String topic, int partition, long offset) {
-        var metadata = new RecordMetadata(new TopicPartition(topic, partition), offset, 0, 0L, 0, 0);
+    public static <V> CompletableFuture<SendResult<String, V>> landed(
+            String topic, int partition, long offset) {
+        var metadata =
+                new RecordMetadata(new TopicPartition(topic, partition), offset, 0, 0L, 0, 0);
         return CompletableFuture.completedFuture(new SendResult<>(null, metadata));
     }
 
-    private KafkaFixtures() {
-    }
+    private KafkaFixtures() {}
 }

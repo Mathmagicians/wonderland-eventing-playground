@@ -1,0 +1,13 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`dk.mathmagicians.wonderland.examples.stories.purse`
+|Spring components
+|_Primary ports_
+
+* `d.m.w.e.s.p.KnowWhatIsLeft`
+
+_Configuration properties_
+
+* `d.m.w.e.s.p.PurseProperties`
+|===

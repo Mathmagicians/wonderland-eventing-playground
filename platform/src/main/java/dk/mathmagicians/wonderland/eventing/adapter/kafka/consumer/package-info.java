@@ -1,5 +1,5 @@
-/// Driving adapter: Confluent Cloud, where the messages a story listens to come from, for the test and prod
-/// profiles.
+/// Driving adapter: Confluent Cloud, where the messages a story listens to come from, for the test
+/// and prod profiles.
 @PrimaryAdapter
 @Module(name = "Kafka Consumer")
 package dk.mathmagicians.wonderland.eventing.adapter.kafka.consumer;

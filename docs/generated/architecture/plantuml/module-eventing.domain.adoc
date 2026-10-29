@@ -1,13 +1,13 @@
 [%autowidth.stretch, cols="h,a"]
 |===
 |Base package
-|`dk.mathmagicians.playground.confluent.eventing.domain`
+|`dk.mathmagicians.wonderland.eventing.domain`
 |Value types
-|* `d.m.p.c.e.d.Envelope`
-* `d.m.p.c.e.d.Offer`
-* `d.m.p.c.e.d.Order`
-* `d.m.p.c.e.d.Payload`
-* `d.m.p.c.e.d.Product`
-* `d.m.p.c.e.d.Receipt`
-* `d.m.p.c.e.d.Transaction`
+|* `d.m.w.e.d.Envelope`
+* `d.m.w.e.d.Offer`
+* `d.m.w.e.d.Order`
+* `d.m.w.e.d.Payload`
+* `d.m.w.e.d.Product`
+* `d.m.w.e.d.Receipt`
+* `d.m.w.e.d.Transaction`
 |===

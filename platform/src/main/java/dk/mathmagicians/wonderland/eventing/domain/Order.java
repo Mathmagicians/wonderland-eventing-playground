@@ -1,11 +1,12 @@
 package dk.mathmagicians.wonderland.eventing.domain;
 
-import org.jmolecules.ddd.annotation.ValueObject;
-
 import java.time.Instant;
 import java.util.random.RandomGenerator;
+import org.jmolecules.ddd.annotation.ValueObject;
+
 @ValueObject
-public record Order(String id, String customerId, String productId, Instant createdAt) implements Payload {
+public record Order(String id, String customerId, String productId, Instant createdAt)
+        implements Payload {
 
     static final String ID_PREFIX = "ORD";
 
