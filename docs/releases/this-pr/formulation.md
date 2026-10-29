@@ -64,3 +64,16 @@ Spec signed 2026-10-22: `make bdd` on cli, red before `Transport`.
 |---|---|---|
 | `@confluent` on the cluster's and the Flink table's features | pair | done 2026-10-22: `make bdd-snippets TRANSPORT=cli` lists none of them |
 | The generator's, the tea party's, and the purse's scenarios play on cli as written, the drivers following the transport | pair | done 2026-10-22: `make bdd-snippets TRANSPORT=cli` lists them, every step defined |
+
+## Wonderland's lines: what a feature reuses from the platform
+
+**Spec:** [wonderlands_lines.feature](../../../src/test/resources/features/wonderlands_lines.feature), written
+2026-10-27. Spec signed 2026-10-28: `make bdd-snippets SCENARIOS=@manual` lists every step of its 19 scenarios
+undefined, the red run.
+
+| Task | Owner | Done when |
+|---|---|---|
+| The map's scenarios in the feature file: the tea party's summary row, every line glued where its opening says, a line glued against its opening named | themathmagician | done 2026-10-27 |
+| The root's `bdd` plays the features of the repository: `RunCucumberTest` at the root, the platform's fixtures on its test classpath without `cucumber-spring`, played after the subprojects' | pair | done 2026-10-28: the red run above |
+| The five features rewritten to ADR-002, one file at a time: the purse's, the tea party's, the generator's, the cluster's, the Flink table's | themathmagician | `make bdd-snippets` lists every Wonderland step as undefined, the red run |
+| An architecture rule: none; ADR-002 is enforced by `make bdd-reuse` and review | | |

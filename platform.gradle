@@ -49,8 +49,9 @@ def githubPackages = {
     }
 }
 
-// the rest is for a project with code: a subproject here, the root of a story's build
-if (project != rootProject || subprojects.isEmpty()) {
+// the rest is for a project with code: a subproject here, the root of a story's build, and the root of this build,
+// whose code is its own features under src/test
+if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()) {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
 
@@ -130,6 +131,11 @@ if (project != rootProject || subprojects.isEmpty()) {
         // the image under test, -Pimage=<repo>:<tag>; default is the local build from bootBuildImage
         systemProperty 'bdd.image',
                 providers.gradleProperty('image').getOrElse("${rootProject.name}:${project.version}")
+        // the network of the kafka universe and the broker's and registry's addresses on it, -Pnetwork=<network>
+        // -Pflock="NAME=value ...", from make on kafka; the drivers put the containers they start on the network
+        // with the addresses in their environment
+        systemProperty 'bdd.network', providers.gradleProperty('network').getOrElse('')
+        systemProperty 'bdd.flock', providers.gradleProperty('flock').getOrElse('')
         testLogging.showStandardStreams = true
         outputs.upToDateWhen { false }
     }

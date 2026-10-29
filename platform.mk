@@ -30,25 +30,42 @@ ENV ?= test
 ENV_DIR ?= .
 ENV_FILE := $(ENV_DIR)/.env.$(ENV).private
 WITH_ENV := test ! -f $(ENV_FILE) || { set -a; . $(ENV_FILE); set +a; };
-# the transports, each with the GitHub environments <transport>-test and <transport>-prod
+# the transports, each with the GitHub environments <transport>-test and <transport>-prod: cli, the console and the
+# log; kafka, the universe of compose.kafka.yaml; confluent, Confluent Cloud, the cluster the keys of
+# .env.<ENV>.private open, out of trial credits :); cloudflare, nothing yet
 TRANSPORTS := cli kafka confluent cloudflare
-# the transports CI plays: confluent sits out for Confluent Cloud's pricing, kafka until its broker and schema
-# registry run on the runner, cloudflare until it plays
-CI_TRANSPORTS := cli
+# the transports CI plays, the matrix of the bdd job; cloudflare sits out until it plays
+CI_TRANSPORTS := cli kafka
+# CI_TRANSPORTS += confluent   out of trial credits :)
 # the transport a story plays on, one of TRANSPORTS
 TRANSPORT ?= cli
+# the keys of .env.<ENV>.private go to a story on confluent only: on kafka the universe's addresses are the
+# defaults, and the file's would point at Confluent Cloud
+WITH_KEYS := $(if $(filter confluent,$(TRANSPORT)),$(WITH_ENV))
 # the profiles a process plays: its transport and its environment
 PROFILES = $(TRANSPORT),$(ENV)
-# the flock's environment: the profiles and the credentials from .env.<ENV>.private
-COMPOSE := $(WITH_ENV) PROFILES=$(PROFILES) VERSION=$(VERSION) docker compose
+# the kafka universe of compose.kafka.yaml, beside this file, what iac/ is for Confluent Cloud: the broker, the
+# registry, the viewer, the topics, and the schemas. The host reaches them on localhost, the flock on the compose
+# network; a story on kafka brings the universe up first. The topic names and the partition count are
+# iac/locals.tf's, read here and handed to compose with ENV
+PLATFORM_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+KAFKA_TOPICS := $(shell sed -nE 's/^ *names *= *\[(.*)\]/\1/p' $(PLATFORM_DIR)iac/locals.tf | tr -d '",')
+KAFKA_PARTITIONS := $(shell sed -nE 's/^ *partitions *= *([0-9]+).*/\1/p' $(PLATFORM_DIR)iac/locals.tf)
+KAFKA_COMPOSE := ENV=$(ENV) KAFKA_TOPICS="$(KAFKA_TOPICS)" KAFKA_PARTITIONS=$(KAFKA_PARTITIONS) docker compose -f $(PLATFORM_DIR)compose.kafka.yaml
+KAFKA_NETWORK = $(eval KAFKA_NETWORK := $(shell $(KAFKA_COMPOSE) config --format json 2>/dev/null | jq -r .name)_default)$(KAFKA_NETWORK)
+FLOCK_KAFKA := KAFKA_BOOTSTRAP_SERVERS=kafka:19092 SCHEMA_REGISTRY_REST_ENDPOINT=http://registry:8081
+ON_KAFKA := $(filter kafka,$(TRANSPORT))
+NEEDS := $(if $(ON_KAFKA),kafka-universe-up)
+# the flock's environment: the profiles and the credentials from .env.<ENV>.private; on kafka the broker's addresses
+COMPOSE := $(WITH_KEYS) $(if $(ON_KAFKA),$(FLOCK_KAFKA)) PROFILES=$(PROFILES) VERSION=$(VERSION) docker compose
 # the scenarios bdd plays, a Cucumber tag expression; left empty, the bdd task's default
 SCENARIOS ?=
 SCENARIOS_ARG = $(if $(SCENARIOS),-Pscenarios='$(SCENARIOS)')
 # what the bdd task plays on
-ON_TRANSPORT = -Ptransport=$(TRANSPORT) -Pprofiles=$(PROFILES)
+ON_TRANSPORT = -Ptransport=$(TRANSPORT) -Pprofiles=$(PROFILES) $(if $(ON_KAFKA),-Pnetwork=$(KAFKA_NETWORK) -Pflock="$(FLOCK_KAFKA)")
 
 .DEFAULT_GOAL := build
-.PHONY: help check build test run clean version next-version docker-image docker-repo docker-publish docker-tag docker-image-exists docker-run bdd bdd-published bdd-snippets ci-transports up down arch-verify arch-gen arch-check changed
+.PHONY: help check build test run clean version next-version docker-image docker-repo docker-publish docker-tag docker-image-exists docker-run bdd bdd-published bdd-matrix bdd-snippets ci-transports up down kafka-universe-up kafka-universe-down arch-verify arch-gen arch-check changed
 
 # sections are the ##@ lines, targets the ## comments, this file's first
 HELP_FILES := $(lastword $(MAKEFILE_LIST)) $(filter-out $(lastword $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
@@ -66,8 +83,8 @@ build:     ## compile, unit tests, jars
 test:      ## unit tests
 	@$(GRADLE) test
 
-run:       ## from source on TRANSPORT and ENV; ARGS pick the story and its settings, e.g. ARGS="--story=tea-party --tea-party.region=APAC"
-	@$(WITH_ENV) SPRING_PROFILES_ACTIVE=$(PROFILES) $(GRADLE) $(BOOT):bootRun $(if $(ARGS),--args="$(ARGS)")
+run: $(NEEDS)   ## from source on TRANSPORT and ENV; ARGS pick the story and its settings, e.g. ARGS="--story=tea-party --tea-party.region=APAC"
+	@$(WITH_KEYS) SPRING_PROFILES_ACTIVE=$(PROFILES) $(GRADLE) $(BOOT):bootRun $(if $(ARGS),--args="$(ARGS)")
 
 clean:     ## remove build output
 	@$(GRADLE) clean
@@ -94,22 +111,35 @@ docker-tag:   ## put each tag in TAGS on the registry image TAG, the same bytes
 docker-image-exists:   ## exit 0 when the registry has a latest image
 	@docker manifest inspect $(REPO):latest > /dev/null
 
-docker-run:   ## the registry image TAG on TRANSPORT and ENV, its console on stdin; ARGS pick the story and its settings, e.g. ARGS="--story=tea-party --tea-party.region=APAC"
-	@$(WITH_ENV) docker run --rm -i --pull always -e SPRING_PROFILES_ACTIVE=$(PROFILES) $(addprefix -e ,$(CREDENTIALS)) $(REPO):$(TAG) $(ARGS)
+docker-run: $(NEEDS)   ## the registry image TAG on TRANSPORT and ENV, its console on stdin; ARGS pick the story and its settings, e.g. ARGS="--story=tea-party --tea-party.region=APAC"
+	@$(WITH_KEYS) docker run --rm -i --pull always -e SPRING_PROFILES_ACTIVE=$(PROFILES) $(addprefix -e ,$(CREDENTIALS)) $(if $(ON_KAFKA),--network $(KAFKA_NETWORK) $(addprefix -e ,$(FLOCK_KAFKA))) $(REPO):$(TAG) $(ARGS)
 
 ##@ Flock, docker compose plays the image from compose.yaml on TRANSPORT and ENV; settings are environment variables, e.g. TTL=300 make up
-up: docker-image   ## every player in compose.yaml, for TTL seconds, default 60, up to 300
+up: docker-image $(NEEDS)   ## every player in compose.yaml, for TTL seconds, default 60, up to 300
 	@$(COMPOSE) up
 
 down:      ## stop the flock
 	@$(COMPOSE) down
 
-##@ Features, Cucumber runs the image on TRANSPORT: the platform's features and every story's
-bdd: docker-image   ## play the features against the local image, built first when stale; SCENARIOS=<tag expression> and TRANSPORT pick the scenarios
-	@$(WITH_ENV) $(GRADLE) bdd -Pimage=$(IMAGE):$(VERSION) $(SCENARIOS_ARG) $(ON_TRANSPORT)
+##@ Kafka universe, compose.kafka.yaml, what iac/ is for Confluent Cloud: the broker, the registry, the viewer, the topics, and the schemas TRANSPORT=kafka plays on
+kafka-universe-up:   ## start the broker, the registry, and the viewer on localhost:8082, then create the topics and register the schemas of ENV
+	@$(KAFKA_COMPOSE) up -d --wait kafka registry viewer
+	@$(KAFKA_COMPOSE) run --rm topics
+	@$(KAFKA_COMPOSE) run --rm schemas
+	@$(KAFKA_COMPOSE) ps --format "table {{.Service}}\t{{.Status}}\t{{.Ports}}"
 
-bdd-published:   ## play the features against the registry image TAG, as bdd does
-	@$(WITH_ENV) $(GRADLE) bdd -Pimage=$(REPO):$(TAG) $(SCENARIOS_ARG) $(ON_TRANSPORT)
+kafka-universe-down:   ## stop the universe; what it held is gone
+	@$(KAFKA_COMPOSE) down
+
+##@ Features, Cucumber runs the image on TRANSPORT: the platform's features and every story's
+bdd: docker-image $(NEEDS)   ## play the features against the local image, built first when stale; SCENARIOS=<tag expression> and TRANSPORT pick the scenarios
+	@$(WITH_KEYS) $(GRADLE) bdd -Pimage=$(IMAGE):$(VERSION) $(SCENARIOS_ARG) $(ON_TRANSPORT)
+
+bdd-published: $(NEEDS)   ## play the features against the registry image TAG, as bdd does
+	@$(WITH_KEYS) $(GRADLE) bdd -Pimage=$(REPO):$(TAG) $(SCENARIOS_ARG) $(ON_TRANSPORT)
+
+bdd-matrix:   ## play the features once per transport of CI_TRANSPORTS, locally what the bdd job plays
+	@for transport in $(CI_TRANSPORTS); do $(MAKE) --no-print-directory bdd TRANSPORT=$$transport; done
 
 bdd-snippets:  ## print a snippet for each undefined step, playing none
 	@$(GRADLE) bdd -PdryRun $(SCENARIOS_ARG) $(ON_TRANSPORT) || true

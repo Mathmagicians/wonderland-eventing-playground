@@ -1,6 +1,6 @@
 # Release 0.0.7
 
-**Date:** 2026-10-21 | **Updated:** 2026-10-24 | **Branch:** `eventing-with-kafka`
+**Date:** 2026-10-21 | **Updated:** 2026-10-28 | **Branch:** `eventing-with-kafka`
 
 The platform's work. The spec's results: the branch's latest `cicd` run, its job summary with the scenarios, and
 its `cucumber-report-<transport>` artifact; locally `build/reports/cucumber/index.html` in each project with
@@ -19,4 +19,4 @@ features, after `make bdd`. The release ends In production, [verification.md](ve
 | Slides alongside | [#11](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/11) | Automation | | | | [automation.md](automation.md#slides-alongside) |
 | Load on demand: the transport and its environment | [#13](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/13) | Automation | [2026-10-20](discovery.md#load-on-demand-the-transport-and-its-environment) | [2026-10-21](formulation.md#load-on-demand-the-transport-and-its-environment) | | [discovery.md](discovery.md#load-on-demand-the-transport-and-its-environment) |
 | CI plays each transport | [#19](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/19) | Automation | [2026-10-22](discovery.md#ci-plays-each-transport) | [2026-10-22](formulation.md#ci-plays-each-transport) | | [discovery.md](discovery.md#ci-plays-each-transport) |
-| Wonderland's lines: what a feature reuses from the platform | [#20](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/20) | Discovery | | | | [discovery.md](discovery.md#wonderlands-lines-what-a-feature-reuses-from-the-platform) |
+| Wonderland's lines: what a feature reuses from the platform | [#20](https://github.com/Mathmagicians/wonderland-eventing-playground/issues/20) | Automation | [2026-10-24](discovery.md#wonderlands-lines-what-a-feature-reuses-from-the-platform) | [2026-10-28](formulation.md#wonderlands-lines-what-a-feature-reuses-from-the-platform) | | [discovery.md](discovery.md#wonderlands-lines-what-a-feature-reuses-from-the-platform) |

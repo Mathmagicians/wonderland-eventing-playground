@@ -35,7 +35,8 @@ groups the features it releases, as many as themathmagician decides. Each phase 
 - A sign-off is themathmagician's yes in chat on the presented evidence. The dates in a plan are facts: the day a
   gate was signed, the day a file was written or updated.
 - Each gate's evidence lives in the phase file the gate closes; the feature's row in the overview records the
-  gate's date and links to it.
+  gate's date and links to it. Spec signed's evidence is the feature file, linked at the top of the feature's
+  section in `*formulation.md`.
 - A task names the scenario or rule it turns green, linked to its file and line. The scenarios live in the feature
   files and the results in the reports, the branch's `cicd` runs, the `cucumber-report` artifact,
   `build/reports/cucumber/index.html` locally; the plan links to both.

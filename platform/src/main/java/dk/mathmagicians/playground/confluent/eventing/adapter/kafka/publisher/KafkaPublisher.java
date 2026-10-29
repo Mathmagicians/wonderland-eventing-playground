@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 /// acknowledged; a failed send is logged at ERROR with the envelope id and fails the receipt.
 @SecondaryAdapter
 @Component
-@Profile("confluent")
+@Profile("kafka")
 final class KafkaPublisher implements Publisher {
 
     private static final Logger log = LoggerFactory.getLogger(KafkaPublisher.class);

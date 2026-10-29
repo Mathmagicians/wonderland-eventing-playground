@@ -31,7 +31,7 @@ questions, and the decisions it raises for [docs/adr.md](../../adr.md).
   and the generator's message lands on `test.offers`.
 - `make run-tiny TRANSPORT=kafka` a second time: the broker is up already, and the offsets continue from the first
   run.
-- `make kafka-down`: the broker and the registry stop, and what they held is gone.
+- `make kafka-universe-down`: the broker, the registry, and the viewer stop, and what they held is gone.
 
 ### Rule: on confluent the keys come from .env.ENV.private, and startup checks them
 - `make run-tiny TRANSPORT=confluent` without `.env.test.private`: `APPLICATION FAILED TO START`, naming each
@@ -52,9 +52,11 @@ questions, and the decisions it raises for [docs/adr.md](../../adr.md).
 4. Production is the environments Wonderland plays in, `test` and `prod`: which transport each plays on, with
    Confluent Cloud out of service?
 5. The purse on `kafka`: the platform's `kafka-up` through `platform.mk`, or broker services in its own
-   [compose.yaml](../../../examples/purse/compose.yaml)?
+   [compose.yaml](../../../examples/purse/compose.yaml)? The platform's, `kafka-universe-up`: the universe is a
+   compose file of its own, `compose.kafka.yaml`, the broker, the registry, the viewer, and the one-shot services
+   that create the topics and register the schemas, what `iac/` is for Confluent Cloud. Decided 2026-10-29.
 6. The schema registry image: `confluentinc/cp-schema-registry` (Confluent, Confluent Community License), or
-   Karapace, `ghcr.io/aiven-open/karapace` (Aiven, Apache 2.0)?
+   Karapace, `ghcr.io/aiven-open/karapace` (Aiven, Apache 2.0)? Confluent's. Decided 2026-10-29.
 7. `make run-tiny`, the quick start of the Definition of done: on `TRANSPORT`, default `cli`. Decided 2026-10-21.
 
 **Decisions for docs/adr.md, by title**
@@ -205,7 +207,8 @@ writes.
 ### Rule: the run works offline, from make platform-install
 
 **Questions**
-1. The client for the demo: a second purse, or a new story?
+1. The client for the demo: a new story, generated from its feature and `model.dsl`; the rehearsal's code kept in
+   `<story>-backup` as the fallback. Decided 2026-10-29.
 
 ## Load on demand: the transport and its environment
 
@@ -288,6 +291,8 @@ prints the degree of reuse.
 **Story:** I read a client's feature and see, line by line, what Wonderland does and what the client defines, and
 the summary tells me how much of the feature is Wonderland's.
 
+Examples agreed 2026-10-24.
+
 ### Rule: a platform step opens with Wonderland and names the element of the hexagon it drives, in the present tense
 - the rim, the transport played: `Given Wonderland is reachable`.
 - what the story hears, `StoryListener` and `ConsoleListener`: `And Wonderland hears on the stream of transactions:
@@ -303,13 +308,15 @@ the summary tells me how much of the feature is Wonderland's.
 - `Given Alice's purse holds 1000 coins`, `Then Alice has 1009.75 coins left`, `And the purse makes a warning`.
 
 ### Rule: the opening and the glue agree
-- a line opening with Wonderland whose glue lies outside the platform's `bdd` package: `make bdd` red, naming the
-  line; the reverse the same way.
+- a line opening with Wonderland whose glue lies outside the platform's `bdd` package: `make bdd-reuse` red, naming
+  the line; the reverse the same way.
 
 ### Rule: the summary prints the reuse per feature, by element
-- `make bdd-reuse` after `make bdd`: Feature | Lines | Eventing system | Stream | Story | Topic | Cloud | Own |
-  Share, from `cucumber.json`; the purse's row `13 | 1 | 4 | 2 | 0 | 0 | 6 | 54%`.
-- the `bdd` job: the table under the scenarios in the job summary.
+- `make bdd-reuse` after `make bdd`: Feature | Lines | Rim | Heard | Story | Published | Cloud | Own | Share, from
+  `cucumber.json`, each line of the feature once; the tea party's row `24 | 1 | 9 | 4 | 0 | 0 | 10 | 58%`, played by
+  the root's `make bdd`; the purse's, `13 | 1 | 4 | 2 | 0 | 0 | 6 | 54%`, prints in its own cicd, it is its own
+  build under `examples/`.
+- the `bdd` job: the table under the scenarios in the job summary, a release check in `verification.md`.
 
 **Questions**
 1. Columns per element beside the one count: now, the rule above. Decided 2026-10-24.
@@ -317,4 +324,4 @@ the summary tells me how much of the feature is Wonderland's.
    step patterns in the fixtures turn them green. Decided 2026-10-24.
 
 **Decisions for docs/adr.md, by title**
-- A platform step opens with Wonderland and names its hexagon element
+- [ADR-002 A platform step opens with Wonderland and names its hexagon element](../../adr.md#adr-002-a-platform-step-opens-with-wonderland-and-names-its-hexagon-element)

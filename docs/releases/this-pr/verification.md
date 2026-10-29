@@ -11,6 +11,7 @@ checks passed, and Wonderland playing in each of its environments.
 | `ci`, `cd`, `iac`, `architecture-discovery`, `cicd-client-example` green on the PR | | |
 | Review findings above Nit resolved, or deferred with a reason | | |
 | README, `make help`, and `docs/adr.md` say what the code does | | |
+| The `bdd` job's summary: the reuse table of `make bdd-reuse` under the scenarios | | |
 
 ## ADR compliance
 

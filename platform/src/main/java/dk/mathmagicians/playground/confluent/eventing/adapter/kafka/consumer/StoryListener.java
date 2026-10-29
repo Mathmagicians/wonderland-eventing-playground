@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 /// to the container's error handler, `DeadLetters`, which sets the record aside on the dead-letter topic.
 @PrimaryAdapter
 @Component
-@Profile("confluent")
+@Profile("kafka")
 public final class StoryListener implements SmartLifecycle {
 
     private static final Logger log = LoggerFactory.getLogger(StoryListener.class);

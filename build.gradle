@@ -11,3 +11,20 @@ plugins {
 allprojects {
     apply from: "${rootDir}/platform.gradle"
 }
+
+// the features of the repository itself, src/test/resources/features: how we work. They read the fixtures' step
+// patterns, the feature files, and the stories' reports, so the root's bdd plays after the subprojects'
+dependencies {
+    testImplementation(testFixtures(project(':platform'))) {
+        exclude group: 'io.cucumber', module: 'cucumber-spring' // the features of the repository play without Spring
+    }
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('bdd') {
+    mustRunAfter subprojects.collect { "${it.path}:bdd" }
+}
+
+// the root has no main code: no jar, and no unit tests until the features' drivers bring theirs
+tasks.named('jar') { enabled = false }
+tasks.named('test') { failOnNoDiscoveredTests = false }

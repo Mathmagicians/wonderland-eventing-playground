@@ -14,12 +14,12 @@ import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.annotation.Profile;
 import org.testcontainers.containers.GenericContainer;
 
-/// The transport on `confluent`: the Confluent test cluster and its registry, through `Cluster` and
+/// The transport on `kafka`, Confluent Cloud included: the cluster and its registry, through `Cluster` and
 /// `SchemaRegistry`. A story listens under its group, reading its topics from their end, and has read them when
 /// the group's committed offsets reach the end of every partition that got records since it started. A record
 /// a receipt points at is read once, for the steps that go on looking at it.
 @ScenarioScope
-@Profile("confluent")
+@Profile("kafka")
 class ClusterTransport implements Transport {
 
     /// Spring Kafka's line once the consumer has its partitions: from here on the story sees what is published

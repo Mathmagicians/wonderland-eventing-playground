@@ -58,11 +58,10 @@ public class StoryContainer {
                         settings.entrySet().stream().map(setting -> "--" + setting.getKey() + "=" + setting.getValue()))
                 .toArray(String[]::new);
         var started = new GenericContainer<>(GeneratorContainer.IMAGE)
-                .withEnv(GeneratorContainer.credentials())
-                .withEnv("SPRING_PROFILES_ACTIVE", GeneratorContainer.PROFILES)
                 .withCommand(command)
                 .withLogConsumer(new Slf4jLogConsumer(log))
                 .waitingFor(Wait.forLogMessage(transport.listening(), 1).withStartupTimeout(STARTUP));
+        GeneratorContainer.onTransport(started);
         transport.listen(started, group);
         started.start();
         container = started;

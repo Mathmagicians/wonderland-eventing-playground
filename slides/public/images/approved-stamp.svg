@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 260" width="420" height="260" font-family="Impact, 'Arial Black', 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <!-- chalk: a warp of the stroke plus speckled alpha, a little coarser than the diagrams' -->
+    <filter id="chalk" filterUnits="userSpaceOnUse" x="0" y="0" width="420" height="260">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="7" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="5" xChannelSelector="R" yChannelSelector="G" result="wobbly"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" seed="3" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 2.2 -0.35" result="speckle"/>
+      <feComposite in="wobbly" in2="speckle" operator="in"/>
+    </filter>
+  </defs>
+
+  <!-- the stamp, tilted as a hand puts it down -->
+  <g transform="rotate(-11 210 130)" filter="url(#chalk)" opacity="0.92">
+    <g fill="none" stroke="#c0392b" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M38,52 C120,46 300,46 382,52 C388,80 388,180 382,208 C300,214 120,214 38,208 C32,180 32,80 38,52 Z" stroke-width="9"/>
+      <path d="M54,68 C130,63 290,63 366,68 C371,92 371,168 366,192 C290,197 130,197 54,192 C49,168 49,92 54,68 Z" stroke-width="3.5"/>
+    </g>
+    <text x="210" y="154" font-size="66" letter-spacing="6" fill="#c0392b" text-anchor="middle">APPROVED</text>
+  </g>
+</svg>
