@@ -150,7 +150,10 @@ m_Kafka_Publisher_KafkaPublisher .left.|> m_Application_Publisher
 m_Kafka_Publisher_KafkaPublisher .[norank].> m_Protobuf_Converter
 m_Load_Story_GenerateLoad --> m_Application_PublishMessage
 m_Load_Story_GenerateLoad ..|> m_Application_Story
+m_Load_Story_GenerateLoad ..> m_Domain_Offer : publishes
+m_Load_Story_GenerateLoad ..> m_Domain_Order : publishes
 m_Load_Story_GenerateLoad ..> m_Domain_Payload
+m_Load_Story_GenerateLoad ..> m_Domain_Product : publishes
 m_Log_LoggingPublisher .left.|> m_Application_Publisher
 m_Log_LoggingPublisher .[norank].> m_Protobuf_Converter
 m_Tea_Party_Story_SettleAtTheTeaParty --> m_Application_PublishMessage

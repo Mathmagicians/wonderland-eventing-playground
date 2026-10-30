@@ -28,7 +28,12 @@
     display: none;
 }
 
-/* The reference in the text, [^1]: a small superscript, without the link underline. */
+/* The reference in the text, [^1]: a small superscript number, counted per slide as the notes below are, without
+   the brackets the renderer writes and without the link underline. */
+.slidev-layout {
+    counter-reset: footnote;
+}
+
 .slidev-layout .footnote-ref {
     font-size: 0.55em;
     vertical-align: super;
@@ -38,4 +43,11 @@
 .slidev-layout .footnote-ref a {
     border-bottom: none;
     text-decoration: none;
+    font-size: 0;
+}
+
+.slidev-layout .footnote-ref a::after {
+    counter-increment: footnote;
+    content: counter(footnote);
+    font-size: 0.55rem;
 }

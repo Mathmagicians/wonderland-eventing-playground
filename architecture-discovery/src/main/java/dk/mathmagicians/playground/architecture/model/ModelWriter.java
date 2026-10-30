@@ -75,6 +75,9 @@ public final class ModelWriter {
 
     private static final String SUBSCRIBES_TO = "subscribesTo";
 
+    /// Its twin, the method that names the payloads the port publishes, `Story.publishes()`.
+    private static final String PUBLISHES = "publishes";
+
     private final ApplicationModules modules;
     private final StereotypeCatalog catalog;
     private final StereotypeFactory<JavaPackage, JavaClass, JavaMethod> stereotypes;
@@ -291,7 +294,7 @@ public final class ModelWriter {
                     .filter(port -> roles(port).contains(PRIMARY_PORT))
                     .forEach(
                             port -> {
-                                var subscribed = subscribed(port, payloads);
+                                var subscribed = declared(port, SUBSCRIBES_TO, payloads);
                                 subscribed.forEach(
                                         payload ->
                                                 lines.put(
@@ -301,6 +304,16 @@ public final class ModelWriter {
                                                                 owner(inside, payload),
                                                                 payload),
                                                         Relation.SUBSCRIBES));
+                                declared(port, PUBLISHES, payloads)
+                                        .forEach(
+                                                payload ->
+                                                        lines.put(
+                                                                key(
+                                                                        module,
+                                                                        port,
+                                                                        owner(inside, payload),
+                                                                        payload),
+                                                                Relation.PUBLISHES));
                                 if (publishesThroughAPort(port)) {
                                     dependencies(port)
                                             .filter(target -> payloads.contains(target.getName()))
@@ -327,12 +340,12 @@ public final class ModelWriter {
                 });
     }
 
-    /// The payloads a story's port subscribes to: the payload class objects its `subscribesTo()`
-    /// references, `Set.of(Transaction.class)`.
-    private static Set<JavaClass> subscribed(JavaClass port, Set<String> payloads) {
+    /// The payloads a story's port declares in the method named, `subscribesTo()` or `publishes()`:
+    /// the payload class objects it references, `Set.of(Transaction.class)`.
+    private static Set<JavaClass> declared(JavaClass port, String method, Set<String> payloads) {
         return port.getMethods().stream()
-                .filter(method -> method.getName().equals(SUBSCRIBES_TO))
-                .flatMap(method -> method.getReferencedClassObjects().stream())
+                .filter(candidate -> candidate.getName().equals(method))
+                .flatMap(candidate -> candidate.getReferencedClassObjects().stream())
                 .map(ReferencedClassObject::getRawType)
                 .filter(type -> payloads.contains(type.getName()))
                 .collect(

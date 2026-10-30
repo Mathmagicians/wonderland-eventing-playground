@@ -60,6 +60,11 @@ public class SettleAtTheTeaParty implements Story {
         return Set.of(Offer.class, Order.class);
     }
 
+    @Override
+    public Set<Class<? extends Payload>> publishes() {
+        return Set.of(Transaction.class);
+    }
+
     /// An offer looks for an order of that thing, an order looks for a kind offer of that thing. If
     /// they meet, they settle and live happily everafter, and a transaction is published. If not,
     /// they wait.

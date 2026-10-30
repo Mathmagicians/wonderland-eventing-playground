@@ -31,4 +31,4 @@ the package's row in the catalog.
 | Task | Owner | Done when |
 |---|---|---|
 | `the_white_rabbit_has_no_time_to_haggle.feature`, `the_white_rabbits_hexagon.feature`, and `white-rabbit.textproto`, written before the code | themathmagician, pair secretary | done 2026-10-29; red on 2026-10-30 in the folder's build: `make arch-bdd` names the missing module, `make bdd-snippets` the five undefined steps, [automation.md](automation.md#the-white-rabbit-and-the-skill-the-round-trip) |
-| The skill's brief, from the spec | themathmagician | the brief names the rules, the steps, the features, the `.textproto`, the platform |
+| The skill's brief, from the spec | themathmagician | done 2026-10-30: [SKILL.md](../../../.claude/skills/wonderland-generate-story/SKILL.md) names the input, the rules, the steps, the features, the `.textproto`, the platform, and the gates |

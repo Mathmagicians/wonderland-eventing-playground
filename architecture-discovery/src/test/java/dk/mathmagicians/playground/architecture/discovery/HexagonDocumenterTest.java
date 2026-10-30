@@ -92,7 +92,7 @@ class HexagonDocumenterTest {
                 .contains("driving -[hidden]right-> core")
                 .contains("core -[hidden]right-> driven")
                 .contains("t_driving -[hidden]down-> m_Cli_Runner")
-                .contains("t_core -[hidden]down-> m_Application_Squarer")
+                .contains("t_core -[hidden]down-> m_Application_Shaper")
                 .contains("t_driven -[hidden]down-> m_Kafka_KafkaPublisher");
     }
 
@@ -181,7 +181,8 @@ class HexagonDocumenterTest {
         assertThat(uml)
                 .contains("m_Domain_Item0 -[hidden]right-> m_Domain_Item1")
                 .contains("m_Domain_Things -[hidden]down-> m_Domain_Item3")
-                .contains("m_Application_Publish -[hidden]right-> m_Application_Squarer")
+                .contains("m_Application_Publish -[hidden]right-> m_Application_Shaper")
+                .contains("m_Application_Shaper -[hidden]right-> m_Application_Squarer")
                 .contains("m_Application_Squarer -[hidden]right-> m_Application_Publisher")
                 .contains("m_Application_Publish -[hidden]down-> m_Domain_Item0")
                 .contains("m_Application_Publisher -[hidden]down-> m_Domain_Item0");

@@ -24,7 +24,7 @@ BRANCH ?= $(shell git branch --show-current)
 # so the talk runs with it from here
 SLIDES := $(MAKE) --no-print-directory -C slides COMPOSE='cd $(CURDIR) && $(COMPOSE)'
 
-.PHONY: generated-check proto-gen proto-check run-tiny docker-smoke up-product up-offer up-order up-tea-party tf-init tf-check tf-format tf-plan tf-output tf-state-forget confluent-lookup flink-statements flink-verify discovery-build discovery-install discovery-publish platform-install platform-publish slidev-present slidev-export git-tag git-release gh-main-protection gh-project-sync
+.PHONY: generated-check proto-gen proto-check run-tiny docker-smoke up-product up-offer up-order up-tea-party tf-init tf-check tf-format tf-plan tf-output tf-state-forget confluent-lookup flink-statements flink-verify discovery-build discovery-install discovery-publish platform-install platform-publish slidev-present slidev-export claude git-tag git-release gh-main-protection gh-project-sync
 
 ##@ Generated code and documents
 generated-check: proto-check arch-check   ## fail when generated code or documents are stale
@@ -135,6 +135,13 @@ slidev-present:   ## the talk on localhost:3030, opened in the browser, live rel
 
 slidev-export:   ## write the talk to docs/generated/slides/architecture-discoverability.pdf
 	@$(SLIDES) export
+
+##@ Agents, Claude Code with a profile from .claude/agents as its system prompt
+AGENT ?= .claude/agents/wonderland-story-builder.md
+STORY ?= examples/white-rabbit
+PROMPT ?= Build the story in this folder: load the skill wonderland-generate-story and start at its first step.
+claude:   ## Claude Code in STORY's folder with the builder's profile AGENT loaded, at work on PROMPT from the first second, file edits accepted
+	@cd $(STORY) && claude --permission-mode acceptEdits --append-system-prompt "$$(awk 'f >= 2 { print } /^---$$/ { f++ }' $(CURDIR)/$(AGENT))" "$(PROMPT)"
 
 ##@ Repository, git tags and GitHub settings
 git-tag:   ## tag v<RELEASE> on HEAD and push it; RELEASE defaults to the next version

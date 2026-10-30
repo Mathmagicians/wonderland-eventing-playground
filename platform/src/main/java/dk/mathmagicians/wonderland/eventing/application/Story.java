@@ -40,6 +40,12 @@ public interface Story {
         return Set.of();
     }
 
+    /// The payload types the story can publish, every type it may put on a topic. Empty for a story
+    /// that only subscribes. The architecture model reads the classes named here.
+    default Set<Class<? extends Payload>> publishes() {
+        return Set.of();
+    }
+
     /// A message of a kind the story subscribes to. The default is the refusal, for what a story
     /// does not subscribe to.
     default void on(Envelope envelope) {

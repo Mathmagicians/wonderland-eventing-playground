@@ -1,0 +1,17 @@
+@startuml
+' the streams from the model: what each story publishes and subscribes to, a queue per payload
+
+queue "Offer" as q_Offer
+queue "Order" as q_Order
+queue "Product" as q_Product
+queue "Transaction" as q_Transaction
+hexagon "Load Story" as s_Load_Story
+hexagon "Tea Party Story" as s_Tea_Party_Story
+
+s_Load_Story --> q_Offer : publishes
+s_Load_Story --> q_Order : publishes
+s_Load_Story --> q_Product : publishes
+q_Offer --> s_Tea_Party_Story : subscribes
+q_Order --> s_Tea_Party_Story : subscribes
+s_Tea_Party_Story --> q_Transaction : publishes
+@enduml

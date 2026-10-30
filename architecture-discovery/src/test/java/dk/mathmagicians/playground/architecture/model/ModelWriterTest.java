@@ -98,7 +98,13 @@ class ModelWriterTest {
         assertThat(module("Application").getTypeList())
                 .extracting(Type::getName)
                 .containsExactly(
-                        "Publish", "Squarer", "Publisher", "Wiring", "Wiring.publish", "Settings");
+                        "Publish",
+                        "Shaper",
+                        "Squarer",
+                        "Publisher",
+                        "Wiring",
+                        "Wiring.publish",
+                        "Settings");
     }
 
     /// `Shape` is sealed: `Circle` and `Square` follow it in the domain's list, and each implements
@@ -143,20 +149,22 @@ class ModelWriterTest {
                 .doesNotContain(List.of("Runner", "Thing"));
     }
 
-    /// `Squarer`, a driving port, names `Circle.class` in `subscribesTo()` and publishes through
-    /// `Publish`, so the squares it builds are what it publishes; `Publish` publishes nothing, it
-    /// reaches no other driving port.
+    /// `Squarer`, a driving port, names `Circle.class` in `subscribesTo()` and `Square.class` in
+    /// `publishes()`; `Shaper` declares nothing, holds `Publish`, and builds circles, so the
+    /// circles are what it publishes, read from its reach; `Publish` publishes nothing, it holds no
+    /// other driving port.
     @Test
     void drawsWhatAPortSubscribesToAndPublishes() {
         assertThat(platform.getArrowList())
                 .contains(
                         arrow("Application", "Squarer", "Domain", "Circle", Relation.SUBSCRIBES),
                         arrow("Application", "Squarer", "Domain", "Square", Relation.PUBLISHES),
-                        arrow("Application", "Squarer", "Application", "Publish", Relation.USES));
+                        arrow("Application", "Squarer", "Application", "Publish", Relation.USES),
+                        arrow("Application", "Shaper", "Domain", "Circle", Relation.PUBLISHES));
         assertThat(platform.getArrowList())
                 .filteredOn(arrow -> arrow.getRelation() == Relation.PUBLISHES)
                 .extracting(arrow -> arrow.getFrom().getType())
-                .containsOnly("Squarer");
+                .containsOnly("Squarer", "Shaper");
     }
 
     @Test

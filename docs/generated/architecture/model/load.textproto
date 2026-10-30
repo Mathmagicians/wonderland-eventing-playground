@@ -5,6 +5,9 @@ name: "Load Story"
 base_package: "dk.mathmagicians.wonderland.stories.load"
 feature: ["i_can_generate_events.feature", "the_flink_cluster_in_the_cloud_keeps_the_latest_value_snapshot.feature"]
 primary_port { name: "GenerateLoad"  implements: "Story" }
+publishes { payload: "Offer"  through: "PublishMessage" }
+publishes { payload: "Order"  through: "PublishMessage" }
+publishes { payload: "Product"  through: "PublishMessage" }
 depends_on: ["Application", "Domain"]
 wiring {
   configuration: "LoadStory"

@@ -1,6 +1,8 @@
 package dk.mathmagicians.wonderland.architecture;
 
+import dk.mathmagicians.playground.architecture.discovery.ForestDocumenter;
 import dk.mathmagicians.playground.architecture.discovery.HexagonDocumenter;
+import dk.mathmagicians.playground.architecture.discovery.StreamsDocumenter;
 import dk.mathmagicians.playground.architecture.model.ModelWriter;
 import dk.mathmagicians.playground.architecture.model.TextProtoWriter;
 import dk.mathmagicians.wonderland.EventingPlatform;
@@ -57,5 +59,7 @@ public abstract class ModuleDocumentation {
                         .toList();
         new TextProtoWriter(platform, features).writeTo(docs().resolve("model"));
         new HexagonDocumenter(platform).writeTo(plantuml.resolve("hexagon.puml"));
+        new ForestDocumenter(platform).writeTo(plantuml.resolve("forest.puml"));
+        new StreamsDocumenter(platform).writeTo(plantuml.resolve("streams.puml"));
     }
 }

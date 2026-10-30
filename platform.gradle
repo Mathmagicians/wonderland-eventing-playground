@@ -306,7 +306,11 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
             outputs.file(style)
             doLast {
                 new java.util.zip.ZipFile(jar.singleFile).withCloseable { zip ->
-                    style.get().asFile.text = zip.getInputStream(zip.getEntry('hexagon.style.puml')).text
+                    def entry = zip.getEntry('hexagon.style.puml')
+                    if (entry == null) {
+                        throw new GradleException("${jar.singleFile.name} carries no hexagon.style.puml, an architecture-discovery from before the style file: make discovery-install, or wait for architecture-discovery.yaml to publish and rerun")
+                    }
+                    style.get().asFile.text = zip.getInputStream(entry).text
                 }
             }
         }

@@ -130,7 +130,10 @@ arrow { from { module: "Kafka Publisher"  type: "KafkaPublisher" }  to { module:
 arrow { from { module: "Kafka Publisher"  type: "KafkaPublisher" }  to { module: "Protobuf"  type: "Converter" }  relation: DEPENDS_ON }
 arrow { from { module: "Load Story"  type: "GenerateLoad" }  to { module: "Application"  type: "PublishMessage" }  relation: USES }
 arrow { from { module: "Load Story"  type: "GenerateLoad" }  to { module: "Application"  type: "Story" }  relation: IMPLEMENTS }
+arrow { from { module: "Load Story"  type: "GenerateLoad" }  to { module: "Domain"  type: "Offer" }  relation: PUBLISHES }
+arrow { from { module: "Load Story"  type: "GenerateLoad" }  to { module: "Domain"  type: "Order" }  relation: PUBLISHES }
 arrow { from { module: "Load Story"  type: "GenerateLoad" }  to { module: "Domain"  type: "Payload" }  relation: DEPENDS_ON }
+arrow { from { module: "Load Story"  type: "GenerateLoad" }  to { module: "Domain"  type: "Product" }  relation: PUBLISHES }
 arrow { from { module: "Load Story"  type: "LoadProperties" }  to { module: "Domain"  type: "Offer" }  relation: DEPENDS_ON }
 arrow { from { module: "Load Story"  type: "LoadProperties" }  to { module: "Domain"  type: "Order" }  relation: DEPENDS_ON }
 arrow { from { module: "Load Story"  type: "LoadProperties" }  to { module: "Domain"  type: "Payload" }  relation: DEPENDS_ON }

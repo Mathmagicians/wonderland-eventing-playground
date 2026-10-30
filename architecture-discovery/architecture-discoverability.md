@@ -105,12 +105,16 @@ docs/generated/architecture/
     platform.textproto                   the hexagon: the modules with their stereotypes, wiring, and types, the arrows
     <story>.textproto                    a story: its ports, subscribes, publishes, depends_on, types, wiring, features
   plantuml/                              step 5, written by generateArchitecture
-    hexagon.puml                         the hexagon: modules by side, their types with roles and annotations as stereotypes
+    forest.puml                          level 1, the forest: the platform and the stories that play on it
+    streams.puml                         level 2, the streams: a queue per payload, the stories publishing and subscribing
+    hexagon.puml                         level 3, the hexagon: modules by side, their types with their roles
     components.puml                      UML component diagram, all modules
     module-eventing.<module>.puml        one module and its direct dependencies
     module-eventing.<module>.adoc        the module canvas
     all-docs.adoc                        links the diagrams and canvases
   svg/                                   step 6, rendered by renderDiagrams
+    forest.svg
+    streams.svg
     hexagon.svg
     components.svg
     module-eventing.<module>.svg

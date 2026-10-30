@@ -156,16 +156,20 @@ arch-verify:   ## the ArchUnit rules and Modulith's boundaries: ArchUnitTest, Ar
 arch-bdd:      ## the architecture-discovery features, no image: ArchBddTest, reports under build/reports/arch
 	@$(GRADLE) $(BOOT):archBdd
 
-arch-gen: arch-hexagon   ## the model and the three levels from the code: arch-forest, arch-streams, arch-hexagon
-
-arch-forest:   ## level 1, the forest: the landscape, the platform and its stories
-	@echo "arch-forest: not drawn yet, the three levels from the DSL, docs/releases/this-pr/automation.md"; exit 1
-
-arch-streams:  ## level 2, the streams: the stories with what they hear and publish
-	@echo "arch-streams: not drawn yet, the three levels from the DSL, docs/releases/this-pr/automation.md"; exit 1
-
-arch-hexagon:  ## level 3, the hexagon of each story and of the platform, with the model and Modulith's canvases
+# one rendering draws every level: the model under model/, every .puml under plantuml/ to svg/; a level's target is
+# that rendering and the check that its drawing came out
+ARCH_SVG = docs/generated/architecture/svg
+arch-gen:      ## the model and the three levels from the code: arch-forest, arch-streams, arch-hexagon
 	@$(GRADLE) $(BOOT):renderDiagrams
+
+arch-forest: arch-gen   ## level 1, the forest: the landscape, the platform and its stories, svg/forest.svg
+	@test -f $(ARCH_SVG)/forest.svg || { echo "arch-forest: $(ARCH_SVG)/forest.svg is not drawn, the forest is not in the library yet"; exit 1; }
+
+arch-streams: arch-gen   ## level 2, the streams: the stories with what they subscribe to and publish, by topic, svg/streams.svg
+	@test -f $(ARCH_SVG)/streams.svg || { echo "arch-streams: $(ARCH_SVG)/streams.svg is not drawn, the streams are not in the library yet"; exit 1; }
+
+arch-hexagon: arch-gen   ## level 3, the hexagon of each story and of the platform, svg/hexagon.svg
+	@test -f $(ARCH_SVG)/hexagon.svg || { echo "arch-hexagon: $(ARCH_SVG)/hexagon.svg is not drawn"; exit 1; }
 
 # the architecture as specified: <story>.textproto written by hand under the project's test resources, what the build
 # must build; the plantuml sources and the svg files are drawn from the model and follow, not compared
