@@ -1,0 +1,10 @@
+@startuml
+' the forest from the model: the platform and the stories that play on it
+
+hexagon "Wonderland\nplatform" as platform
+hexagon "Load Story\nstories/load" as s_Load_Story
+hexagon "Tea Party Story\nstories/teaparty" as s_Tea_Party_Story
+
+s_Load_Story --> platform : plays on
+s_Tea_Party_Story --> platform : plays on
+@enduml

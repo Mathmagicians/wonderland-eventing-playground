@@ -107,6 +107,8 @@ jobs:
       - name: the BDD suite against the candidate, on the transport in test
         id: bdd
         run: make bdd-published TAG=${{ needs.ci.outputs.tag }} TRANSPORT=${{ matrix.transport }}
+      - name: the architecture-discovery features, what the build wrote against what the features state, the scenarios that drove it from this run
+        run: make arch-bdd
       - name: the result and the scenarios into the job summary
         if: ${{ !cancelled() && steps.bdd.outcome != 'skipped' }}
         run: |

@@ -1,0 +1,21 @@
+package dk.mathmagicians.wonderland.eventing.domain;
+
+import java.time.Instant;
+import java.util.random.RandomGenerator;
+import org.jmolecules.ddd.annotation.ValueObject;
+
+@ValueObject
+public record Order(String id, String customerId, String productId, Instant createdAt)
+        implements Payload {
+
+    static final String ID_PREFIX = "ORD";
+
+    /// An order from a character for one of the things.
+    public static Order random(RandomGenerator random, Instant at) {
+        return new Order(
+                Payload.id(ID_PREFIX, random),
+                Wonderland.characterId(Wonderland.CHARACTERS.next(random)),
+                Product.id(Wonderland.THINGS.next(random)),
+                at);
+    }
+}

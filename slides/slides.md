@@ -68,6 +68,10 @@ This style will be used in our examples.
 
 Built to explore the core ideas
 
+Wonderland plays stories that send messages to each other; CLI, Kafka, and Confluent are the transports, the stories the same on each
+
+One Spring Boot substrate plays every story, `--story=<name>`, one image, one process per story
+
 Platform Engineering is a skill
 
 DX, make it easy - red carpet to do the right thing
@@ -90,9 +94,9 @@ Why Java? Enterprise
 
 *Runtime:* JRE, Docker + Docker Compose to run it
 
-*Testing:* TDD: JUnit, BDD: Cucumber,  Testcontainers
-
 *Eventing Platforms:* Kafka, Confluent[^1] , Cloudflare, CLI
+
+*Testing:* TDD: JUnit, BDD: Cucumber,  Testcontainers
 
 *IaC:* Terraform, Terraform Cloud
 
@@ -114,21 +118,8 @@ class: text-xs
 
 | | | Run |
 |---|---|---|
-| **Java 25 + Spring Boot**<br>[EventingPlatform.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/playground/confluent/EventingPlatform.java) | The Spring Boot application is the substrate for the ports and the adapters; a process plays one story | `make run ARGS="--story=tea-party"` |
+| **Java 25 + Spring Boot**<br>[EventingPlatform.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/wonderland/EventingPlatform.java) | The Spring Boot application is the substrate for the ports and the adapters; a process plays one story | `make run ARGS="--story=tea-party"` |
 | **Docker + Compose**<br>[compose.yaml](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/compose.yaml) | Starts the flock from one image: a generator per region and the tea party | `TTL=300 make up` |
-
----
-class: text-sm
----
-
-# Development methodology
-Testing: TDD: JUnit, BDD: Cucumber, Testcontainers
-
-| | | Run |
-|---|---|---|
-| **TDD**<br>[TransactionTest.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/test/java/dk/mathmagicians/playground/confluent/eventing/domain/TransactionTest.java) · [ArchitectureTest.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/app/src/test/java/dk/mathmagicians/playground/confluent/ArchitectureTest.java) | Unit tests with JUnit 5, AssertJ, and Mockito, one class per production class; the architecture rules are unit tests too | `make test` |
-| **BDD**<br>[i_can_generate_events.feature](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/test/resources/features/i_can_generate_events.feature) · [StreamSteps.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/playground/confluent/eventing/bdd/StreamSteps.java) | Cucumber features and step definitions; each feature plays against the image in Testcontainers, a red feature blocks the build | `make bdd` |
-| **Spec Driven**<br>[How we work](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/README.md#how-we-work) · [discovery.md](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/docs/releases/release-0.0.7/discovery.md) | Discovery → Formulation → Automation → Verification; a release plan per folder, the board follows it | `make gh-project-sync` |
 
 ---
 class: text-xs
@@ -139,8 +130,22 @@ Eventing Platforms: Kafka, Confluent, Cloudflare, CLI
 
 | | | Run |
 |---|---|---|
-| **Kafka on Confluent Cloud**<br>[KafkaPublisher.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/playground/confluent/eventing/adapter/kafka/publisher/KafkaPublisher.java) · [kafka.properties](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/resources/kafka.properties) | Records carry CloudEvents headers and a Protobuf payload; the key picks the partition | `make run-tiny TRANSPORT=confluent` |
-| **CLI**<br>[ConsoleListener.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/playground/confluent/eventing/adapter/cli/console/ConsoleListener.java) | Without a cluster: a story publishes to the log and hears what is typed on stdin | `make run ARGS="--story=tea-party --tea-party.ttl="` |
+| **CLI**<br>[ConsoleListener.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/wonderland/eventing/adapter/cli/console/ConsoleListener.java) | Without a cluster: a story publishes to the log and hears what is typed on stdin | `make run ARGS="--story=tea-party --tea-party.ttl="` |
+| **The kafka universe**<br>[compose.kafka.yaml](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/compose.kafka.yaml) | A broker, a schema registry, and a topic viewer on the machine, with the topics and schemas `iac/` gives Confluent Cloud; what the `bdd` job plays on | `make kafka-universe-up` · `make run-tiny TRANSPORT=kafka` |
+| **Kafka on Confluent Cloud**<br>[KafkaPublisher.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/wonderland/eventing/adapter/kafka/publisher/KafkaPublisher.java) · [kafka.properties](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/resources/kafka.properties) | Records carry CloudEvents headers and a Protobuf payload; the key picks the partition | `make run-tiny TRANSPORT=confluent` |
+
+---
+class: text-sm
+---
+
+# Development methodology
+Testing: TDD: JUnit, BDD: Cucumber, Testcontainers
+
+| | | Run |
+|---|---|---|
+| **TDD**<br>[TransactionTest.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/test/java/dk/mathmagicians/wonderland/eventing/domain/TransactionTest.java) · [ArchitectureTest.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/app/src/test/java/dk/mathmagicians/wonderland/ArchUnitTest.java) | Unit tests with JUnit 5, AssertJ, and Mockito, one class per production class; the architecture rules are unit tests too | `make test` |
+| **BDD**<br>[i_can_generate_events.feature](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/test/resources/features/i_can_generate_events.feature) · [StreamSteps.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/wonderland/eventing/bdd/StreamSteps.java) | Cucumber features and step definitions; each feature plays against the image in Testcontainers, a red feature blocks the build | `make bdd` |
+| **Spec Driven**<br>[How we work](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/README.md#how-we-work) · [discovery.md](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/docs/releases/release-0.0.7/discovery.md) | Discovery → Formulation → Automation → Verification; a release plan per folder, the board follows it | `make gh-project-sync` |
 
 ---
 class: text-sm
@@ -157,36 +162,19 @@ IaC: Terraform, Terraform Cloud + SDLC: GitHub Actions, Makefile, Gradle
 | **Gradle**<br>[platform.gradle](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform.gradle) | `platform.gradle` holds the conventions every build shares; a story's own build applies it too | `make build` |
 
 ---
-
-# jMolecules + ArchUnit
-Architecture discovery: ArchUnit, JMolecules, PlantUML + our PlantUML plugin
-
-jMolecules stereotypes on ports and adapters; one ArchUnit rule fails the build when the core reaches an adapter
-
-```bash
-make arch-verify
-```
-
-[HexagonalArchitecture.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/playground/confluent/architecture/HexagonalArchitecture.java)
-
+class: text-xs
 ---
 
-# Generate architecture diagrams from code 
-Architecture discovery: ArchUnit, JMolecules, PlantUML + our PlantUML plugin
+# Architecture discovery kit
+Architecture discovery: ArchUnit, jMolecules, Spring Modulith, PlantUML + our own tool, architecture-discovery
 
-Generates the hexagon from the code; `make check` fails when the drawing is not regenerated
-
-```bash
-make arch-gen
-make arch-check
-```
-
-[architecture-discoverability.md](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/architecture-discovery/architecture-discoverability.md)
-
----
-
-# Wonderland plays stories that send messages to each other
-Kafka, Confluent, and CLI are the transports; the stories are the same on each
+| | | Run |
+|---|---|---|
+| **jMolecules**<br>[Story.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/wonderland/eventing/application/Story.java) · [package-info.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/examples/purse/src/main/java/dk/mathmagicians/wonderland/examples/stories/purse/package-info.java) | The stereotypes on the code: `@Module` on a package, `@PrimaryPort`, `@SecondaryPort`, `@PrimaryAdapter`, `@SecondaryAdapter` on the types; the annotation is the spec | |
+| **ArchUnit + Spring Modulith**<br>[HexagonalArchitecture.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/wonderland/architecture/HexagonalArchitecture.java) · [ModuleDocumentation.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/wonderland/architecture/ModuleDocumentation.java) | The hexagonal rule and the module boundaries as unit tests, red when the core reaches an adapter; a client's build gets them for free | `make arch-verify` |
+| **architecture-discovery, our own tool**<br>[hexagon.proto](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/architecture-discovery/src/main/proto/hexagon.proto) · [ModelWriter.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/architecture-discovery/src/main/java/dk/mathmagicians/playground/architecture/model/ModelWriter.java) | Reads the classes once into one model and writes the DSL, `<story>.textproto`; draws the three levels from the model, the forest, the streams, the hexagon | `make arch-gen` |
+| **PlantUML**<br>[hexagon.style.puml](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/architecture-discovery/src/main/resources/hexagon.style.puml) | Renders the three drawings to SVG, the content from the model, the look in one style file | `make arch-gen` |
+| **The checks**<br>[ModelCheck.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/architecture-discovery/src/main/java/dk/mathmagicians/playground/architecture/model/ModelCheck.java) · [HexagonSteps.java](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/testFixtures/java/dk/mathmagicians/wonderland/architecture/bdd/HexagonSteps.java) | The DSL as specified against the DSL as built; the architecture features in Gherkin against the model, on the steps the platform ships | `make arch-check` · `make arch-bdd` |
 
 ---
 class: text-xs
@@ -198,7 +186,7 @@ cli, confluent
 <div class="grid grid-cols-2 gap-4">
 <div>
 
-**cli**: the console stands in for the topics, the log is where a story publishes, stdin is what it hears
+**cli**: the console stands in for the topics, the log is where a story publishes, stdin is what it subscribes to
 
 ```bash
 make run ARGS="--story=tea-party --tea-party.ttl="
@@ -237,7 +225,7 @@ image: /images/hexagon-confluent-cli.svg
 backgroundSize: contain
 ---
 
-<div class="absolute top-4 left-4 text-xs font-mono px-2 py-1 rounded bg-red-600/80 text-white">● REC · generated from the code · iteration one · cli, confluent</div>
+<div class="absolute top-4 left-4 text-xs font-mono px-2 py-1 rounded bg-red-600/80 text-white">● REC · cli, confluent</div>
 
 ---
 class: text-sm
@@ -267,6 +255,30 @@ make run TRANSPORT=confluent ENV=test    # SPRING_PROFILES_ACTIVE=confluent,test
 ```
 
 ---
+class: text-sm
+---
+
+# Meet BDD
+Cucumber · Gherkin · Testcontainers
+
+<div class="absolute top-4 right-4 text-xs font-mono px-2 py-1 rounded bg-green-600/80 text-white">● LIVE · make run-tiny · make bdd</div>
+
+| Feature | Story | Reads | Puts |
+|---|---|---|---|
+| [I can publish messages](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/test/resources/features/i_can_generate_events.feature) | the generator | | products, offers, orders |
+| [At the tea party an order meets an offer](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/stories/tea-party/src/test/resources/features/at_the_tea_party_an_order_meets_an_offer.feature) | the tea party | offers, orders | transactions |
+| [Alice's purse knows what is left](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/examples/purse/src/test/resources/features/alices_purse_knows_what_is_left.feature) | the purse | transactions | |
+
+```gherkin
+Scenario Outline: An order is settled with an offer for its thing
+  Given a tea party in region <Region>
+  And Mad Hatter offers a Top Hat for 12.5 coins
+  And Alice orders a Top Hat
+  When the tea party reads the streams of offers and orders
+  Then Alice paid Mad Hatter 12.5 coins for the Top Hat
+```
+
+---
 layout: statement
 ---
 
@@ -277,24 +289,18 @@ class: text-sm
 ---
 
 # The kafka universe
+Apache Kafka · Confluent Schema Registry · Kafbat UI · compose.kafka.yaml
 
-A broker, a schema registry, a topic viewer, and the topics and schemas `iac/` gives Confluent Cloud, in `compose.kafka.yaml`
+<div class="absolute top-4 right-4 text-xs font-mono px-2 py-1 rounded bg-green-600/80 text-white">● LIVE · make kafka-universe-up · make run-tiny TRANSPORT=kafka · localhost:8082</div>
 
-```bash
-make kafka-universe-up
-make run-tiny TRANSPORT=kafka
-open http://localhost:8082
-```
-
-<img src="/images/kafka-universe-message.png" class="mt-4 mx-auto h-56 rounded shadow" alt="The topic viewer: an offer on test.offers, key EMEA/P-HEDG, its Protobuf value decoded through the registry" />
+<img src="/images/kafka-universe-message.png" class="mt-4 mx-auto h-80 rounded shadow" alt="The topic viewer: an offer on test.offers, key EMEA/P-HEDG, its Protobuf value decoded through the registry" />
 
 ---
 class: text-sm
 ---
 
-# The refactoring: kafka is the transport, confluent is kafka with credentials
-
-Five annotations, one group, the defaults for a broker next door
+# The very simple refactoring
+kafka is the transport, confluent is kafka with credentials · five annotations, one group, the defaults for a broker next door
 
 ```java
 @Profile("kafka")   // was "confluent": KafkaPublisher, StoryListener, Reader, DeadLetters, Topics
@@ -310,17 +316,24 @@ spring.kafka.properties.schema.registry.url=${SCHEMA_REGISTRY_REST_ENDPOINT:http
 spring.kafka.security.protocol=SASL_SSL
 ```
 
-```bash
-make run TRANSPORT=kafka    # SPRING_PROFILES_ACTIVE=kafka,test, no keys; compose.kafka.yaml is what iac/ is for the cloud
+```gherkin
+@kafka
+Feature: The cluster has my topics and schemas
+
+  Scenario Outline: A topic exists with its schema            # plays on kafka and confluent
+    Then the topic <Topic> exists
+    And the Protobuf schema <Schema> is registered for the topic <Topic>
+
+  @confluent
+  Scenario Outline: A Flink table set up with IaC is on the cluster, with its schema    # confluent alone
 ```
 
 ---
 class: text-sm
 ---
 
-# The spec on both transports: test + CI
-
-The same features, the same command, once per transport of the matrix
+# Happy build
+cli · kafka · cicd.yaml
 
 ```bash
 make ci-transports            # ["cli","kafka"]; confluent sits beside it, commented out
@@ -331,7 +344,7 @@ make bdd-matrix               # both, locally what the bdd job plays
 
 `cicd.yaml`, job `bdd`: `make bdd-published TRANSPORT=<t>` against the candidate image, one job per entry in `<t>-test`; `cd` publishes what both passed
 
-<div class="mt-4 h-52 border-2 border-dashed border-gray-500 rounded flex items-center justify-center text-gray-500">screenshot: the bdd job on cli and kafka, from GitHub Actions</div>
+<img src="/images/green_gh_cicd.png" class="mt-4 rounded" alt="cicd.yaml on a pull request: ci, bdd (cli) and bdd (kafka), cd green, tag skipped">
 
 ---
 layout: image
@@ -339,19 +352,13 @@ image: /images/hexagon-kafka.svg
 backgroundSize: contain
 ---
 
-<div class="absolute top-4 left-4 text-xs font-mono px-2 py-1 rounded bg-red-600/80 text-white">● REC · generated from the code · iteration two · the kafka universe</div>
-
----
-layout: section
----
-
-# 1 · Declare it in the code
+<div class="absolute top-4 left-4 text-xs font-mono px-2 py-1 rounded bg-red-600/80 text-white">● REC · cli, kafka, confluent</div>
 
 ---
 
 # The annotation is the spec
 
-The platform's driving port, [`Story`](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/playground/confluent/eventing/application/Story.java)
+The platform's driving port, [`Story`](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/platform/src/main/java/dk/mathmagicians/wonderland/eventing/application/Story.java)
 
 ```java
 @PrimaryPort
@@ -359,13 +366,13 @@ public interface Story {
 
     String name();
 
-    default Set<Class<? extends Payload>> listensTo() {
+    default Set<Class<? extends Payload>> subscribesTo() {
         return Set.of();
     }
 }
 ```
 
-Its twin in the purse, a client's story, [`KnowWhatIsLeft`](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/examples/purse/src/main/java/dk/mathmagicians/playground/confluent/stories/purse/KnowWhatIsLeft.java)
+Its twin in the purse, a client's story, [`KnowWhatIsLeft`](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/examples/purse/src/main/java/dk/mathmagicians/wonderland/examples/stories/purse/KnowWhatIsLeft.java)
 
 ```java
 @PrimaryPort
@@ -375,104 +382,81 @@ public final class KnowWhatIsLeft implements Story {
 ```
 
 ---
-layout: section
----
 
-# 2 · Verify it
+# Express the architecture
+purse.textproto · the_purse_has_hexagonal_architecture.feature
 
----
+<div class="absolute top-4 right-4 text-xs font-mono px-2 py-1 rounded bg-green-600/80 text-white">● LIVE · make arch-gen · make arch-check · make arch-bdd</div>
 
-# Two rules, plain unit tests
+```text
+name: "Purse Story"
+primary_port { name: "KnowWhatIsLeft"  implements: "Story" }
+subscribes { payload: "Transaction" }
+depends_on: ["Application", "Domain"]
+wiring { configuration: "PurseStory"  settings { type: "PurseProperties"  prefix: "purse" }
+         bean { name: "purse"  builds: "KnowWhatIsLeft"  from: ["PurseProperties"] } }
+```
 
----
+<div class="flex justify-center gap-16 text-lg text-gray-500" style="font-family: Chalkboard, 'Comic Sans MS', cursive">
+<span>⇡ the feature specifies</span>
+<span>arch-bdd checks ⇣</span>
+</div>
 
-# Live: break the hexagon
+```gherkin
+@architecture-discovery
+Feature: The purse has a hexagonal architecture
 
----
-layout: section
----
+  Scenario: KnowWhatIsLeft is the purse's story
+    Then its @PrimaryPort is KnowWhatIsLeft, which implements Story
+    And KnowWhatIsLeft subscribesTo Transaction
+    And KnowWhatIsLeft publishes nothing
+```
 
-# 3 · Clients get the checks for free
 
----
-
-# The purse extends the rules
-
----
-
-# The purse reuses the steps
-
----
-layout: section
----
-
-# 4 · One model, three levels
-
----
-
-# Code in, model out
 
 ---
 
 # Three levels
+forest · streams · hexagon · `make arch-gen`
+
+<div class="grid grid-cols-3 grid-rows-2 gap-x-6 gap-y-2 text-xs text-center">
+<div>
+<img src="/generated/forest.svg" class="mx-auto h-36" alt="The forest: Wonderland's platform with its stories around it, the purse beside them">
+Level 1 · the forest · the platform and its stories · <code>make arch-forest</code>
+</div>
+<div class="col-span-2 row-span-2">
+<img src="/generated/hexagon.svg" class="mx-auto h-96" alt="The hexagon of Wonderland, generated from the code">
+Level 3 · the hexagon · rings, modules, roles, arrows · <code>make arch-hexagon</code>
+</div>
+<div>
+<img src="/generated/streams.svg" class="mx-auto h-36" alt="The streams: the stories and the topics between them, who publishes to which and who subscribes">
+Level 2 · the streams · a queue per topic, who publishes, who subscribes · <code>make arch-streams</code>
+</div>
+</div>
 
 ---
 
-# The model
+# The agent round trip
+`/wonderland-generate-story` · examples/white-rabbit
 
----
+<div class="absolute top-4 right-4 text-xs font-mono px-2 py-1 rounded bg-green-600/80 text-white">● LIVE · make claude STORY=examples/white-rabbit · make check</div>
 
-# Facts found, views chosen
+<pre class="absolute bottom-6 right-10 text-sm font-mono leading-tight text-gray-700">
+   (\ /)
+   ( . .)   white-rabbit
+  c(")(")
+</pre>
 
----
+| The agent gets | Where |
+|---|---|
+| the features | [the_white_rabbit_has_no_time_to_haggle.feature](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/examples/white-rabbit/src/test/resources/features/the_white_rabbit_has_no_time_to_haggle.feature) · [the_white_rabbits_hexagon.feature](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/examples/white-rabbit/src/test/resources/features/the_white_rabbits_hexagon.feature) |
+| the hexagon | [white-rabbit.textproto](https://github.com/Mathmagicians/wonderland-eventing-playground/blob/main/examples/white-rabbit/src/test/resources/architecture/white-rabbit.textproto) |
 
-# Level 1 · The forest
-
----
-
-# Level 2 · The trees
-
----
-
-# Level 3 · The hexagon
-
----
-
-# Where the facts live
-
----
-
-# Same stories, three transports
-
----
-layout: section
----
-
-# 5 · The agent round trip
-
----
-
-# What the agent gets
-
----
-
-# The skill: generate a platform client
-
----
-
-# Live: an agent builds a new purse
-
----
-
-# Gates the agent can’t argue with
-
----
-
-# Back in the model
-
----
-
-# Three answers
+```text
+primary_port { name: "NoTimeToHaggle"  implements: "Story" }
+subscribes { payload: "Offer" }
+publishes { payload: "Order"  through: "PublishMessage" }
+```
 
 ---
 layout: center

@@ -35,7 +35,7 @@ and themathmagician signs off.
 | The spec is a feature file, linked from the feature's section | the file exists, `@manual` or with its steps' skeletons, and `*formulation.md` opens the section with its link, so the card carries it |
 | Each example of the map is a scenario | the feature file read against the map |
 | Each new step is defined, a skeleton throwing `PendingException` | `make bdd-snippets` finds every step defined |
-| The new scenarios and architecture rules run red for the reason they name; the existing ones stay green | the output of `make bdd` and `make arch-verify`; a `@manual` scenario has no run |
+| The new scenarios and architecture rules run red for the reason they name; the existing ones stay green | the output of `make bdd`, `make arch-verify`, and `make arch-bdd`; a `@manual` scenario has no run |
 | Each ADR the feature raised has its enforcing rule in the spec, or is marked review | the ADR's "Enforced by" in `docs/adr.md` |
 | The features follow the README's BDD rules | review against Testing, BDD with Cucumber |
 

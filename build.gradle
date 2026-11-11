@@ -6,6 +6,7 @@ plugins {
     id 'org.springframework.boot' version '4.1.1' apply false
     id 'io.spring.dependency-management' version '1.1.7' apply false
     id 'com.google.protobuf' version '0.10.0' apply false // not in the Boot BOM, 2026-09-03
+    id 'com.diffplug.spotless' version '8.10.4' apply false // not in the Boot BOM, 2026-10-29
 }
 
 allprojects {

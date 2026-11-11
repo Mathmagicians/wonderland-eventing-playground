@@ -1,15 +1,12 @@
 [%autowidth.stretch, cols="h,a"]
 |===
 |Base package
-|`dk.mathmagicians.playground.confluent.eventing.adapter.kafka.consumer`
+|`dk.mathmagicians.wonderland.eventing.adapter.kafka.consumer`
 |Spring components
 |_Primary adapters_
 
-* `d.m.p.c.e.a.k.c.StoryListener`
-
-_Others_
-
-* `d.m.p.c.e.a.k.c.Reader`
+* `d.m.w.e.a.k.c.Reader`
+* `d.m.w.e.a.k.c.StoryListener`
 |Bean references
-|* `d.m.p.c.e.a.Stories` (in Application)
+|* `d.m.w.e.a.Story` (in Application)
 |===

@@ -1,0 +1,16 @@
+# proto-file: hexagon.proto
+# proto-message: Story
+
+name: "Tea Party Story"
+base_package: "dk.mathmagicians.wonderland.stories.teaparty"
+feature: ["at_the_tea_party_an_order_meets_an_offer.feature"]
+primary_port { name: "SettleAtTheTeaParty"  implements: "Story" }
+subscribes { payload: "Offer" }
+subscribes { payload: "Order" }
+publishes { payload: "Transaction"  through: "PublishMessage" }
+depends_on: ["Application", "Domain"]
+wiring {
+  configuration: "TeaPartyStory"
+  settings { type: "TeaPartyProperties"  prefix: "tea-party" }
+  bean { name: "teaParty"  builds: "SettleAtTheTeaParty"  from: ["TeaPartyProperties", "Publishing", "Clock"] }
+}

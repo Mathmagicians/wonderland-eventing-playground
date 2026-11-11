@@ -15,7 +15,7 @@ it is **In production**, once per release. The method, the folders, and the othe
 The gate runs in three steps: Claude runs the checks, presents the evidence in chat, and themathmagician signs off.
 
 Before the pull request, the sequence `cicd.yaml` plays, on the developer machine: `make check` on each transport
-`make ci-transports` lists, `TRANSPORT=<transport>`, which is `generated-check`, `arch-verify`, `build`,
+`make ci-transports` lists, `TRANSPORT=<transport>`, which is `generated-check`, `arch-verify`, `arch-bdd`, `build`,
 `docker-image`, `bdd`, the order of the `ci` and `bdd` jobs. A red step is the finding, and the pull request waits.
 
 On the pull request:

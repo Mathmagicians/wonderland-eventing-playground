@@ -1,44 +1,79 @@
 @startuml
-title <size:24>EventingPlatform</size>
 
 set separator none
 top to bottom direction
+hide stereotype
+
+skinparam {
+  componentStyle uml1
+}
 
 <style>
   root {
-    BackgroundColor: #ffffff
-    FontColor: #444444
+    BackgroundColor: #ffffff;
+    FontColor: #444444;
+  }
+  // Element,Component
+  .Element-RWxlbWVudCxDb21wb25lbnQ= {
+    BackgroundColor: #ffffff;
+    LineColor: #444444;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #444444;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Relationship
+  .Relationship-UmVsYXRpb25zaGlw {
+    LineThickness: 2;
+    LineStyle: 10-10;
+    LineColor: #444444;
+    FontColor: #444444;
+    FontSize: 24;
+  }
+  // Wonderland
+  .Boundary-V29uZGVybGFuZA== {
+    BackgroundColor: #ffffff;
+    LineColor: #444444;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #444444;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
   }
 </style>
 
-!include <C4/C4>
-!include <C4/C4_Context>
-!include <C4/C4_Component>
-
-System_Boundary("EventingPlatform_boundary", "EventingPlatform", $tags="") {
-  Container_Boundary("EventingPlatform.EventingPlatform_boundary", "EventingPlatform", $tags="") {
-    Component(EventingPlatform.EventingPlatform.Domain, "Domain", $techn="Module", $descr="", $tags="", $link="")
-    Component(EventingPlatform.EventingPlatform.Application, "Application", $techn="Module", $descr="", $tags="", $link="")
-    Component(EventingPlatform.EventingPlatform.Cli, "Cli", $techn="Module", $descr="", $tags="", $link="")
-    Component(EventingPlatform.EventingPlatform.Kafkaconsumer, "Kafka consumer", $techn="Module", $descr="", $tags="", $link="")
-    Component(EventingPlatform.EventingPlatform.Kafkapublisher, "Kafka publisher", $techn="Module", $descr="", $tags="", $link="")
-    Component(EventingPlatform.EventingPlatform.Log, "Log", $techn="Module", $descr="", $tags="", $link="")
-    Component(EventingPlatform.EventingPlatform.Pursestory, "Purse story", $techn="Module", $descr="", $tags="", $link="")
-  }
-
+rectangle "Wonderland\n<size:16>[Software System]</size>" <<Boundary-V29uZGVybGFuZA==>> {
+  component "==Kafka Publisher\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.KafkaPublisher
+  component "==Purse Story\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.PurseStory
+  component "==Domain\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.Domain
+  component "==Protobuf\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.Protobuf
+  component "==Application\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.Application
+  component "==Boot\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.Boot
+  component "==Console\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.Console
+  component "==Log\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.Log
+  component "==Kafka Consumer\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.KafkaConsumer
 }
 
-Rel(EventingPlatform.EventingPlatform.Log, EventingPlatform.EventingPlatform.Domain, "depends on", $techn="", $tags="", $link="")
-Rel(EventingPlatform.EventingPlatform.Log, EventingPlatform.EventingPlatform.Application, "depends on", $techn="", $tags="", $link="")
-Rel(EventingPlatform.EventingPlatform.Application, EventingPlatform.EventingPlatform.Domain, "depends on", $techn="", $tags="", $link="")
-Rel(EventingPlatform.EventingPlatform.Pursestory, EventingPlatform.EventingPlatform.Domain, "depends on", $techn="", $tags="", $link="")
-Rel(EventingPlatform.EventingPlatform.Pursestory, EventingPlatform.EventingPlatform.Application, "depends on", $techn="", $tags="", $link="")
-Rel(EventingPlatform.EventingPlatform.Kafkapublisher, EventingPlatform.EventingPlatform.Domain, "depends on", $techn="", $tags="", $link="")
-Rel(EventingPlatform.EventingPlatform.Kafkapublisher, EventingPlatform.EventingPlatform.Application, "depends on", $techn="", $tags="", $link="")
-Rel(EventingPlatform.EventingPlatform.Cli, EventingPlatform.EventingPlatform.Application, "uses", $techn="", $tags="", $link="")
-Rel(EventingPlatform.EventingPlatform.Kafkaconsumer, EventingPlatform.EventingPlatform.Domain, "depends on", $techn="", $tags="", $link="")
-Rel(EventingPlatform.EventingPlatform.Kafkaconsumer, EventingPlatform.EventingPlatform.Application, "uses", $techn="", $tags="", $link="")
+Wonderland.Wonderland.Boot --> Wonderland.Wonderland.Application <<Relationship-UmVsYXRpb25zaGlw>> : "uses"
+Wonderland.Wonderland.Protobuf --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.KafkaPublisher --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.KafkaPublisher --> Wonderland.Wonderland.Protobuf <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.KafkaPublisher --> Wonderland.Wonderland.Application <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.Log --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.Log --> Wonderland.Wonderland.Protobuf <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.Log --> Wonderland.Wonderland.Application <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.PurseStory --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.PurseStory --> Wonderland.Wonderland.Application <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.KafkaConsumer --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.KafkaConsumer --> Wonderland.Wonderland.Protobuf <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.KafkaConsumer --> Wonderland.Wonderland.Application <<Relationship-UmVsYXRpb25zaGlw>> : "uses"
+Wonderland.Wonderland.Application --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.Console --> Wonderland.Wonderland.Protobuf <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.Console --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
+Wonderland.Wonderland.Console --> Wonderland.Wonderland.Application <<Relationship-UmVsYXRpb25zaGlw>> : "uses"
 
-SHOW_LEGEND(true)
-hide stereotypes
 @enduml

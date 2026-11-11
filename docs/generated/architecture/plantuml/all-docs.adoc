@@ -1,4 +1,4 @@
-== EventingPlatform
+== Wonderland
 plantuml::components.puml[,,format=svg]
 
 == Domain
