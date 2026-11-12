@@ -34,22 +34,39 @@ Owner: pair.
   with its test; PlantUML in [architecture-discovery/build.gradle](../../../architecture-discovery/build.gradle);
   `renderDiagrams` in [platform.gradle](../../../platform.gradle) runs it, the `plantuml` configuration and
   `diagramStyle` gone.
-- The composite, 2026-11-12: `includeBuild` in [settings.gradle](../../../settings.gradle); `discovery-install`
-  gone from the [Makefile](../../../Makefile).
+- The version and the release, 2026-11-12: the tool's version from the `v*` tags in
+  [architecture-discovery/build.gradle](../../../architecture-discovery/build.gradle), `-Prelease` for the next
+  version; `discovery-release` and `discovery-version` in the [Makefile](../../../Makefile);
+  [architecture-discovery.yaml](../../../.github/workflows/architecture-discovery.yaml) runs `discovery-release`
+  from `main` and `discovery-publish` from anywhere else. The workflow is checked by its run on the pushed
+  branch, not played yet.
 - The documents, 2026-11-12: the README's Repository layout and Git and CI,
   [architecture-discoverability.md](../../../architecture-discovery/architecture-discoverability.md), step 6 and
   its dependencies.
-- Spec green, to sign: `make discovery-build`, `make build` with an empty local Maven repository, `make
-  arch-verify`, `make arch-bdd`, and `make arch-check` green on 2026-11-12; after `make arch-gen`, `forest.svg`,
-  `streams.svg`, `hexagon.svg`, and six module diagrams byte for byte as before, at the root and in
-  `examples/purse`; a change to a class of the tool compiled by the next `make arch-gen`. `make check` on `cli`
-  and `kafka`, themathmagician's run, not played yet.
-- Open: the tool's release. Proposed: its own tags, `architecture-discovery-v<version>`, read as
-  [platform.gradle:16](../../../platform.gradle#L16) reads `v*`; `architecture-discovery.yaml` tags the next patch
-  on `main` and publishes it, a pull request publishes the snapshot, and the first release is a dispatch with
-  `0.1.0`.
-- Open: the `bdd` job's token comment in [cicd.yaml](../../../.github/workflows/cicd.yaml), which names the tool
-  from GitHub Packages; the two `env` lines may go, checked by a pushed run.
+- The look, 2026-11-12, approved on a prototype the same day: a module coloured by its ring, a card by its role,
+  the legend a card per role, in
+  [hexagon.style.puml](../../../architecture-discovery/src/main/resources/hexagon.style.puml); the hexagon
+  without the dependencies on the domain, the arrows inside it, and `publishes` and `subscribes`; its direction
+  an option, left to right by default, `make arch-gen DIRECTION=tb` for top to bottom, through
+  `-ParchitectureDirection` in [platform.gradle](../../../platform.gradle) and `ModuleDocumentation`; the
+  stories and the platform drawn as shapes in the forest and the streams, the streams left to right.
+  `HexagonDocumenterTest`, `ForestDocumenterTest`, `StreamsDocumenterTest`.
+- Spec green, to sign: `make discovery-build`, 58 tests, then `make discovery-install` and `make build`, `make
+  arch-verify`, `make arch-bdd`, and `make arch-check` green on 2026-11-12 against a local Maven repository
+  holding the tool at `0.0.9-SNAPSHOT` alone; the renderer alone left
+  `forest.svg`, `streams.svg`, `hexagon.svg`, and six module diagrams byte for byte as before, and the look then
+  redrew the three levels. `make check` on
+  `cli` and `kafka`, themathmagician's run, not played yet.
+- Open: `examples/purse` draws with the tool it finds published or in the local Maven repository, the look of
+  before, until `architecture-discovery.yaml` publishes; decided 2026-11-12, question 4 of the
+  [map](discovery.md#architecture-discovery-renders-its-own-diagrams): it waits for the published tool.
+- Open, themathmagician's: `0.1.0-SNAPSHOT` of the tool, version id 66480721 in GitHub Packages and a folder in
+  the local Maven repository, deleted, so `latest.integration` takes `0.0.9-SNAPSHOT`; until then the root build
+  resolves the tool of 2026-09-07 and does not compile.
+- Open: the tool's version block is a second copy of [platform.gradle:16](../../../platform.gradle#L16); one
+  home would be a script both apply.
+- Open: a `cicd` on `main` that fails after the tool's workflow released leaves the tool at a version the
+  repository never tagged, and the next release of the tool answers 409.
 - Finding: `plantuml-mit` 1.2026.10 is published, the pin is 1.2026.8.
 
 ## Eventing over Cloudflare

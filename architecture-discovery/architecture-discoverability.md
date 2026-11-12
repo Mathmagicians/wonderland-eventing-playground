@@ -57,11 +57,17 @@ hexagon's edges.
    the application's own types in a row above the domain, and the adapters both sides share, jMolecules'
    unqualified `@Adapter`, in a row below it. Inside each module, every type with a role is a card with the role
    as its stereotype, laid out in a grid, the permitted types of a sealed type in a row under it, implementing
-   it; a type with wiring alone stays in the model and off the picture. `HexagonDocumenter.Options` caps the
-   types listed per role, unlimited by default, an ellipsis line with the total beyond the cap. The text is
-   content only: a ring is a `package`, a module a `hexagon`, a type a `card`, the legend a `frame`; no
-   skinparam, no style block, no colour, no font size. Its look is `hexagon.style.puml`, a resource of the
-   library.
+   it; a type with wiring alone stays in the model and off the picture. Three kinds of arrow stay in the model
+   and off the picture too: a dependency on the domain, which every ring may reach, the arrows inside the
+   domain, and what a story subscribes to and publishes, which the streams draw. `HexagonDocumenter.Options`
+   caps the types listed per role, unlimited by default, an ellipsis line with the total beyond the cap, and
+   picks the direction: left to right by default, the layout engine placing the rings by the arrows, or top to
+   bottom, `make arch-gen DIRECTION=tb`, hidden arrows holding the columns. The text is content only: a ring is
+   a `package`, a module a `hexagon` with its ring as the stereotype, a type a `card` with its role, the legend
+   a `frame` with a card per role; no skinparam, no style block, no colour, no font size. Its look is
+   `hexagon.style.puml`, a resource of the library, which colours a module by its ring and a card by its role
+   and hides the stereotypes' text. In the forest and the streams a story is a hexagon holding an empty label,
+   since PlantUML draws the shape of a hexagon that holds something.
 6. **Rendering.** The Gradle task `renderDiagrams` runs the library's `DiagramRenderer` with two directories, the
    `.puml` sources and where the SVG files go. It runs the PlantUML the library carries over the `.puml` files,
    with `hexagon.style.puml` from its class path as the config read before each diagram, Modulith's too, and

@@ -34,6 +34,16 @@ public abstract class ModuleDocumentation {
         return Path.of(System.getProperty("architecture.docs", "docs/generated/architecture"));
     }
 
+    /// The hexagon's options: the library's defaults, and the direction `architecture.direction`
+    /// names, `lr` or `tb`, when it is set.
+    private static HexagonDocumenter.Options hexagonOptions() {
+        var options = HexagonDocumenter.Options.defaults();
+        var direction = System.getProperty("architecture.direction");
+        return direction == null
+                ? options
+                : options.withDirection(HexagonDocumenter.Direction.of(direction));
+    }
+
     @Test
     void modulesDependOnEachOtherAsDeclared() {
         MODULES.verify();
@@ -58,7 +68,7 @@ public abstract class ModuleDocumentation {
                         .map(Path::of)
                         .toList();
         new TextProtoWriter(platform, features).writeTo(docs().resolve("model"));
-        new HexagonDocumenter(platform).writeTo(plantuml.resolve("hexagon.puml"));
+        new HexagonDocumenter(platform, hexagonOptions()).writeTo(plantuml.resolve("hexagon.puml"));
         new ForestDocumenter(platform).writeTo(plantuml.resolve("forest.puml"));
         new StreamsDocumenter(platform).writeTo(plantuml.resolve("streams.puml"));
     }

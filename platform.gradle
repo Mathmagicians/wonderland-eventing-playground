@@ -76,7 +76,7 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
     repositories {
         mavenCentral()
         maven { url = 'https://packages.confluent.io/maven/' } // the Schema Registry client and the Protobuf serializer
-        // the repository's own libraries: the developer loop installs the platform locally, make platform-install,
+        // the repository's own libraries: the developer loop installs them locally, make platform-install and discovery-install,
         // taken first; CI publishes them to GitHub Packages
         mavenLocal {
             content { includeGroup ourGroup }
@@ -265,6 +265,11 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
             exclude cucumberRunner
             exclude archBddRunner
             systemProperty 'architecture.docs', docs.asFile.path
+            // the way the hexagon reads, -ParchitectureDirection=tb for top to bottom; left to right is the
+            // library's default
+            if (findProperty('architectureDirection')) {
+                systemProperty 'architecture.direction', findProperty('architectureDirection')
+            }
             // the features of every project in the build, where the stories' behaviour features are found
             systemProperty 'architecture.features', rootProject.allprojects
                     .collect { it.file('src/test/resources/features') }

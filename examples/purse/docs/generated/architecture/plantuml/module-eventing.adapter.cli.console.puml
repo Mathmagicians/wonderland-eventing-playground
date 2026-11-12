@@ -53,10 +53,10 @@ rectangle "Wonderland\n<size:16>[Software System]</size>" <<Boundary-V29uZGVybGF
   component "==Console\n<size:16>[Component: Module]</size>" <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as Wonderland.Wonderland.Console
 }
 
-Wonderland.Wonderland.Application --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
 Wonderland.Wonderland.Console --> Wonderland.Wonderland.Protobuf <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
 Wonderland.Wonderland.Console --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
 Wonderland.Wonderland.Console --> Wonderland.Wonderland.Application <<Relationship-UmVsYXRpb25zaGlw>> : "uses"
+Wonderland.Wonderland.Application --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
 Wonderland.Wonderland.Protobuf --> Wonderland.Wonderland.Domain <<Relationship-UmVsYXRpb25zaGlw>> : "depends on"
 
 @enduml

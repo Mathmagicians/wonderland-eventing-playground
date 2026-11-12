@@ -1,10 +1,16 @@
 @startuml
 ' the forest from the model: the platform and the stories that play on it
 
-hexagon "Wonderland\nplatform" as platform
-hexagon "Load Story\nstories/load" as s_Load_Story
-hexagon "Tea Party Story\nstories/teaparty" as s_Tea_Party_Story
+hexagon "Wonderland\nplatform" as platform <<platform>> {
+  label " " as platform_in
+}
+hexagon "Load Story\nstories/load" as s_Load_Story <<story>> {
+  label " " as s_Load_Story_in
+}
+hexagon "Tea Party Story\nstories/teaparty" as s_Tea_Party_Story <<story>> {
+  label " " as s_Tea_Party_Story_in
+}
 
-s_Load_Story --> platform : plays on
-s_Tea_Party_Story --> platform : plays on
+s_Load_Story_in --> platform_in : plays on
+s_Tea_Party_Story_in --> platform_in : plays on
 @enduml

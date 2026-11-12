@@ -34,8 +34,8 @@ Owner: pair; `Story.subscribesTo()` and `publishes()` themathmagician's.
 - `HexagonReader` retired 2026-10-30.
 - Spec green 2026-10-30: `make arch-check` green at the root.
 - Finding, closed 2026-11-12: a `ci` that resolved the library before `architecture-discovery.yaml` published it
-  failed `diagramStyle`. The root build takes the library from its folder, `includeBuild` in `settings.gradle`,
-  and the library renders its own diagrams, `DiagramRenderer`; 0.0.9.
+  failed `diagramStyle`. The task is gone: the library renders its own diagrams, `DiagramRenderer`; 0.0.9,
+  architecture-discovery renders its own diagrams.
 
 ## make arch-bdd and make arch-check check the DSL
 

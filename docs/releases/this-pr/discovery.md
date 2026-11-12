@@ -16,11 +16,15 @@ diagrams.
   `renderDiagrams` gave with the PlantUML of the client's build.
 - a source directory that is not there: an error naming the directory.
 
-### Rule: Gradle resolves dependencies, make orchestrates
-- the root build includes the tool's build, and Gradle substitutes it for
-  `dk.mathmagicians.playground:architecture-discovery`: `make build` is green with no install step, and a change
-  to a class of the tool is in the next `make arch-gen`.
-- `make discovery-publish` stays, for the builds outside this checkout.
+### Rule: the tool is a standalone tool with its own pipeline, and every other build here uses what it publishes
+- `architecture-discovery.yaml` publishes the tool; the root build, `examples/purse`, and a build outside this
+  repository resolve the published artifact the same way. No `includeBuild`: tried 2026-11-12 in the root build
+  and taken out the same day.
+- `make discovery-install` puts the tool into the local Maven repository for the developer loop.
+
+### Rule: the tool's version is the repository's, from the same git tags, and its pipeline publishes it
+- on a branch after `v0.0.8`: `0.0.9-SNAPSHOT`, published by `make discovery-publish`.
+- on `main`, the folder changed: `0.0.9`, published once by `make discovery-release`.
 
 ### Rule: a client takes the tool as latest.integration, and task names, make targets, and the folders under docs/generated/architecture stay
 
@@ -30,10 +34,14 @@ diagrams.
 2. `api` or `implementation` for PlantUML in the tool. Decided 2026-11-12: `implementation`, off a client's
    compile class path, on its runtime class path.
 3. The tool's version. Decided 2026-11-12: a release, no snapshot, its version derived as the platform's is and
-   published by the pipeline; how, open, in [automation.md](automation.md#architecture-discovery-renders-its-own-diagrams).
+   published by the pipeline, on the repository's `v*` tags, not a tag series of its own. The `0.1.0-SNAPSHOT`
+   published before outranks every version until `0.1.0`, so it leaves GitHub Packages and the local Maven
+   repository first, [automation.md](automation.md#architecture-discovery-renders-its-own-diagrams).
 4. `examples/purse` takes the platform and, through its test fixtures, the tool from the local Maven repository or
    GitHub Packages, so a new tool reaches it once published: `includeBuild '../..'` in its `settings.gradle`
-   would take both from the checkout, and the purse would no longer build as a client's. Open.
+   would take both from the checkout, and the purse would no longer build as a client's. Decided 2026-11-12: no
+   composite; the purse uses the published tool, and the tool behaves as a standalone tool with its own
+   pipeline.
 
 Examples agreed 2026-11-12.
 

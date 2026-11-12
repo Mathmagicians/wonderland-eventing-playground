@@ -36,9 +36,9 @@ jobs:
       - name: compile, tests, jar
         if: steps.changes.outputs.library == 'true'
         run: make discovery-build
-      - name: publish the snapshot to GitHub Packages, where the cicd workflow takes it from
+      - name: publish to GitHub Packages, where every build takes it from; the next version from main, its snapshot from anywhere else
         if: steps.changes.outputs.library == 'true'
-        run: make discovery-publish
+        run: make ${{ github.ref == 'refs/heads/main' && 'discovery-release' || 'discovery-publish' }}
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

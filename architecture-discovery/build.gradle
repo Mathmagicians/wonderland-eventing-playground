@@ -15,8 +15,25 @@ spotless {
     }
 }
 
+// version from the repository's git tags, as platform.gradle derives the platform's: at v1.2.3 it is 1.2.3, after
+// it 1.2.4-SNAPSHOT, with no tag 0.0.1-SNAPSHOT; -Prelease gives the next version without the suffix, what the
+// pipeline publishes from main before the tag lands
+def describe = providers.exec {
+    commandLine 'git', 'describe', '--tags', '--match', 'v*', '--long', '--always'
+}.standardOutput.asText.get().trim()
+def tagged = describe =~ /^v(\d+)\.(\d+)\.(\d+)-(\d+)-g[0-9a-f]+$/
+def (major, minor, patch, commits) = tagged.matches() ? (1..4).collect { tagged[0][it] as int } : [0, 0, 0, 1]
+def nextVersion = "${major}.${minor}.${patch + 1}"
+
 group = 'dk.mathmagicians.playground'
-version = '0.1.0-SNAPSHOT'
+version = commits == 0 ? "${major}.${minor}.${patch}" : hasProperty('release') ? nextVersion : "${nextVersion}-SNAPSHOT"
+
+tasks.register('version') {
+    description = 'Prints the version.'
+    group = 'help'
+    def current = project.version
+    doLast { println current }
+}
 description = 'The hexagon of an application as a PlantUML diagram, from its jMolecules stereotypes and Spring Modulith modules, rendered to SVG'
 
 java {

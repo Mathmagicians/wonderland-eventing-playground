@@ -15,8 +15,9 @@ import java.util.stream.Stream;
 /// Level 2, the streams: the stories with what they publish and subscribe to, as PlantUML, content
 /// alone, the look `hexagon.style.puml`'s. Every payload a story publishes or subscribes to is a
 /// queue, the topic it travels on, sorted by name; every story a hexagon, in the model's order; an
-/// arrow from a story into a queue says `publishes`, one out of a queue into a story `subscribes`.
-/// A story that neither publishes nor subscribes stands alone. The same model gives the same text.
+/// arrow from a story into a queue says `publishes`, one out of a queue into a story `subscribes`,
+/// read left to right as the messages flow. A story that neither publishes nor subscribes stands
+/// alone. The same model gives the same text.
 public final class StreamsDocumenter {
 
     private static final String PUBLISHES = "publishes";
@@ -50,14 +51,16 @@ public final class StreamsDocumenter {
         out.add(
                 "' the streams from the model: what each story publishes and subscribes to, a queue per"
                         + " payload");
+        out.add("left to right direction");
         out.add("");
         payloads.forEach(payload -> out.add("queue \"" + payload + "\" as " + queue(payload)));
         for (var story : stories) {
-            out.add("hexagon \"" + story.getName() + "\" as " + ForestDocumenter.alias(story));
+            ForestDocumenter.hexagon(
+                    out, story.getName(), ForestDocumenter.alias(story), ForestDocumenter.STORY);
         }
         out.add("");
         for (var story : stories) {
-            var alias = ForestDocumenter.alias(story);
+            var alias = ForestDocumenter.inside(ForestDocumenter.alias(story));
             Stream.concat(
                             story.getSubscribesList().stream()
                                     .map(Subscribes::getPayload)

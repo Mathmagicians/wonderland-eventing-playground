@@ -16,9 +16,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -31,26 +33,59 @@ import java.util.TreeSet;
 /// stereotype, in a grid; a type with wiring annotations alone, an auto-configuration, a properties
 /// record, stays in the model and off the picture. The permitted types of a sealed type sit in a
 /// row under the grid, each implementing it. Types of a non-hexagonal role are listed up to the
-/// options' maximum, then an ellipsis line carries the total. The arrows are the model's, from a
-/// card to a card, or to the module when the target has none, drawn as the legend says: `uses`
-/// solid, `implements` dashed with the hollow head, `depends on` dashed, `subscribes` and
-/// `publishes` dashed with their word. Everything follows the model's order, so the same model
-/// gives the same text.
+/// options' maximum, then an ellipsis line carries the total. A module carries its ring as its
+/// stereotype and a card its role, what the style file colours them by; the legend names every role
+/// with a card. The arrows are the model's, from a card to a card, or to the module when the target
+/// has none, drawn as the legend says: `uses` solid, `implements` dashed with the hollow head,
+/// `depends on` dashed. Three kinds stay in the model and off the picture: a dependency on the
+/// domain, which every ring may reach, the arrows inside the domain, and what a story subscribes to
+/// and publishes, which the streams draw. The options pick the direction: left to right, the
+/// default, the layout engine places the rings by the arrows; top to bottom, hidden arrows hold the
+/// columns and the grids. Everything follows the model's order, so the same model gives the same
+/// text.
 public final class HexagonDocumenter {
 
-    /// Choices for the picture: how many types of one role a box lists before the ellipsis line.
-    /// Unlimited by default.
-    public record Options(int maxTypes) {
+    /// The way the picture reads. Left to right, the layout engine places the rings by the arrows;
+    /// top to bottom, hidden arrows hold three columns and the shared row in place.
+    public enum Direction {
+        LEFT_TO_RIGHT("lr"),
+        TOP_TO_BOTTOM("tb");
+
+        private final String word;
+
+        Direction(String word) {
+            this.word = word;
+        }
+
+        /// The direction a setting names, `lr` or `tb`.
+        public static Direction of(String word) {
+            return Arrays.stream(values())
+                    .filter(direction -> direction.word.equalsIgnoreCase(word))
+                    .findFirst()
+                    .orElseThrow(
+                            () ->
+                                    new IllegalArgumentException(
+                                            "direction must be lr or tb, was " + word));
+        }
+    }
+
+    /// Choices for the picture: how many types of one role a box lists before the ellipsis line,
+    /// unlimited by default, and the direction it reads, left to right by default.
+    public record Options(int maxTypes, Direction direction) {
 
         public static Options defaults() {
-            return new Options(Integer.MAX_VALUE);
+            return new Options(Integer.MAX_VALUE, Direction.LEFT_TO_RIGHT);
         }
 
         public Options withMaxTypes(int maxTypes) {
             if (maxTypes < 1) {
                 throw new IllegalArgumentException("maxTypes must be positive, was " + maxTypes);
             }
-            return new Options(maxTypes);
+            return new Options(maxTypes, direction);
+        }
+
+        public Options withDirection(Direction direction) {
+            return new Options(maxTypes, direction);
         }
     }
 
@@ -82,22 +117,17 @@ public final class HexagonDocumenter {
     private static final Column SHARED = new Column(Ring.SHARED, "SHARED ADAPTERS", "up");
     private static final String INBOUND_SHARED = "[norank]";
 
-    /// The line each relation is drawn with, and its word where the legend does not explain it.
+    /// The line each relation is drawn with; no direction gives the plain arrow.
     private static String line(Relation relation, String direction) {
         return switch (relation) {
-            case USES -> "-" + direction + "->";
-            case IMPLEMENTS -> "." + direction + ".|>";
-            default -> "." + direction + ".>";
+            case USES -> direction.isEmpty() ? "-->" : "-" + direction + "->";
+            case IMPLEMENTS -> direction.isEmpty() ? "..|>" : "." + direction + ".|>";
+            default -> direction.isEmpty() ? "..>" : "." + direction + ".>";
         };
     }
 
-    private static String label(Relation relation) {
-        return switch (relation) {
-            case SUBSCRIBES -> " : subscribes";
-            case PUBLISHES -> " : publishes";
-            default -> "";
-        };
-    }
+    /// An implements arrow written from the type implemented, so the implementer lands after it.
+    private static final String IMPLEMENTED_BY = "<|..";
 
     /// The legend's samples, the three relations the lines alone say.
     private static final List<Relation> LEGEND_RELATIONS =
@@ -136,6 +166,9 @@ public final class HexagonDocumenter {
     /// within one module.
     private final Map<String, List<String>> families = new TreeMap<>();
 
+    /// The roles the cards carry, in the order they are drawn, for the legend.
+    private final Set<String> roles = new LinkedHashSet<>();
+
     public HexagonDocumenter(Platform platform) {
         this(platform, Options.defaults());
     }
@@ -165,10 +198,14 @@ public final class HexagonDocumenter {
 
     public String toPlantUml() {
         cards.clear();
+        roles.clear();
         var out = new ArrayList<String>();
         out.add("@startuml");
         out.add(
                 "' the hexagon from the model: Spring Modulith modules placed by their jMolecules stereotypes");
+        if (isLeftToRight()) {
+            out.add("left to right direction");
+        }
         out.add("");
         var columns = new LinkedHashMap<Column, Cell>();
         column(out, DRIVING, modules(Ring.DRIVING), List.of())
@@ -181,15 +218,25 @@ public final class HexagonDocumenter {
         order(out, columns);
         var anchors = Optional.ofNullable(columns.get(CORE)).map(Cell::bottom).orElse(List.of());
         shared.ifPresent(
-                row ->
-                        anchors.forEach(
-                                anchor -> out.add(anchor + " -[hidden]down-> " + row.top())));
+                row -> anchors.forEach(anchor -> hidden(out, "", anchor, "down", row.top())));
         out.add("");
         arrows(out);
         out.add("");
         legend(out, shared.map(Cell::bottom).orElseGet(() -> hangers(anchors)));
         out.add("@enduml");
         return String.join("\n", out) + "\n";
+    }
+
+    private boolean isLeftToRight() {
+        return options.direction() == Direction.LEFT_TO_RIGHT;
+    }
+
+    /// A hidden arrow, what holds the grid top to bottom; left to right the layout engine places
+    /// everything by the arrows drawn, and none is written.
+    private void hidden(List<String> out, String indent, String from, String direction, String to) {
+        if (!isLeftToRight()) {
+            out.add(indent + from + " -[hidden]" + direction + "-> " + to);
+        }
     }
 
     private List<Module> modules(Ring ring) {
@@ -245,16 +292,19 @@ public final class HexagonDocumenter {
     /// The columns in their order, left to right: an empty anchor above each, the anchors in a row,
     /// each column hung from its own, and the packages chained the same way. Without it the layout
     /// engine mirrors the columns, or lowers one whose adapters the shared row pulls at.
-    private static void order(List<String> out, Map<Column, Cell> columns) {
+    private void order(List<String> out, Map<Column, Cell> columns) {
+        if (isLeftToRight()) {
+            return;
+        }
         Column previous = null;
         for (var entry : columns.entrySet()) {
             var column = entry.getKey();
             out.add("label \" \" as " + anchor(column));
             if (previous != null) {
-                out.add(anchor(previous) + " -[hidden]right-> " + anchor(column));
-                out.add(alias(previous) + " -[hidden]right-> " + alias(column));
+                hidden(out, "", anchor(previous), "right", anchor(column));
+                hidden(out, "", alias(previous), "right", alias(column));
             }
-            out.add(anchor(column) + " -[hidden]down-> " + entry.getValue().top());
+            hidden(out, "", anchor(column), "down", entry.getValue().top());
             previous = column;
         }
     }
@@ -284,7 +334,9 @@ public final class HexagonDocumenter {
                         + packageLine(module)
                         + "\" as "
                         + alias(module)
-                        + " {");
+                        + " <<"
+                        + module.getRing().name().toLowerCase()
+                        + ">> {");
         var inner = indent + INDENT;
         out.add(inner + PADDING + " \" \" as " + alias(module) + "_in {");
         var permitted =
@@ -335,7 +387,7 @@ public final class HexagonDocumenter {
             var bottom = new ArrayList<String>();
             for (var entry : withFamily) {
                 var family = grid(out, inner, entry.family(), columns(entry.family()));
-                out.add(inner + INDENT + entry.card().left() + " -[hidden]down-> " + family.top());
+                hidden(out, inner + INDENT, entry.card().left(), "down", family.top());
                 bottom.addAll(family.bottom());
             }
             rows.add(
@@ -379,7 +431,7 @@ public final class HexagonDocumenter {
                                         + INDENT
                                         + member.left()
                                         + " "
-                                        + line(Relation.IMPLEMENTS, "up")
+                                        + line(Relation.IMPLEMENTS, isLeftToRight() ? "" : "up")
                                         + " "
                                         + alias));
         return new Entry(Cell.of(alias), family);
@@ -392,8 +444,9 @@ public final class HexagonDocumenter {
                 .findFirst();
     }
 
-    /// Writes the card, the type's name with its role as the stereotype. Answers the card's alias.
-    private static String card(
+    /// Writes the card, the type's name with its role as the stereotype, and notes the role for the
+    /// legend. Answers the card's alias.
+    private String card(
             List<String> out,
             String indent,
             Module module,
@@ -402,6 +455,7 @@ public final class HexagonDocumenter {
             String aliasName) {
         var alias = alias(module) + "_" + aliasName.replaceAll("[^A-Za-z0-9]", "_");
         out.add(indent + INDENT + TYPE + " \"" + name + "\" as " + alias + " <<" + role + ">>");
+        roles.add(role);
         return alias;
     }
 
@@ -419,24 +473,19 @@ public final class HexagonDocumenter {
     /// the grid as a cell: its first cell's left, its first row's last right, the top of the middle
     /// cell of its first row, and the cards along its bottom, those of the last row, and in a grid
     /// of several columns those of every box, since a box in a row above may reach lower.
-    private static Cell grid(List<String> out, String indent, List<Cell> cells, int columns) {
+    private Cell grid(List<String> out, String indent, List<Cell> cells, int columns) {
         for (var i = 0; i < cells.size(); i++) {
             if ((i + 1) % columns != 0 && i + 1 < cells.size()) {
-                out.add(
-                        indent
-                                + INDENT
-                                + cells.get(i).right()
-                                + " -[hidden]right-> "
-                                + cells.get(i + 1).left());
+                hidden(
+                        out,
+                        indent + INDENT,
+                        cells.get(i).right(),
+                        "right",
+                        cells.get(i + 1).left());
             }
             if (i + columns < cells.size()) {
                 for (var card : cells.get(i).bottom()) {
-                    out.add(
-                            indent
-                                    + INDENT
-                                    + card
-                                    + " -[hidden]down-> "
-                                    + cells.get(i + columns).top());
+                    hidden(out, indent + INDENT, card, "down", cells.get(i + columns).top());
                 }
             }
         }
@@ -475,19 +524,31 @@ public final class HexagonDocumenter {
         platform.getModuleList().forEach(module -> rings.put(module.getName(), module.getRing()));
         for (var arrow : platform.getArrowList()) {
             var from = cards.get(key(arrow.getFrom()));
-            if (from == null || isFamily(arrow)) {
+            if (from == null || isFamily(arrow) || !isDrawn(arrow, rings)) {
                 continue;
             }
             var to = cards.getOrDefault(key(arrow.getTo()), alias(arrow.getTo().getModule()));
-            var direction = direction(arrow, rings);
-            out.add(
-                    from
-                            + " "
-                            + line(arrow.getRelation(), direction)
-                            + " "
-                            + to
-                            + label(arrow.getRelation()));
+            if (isLeftToRight()
+                    && arrow.getRelation() == Relation.IMPLEMENTS
+                    && rings.get(arrow.getFrom().getModule()) == Ring.DRIVEN) {
+                out.add(to + " " + IMPLEMENTED_BY + " " + from);
+                continue;
+            }
+            out.add(from + " " + line(arrow.getRelation(), direction(arrow, rings)) + " " + to);
         }
+    }
+
+    /// Whether the picture draws the arrow. Every ring may reach the domain, so a dependency on it
+    /// and the arrows inside it say nothing a reader needs; what a story subscribes to and
+    /// publishes is the streams' to draw.
+    private static boolean isDrawn(Arrow arrow, Map<String, Ring> rings) {
+        var toDomain = rings.get(arrow.getTo().getModule()) == Ring.DOMAIN;
+        var fromDomain = rings.get(arrow.getFrom().getModule()) == Ring.DOMAIN;
+        return switch (arrow.getRelation()) {
+            case SUBSCRIBES, PUBLISHES -> false;
+            case DEPENDS_ON -> !toDomain;
+            default -> !(fromDomain && toDomain);
+        };
     }
 
     private boolean isFamily(Arrow arrow) {
@@ -497,9 +558,12 @@ public final class HexagonDocumenter {
                         .contains(arrow.getFrom().getType());
     }
 
-    private static String direction(Arrow arrow, Map<String, Ring> rings) {
+    private String direction(Arrow arrow, Map<String, Ring> rings) {
         if (rings.get(arrow.getTo().getModule()) == Ring.SHARED) {
             return INBOUND_SHARED;
+        }
+        if (isLeftToRight()) {
+            return "";
         }
         return switch (rings.get(arrow.getFrom().getModule())) {
             case DRIVING -> DRIVING.direction();
@@ -509,11 +573,12 @@ public final class HexagonDocumenter {
         };
     }
 
-    /// The legend: a frame in the lower right corner, one row of horizontal samples, every arrow
-    /// with its relation written on it. Hidden arrows from the hangers, the cards along the bottom
-    /// of the shared row, or the last driven card and the bottom of the application column when
-    /// there is none, hang it below everything, to the right. The text legend carries the system's
-    /// name.
+    /// The legend: a frame, one row of horizontal samples, every arrow with its relation written on
+    /// it, and under it a row of cards, one per role, each named as its role. Left to right the
+    /// samples and the cards are one strip, the only hidden arrows of that picture, since nothing
+    /// else joins them. Hidden arrows from the hangers, the cards along the bottom of the shared
+    /// row, or the last driven card and the bottom of the application column when there is none,
+    /// hang it below everything, to the right. The text legend carries the system's name.
     private void legend(List<String> out, List<String> hangers) {
         out.add(LEGEND + " \"legend\" as legend {");
         var samples = new ArrayList<Cell>();
@@ -533,10 +598,32 @@ public final class HexagonDocumenter {
                             + word(relation));
             samples.add(sample);
         }
-        grid(out, "", samples, samples.size());
+        var named =
+                roles.stream()
+                        .map(
+                                role -> {
+                                    var alias = "l_role_" + role.replaceAll("[^A-Za-z0-9]", "_");
+                                    out.add(
+                                            INDENT + TYPE + " \"" + role + "\" as " + alias + " <<"
+                                                    + role + ">>");
+                                    return Cell.of(alias);
+                                })
+                        .toList();
+        if (isLeftToRight()) {
+            var strip = new ArrayList<Cell>(samples);
+            strip.addAll(named);
+            for (var i = 0; i + 1 < strip.size(); i++) {
+                out.add(INDENT + strip.get(i).right() + " -[hidden]-> " + strip.get(i + 1).left());
+            }
+        } else {
+            grid(out, "", samples, samples.size());
+            if (!named.isEmpty()) {
+                grid(out, "", named, named.size());
+                hidden(out, INDENT, samples.getFirst().left(), "down", named.getFirst().left());
+            }
+        }
         out.add("}");
-        hangers.forEach(
-                hanger -> out.add(hanger + " -[hidden]down-> " + samples.getFirst().left()));
+        hangers.forEach(hanger -> hidden(out, "", hanger, "down", samples.getFirst().left()));
         out.add("legend right");
         out.add(INDENT + platform.getName());
         out.add("endlegend");

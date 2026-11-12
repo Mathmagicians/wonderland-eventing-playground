@@ -24,7 +24,7 @@ BRANCH ?= $(shell git branch --show-current)
 # so the talk runs with it from here
 SLIDES := $(MAKE) --no-print-directory -C slides COMPOSE='cd $(CURDIR) && $(COMPOSE)'
 
-.PHONY: generated-check proto-gen proto-check run-tiny docker-smoke up-product up-offer up-order up-tea-party tf-init tf-check tf-format tf-plan tf-output tf-state-forget confluent-lookup flink-statements flink-verify discovery-build discovery-publish platform-install platform-publish slidev-present slidev-export claude git-tag git-release gh-main-protection gh-project-sync
+.PHONY: generated-check proto-gen proto-check run-tiny docker-smoke up-product up-offer up-order up-tea-party tf-init tf-check tf-format tf-plan tf-output tf-state-forget confluent-lookup flink-statements flink-verify discovery-build discovery-install discovery-publish discovery-release discovery-version platform-install platform-publish slidev-present slidev-export claude git-tag git-release gh-main-protection gh-project-sync
 
 ##@ Generated code and documents
 generated-check: proto-check arch-check   ## fail when generated code or documents are stale
@@ -116,8 +116,17 @@ flink-verify: tf-init   ## the phase of what iac/ declared on Flink, one lookup 
 discovery-build:   ## architecture-discovery: compile, tests, jar
 	@$(DISCOVERY) build
 
-discovery-publish: ## architecture-discovery to GitHub Packages, for the builds outside this checkout
+discovery-install: ## architecture-discovery into the local Maven repository, taken first
+	@$(DISCOVERY) publishToMavenLocal
+
+discovery-publish: ## architecture-discovery to GitHub Packages as the snapshot of the next version, where every build takes it from
 	@$(WITH_GH) $(DISCOVERY) publish
+
+discovery-release: ## architecture-discovery to GitHub Packages as the next version, once: what its workflow publishes from main
+	@$(WITH_GH) $(DISCOVERY) publish -Prelease
+
+discovery-version: ## architecture-discovery's version, from the git tags as the platform's
+	@$(DISCOVERY) -q version
 
 # the publish tasks keep Gradle state the configuration cache cannot hold
 platform-install:  ## the platform, its test fixtures, and the stories into the local Maven repository, where a story's build takes them from first
