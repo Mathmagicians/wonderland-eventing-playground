@@ -522,8 +522,9 @@ BDD with Cucumber:
 - `architecture-discovery.yaml` runs on the same events as `cicd.yaml` and does its work when
   `architecture-discovery/` changed, the same way: `make discovery-build`, then the library to GitHub Packages,
   where `ci`, `bdd`, `cd`, and every client resolve it: `make discovery-release` from `main`, the next version,
-  and `make discovery-publish` from anywhere else, its snapshot. The library's version is the repository's, from
-  the same git tags.
+  and `make discovery-publish` from anywhere else, its snapshot. The library's version is its own, from the git
+  tags `architecture-discovery-v<version>` its workflow pushes on `main`, a series beside the repository's
+  `v<version>`: `0.1.0` first, the next patch on every push to `main` that changes the library.
 - `cicd-client-example.yaml` runs on the same events as `cicd.yaml` and does its work when `examples/purse/` or the
   shared build files changed, the same way: the example's build, its image, its features on `cli` in `cli-test`,
   and its image to the registry, as a client's own cicd would.

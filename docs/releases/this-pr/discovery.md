@@ -22,9 +22,13 @@ diagrams.
   and taken out the same day.
 - `make discovery-install` puts the tool into the local Maven repository for the developer loop.
 
-### Rule: the tool's version is the repository's, from the same git tags, and its pipeline publishes it
-- on a branch after `v0.0.8`: `0.0.9-SNAPSHOT`, published by `make discovery-publish`.
-- on `main`, the folder changed: `0.0.9`, published once by `make discovery-release`.
+### Rule: the tool's version is its own, from its own git tags, and goes up by itself on every push to main
+- the tags are `architecture-discovery-v<version>`, a series beside the repository's `v<version>`; neither build
+  reads the other's.
+- on `main`, the folder changed, no tag yet: `make discovery-release` tags `architecture-discovery-v0.1.0` and
+  publishes `0.1.0`; the next such push `0.1.1`.
+- on a branch: the snapshot of the next version, `0.1.0-SNAPSHOT` before the first tag, published by `make
+  discovery-publish` on every push, so the pull request's `ci` builds with the branch's tool.
 
 ### Rule: a client takes the tool as latest.integration, and task names, make targets, and the folders under docs/generated/architecture stay
 
@@ -34,9 +38,9 @@ diagrams.
 2. `api` or `implementation` for PlantUML in the tool. Decided 2026-11-12: `implementation`, off a client's
    compile class path, on its runtime class path.
 3. The tool's version. Decided 2026-11-12: a release, no snapshot, its version derived as the platform's is and
-   published by the pipeline, on the repository's `v*` tags, not a tag series of its own. The `0.1.0-SNAPSHOT`
-   published before outranks every version until `0.1.0`, so it leaves GitHub Packages and the local Maven
-   repository first, [automation.md](automation.md#architecture-discovery-renders-its-own-diagrams).
+   published by the pipeline. Decided 2026-11-13: on a tag series of its own, `architecture-discovery-v*`,
+   starting at `0.1.0`; the repository's `v*` tags gave `0.0.9`, below the `0.1.0-SNAPSHOT` published before,
+   which stays where it is and is outranked.
 4. `examples/purse` takes the platform and, through its test fixtures, the tool from the local Maven repository or
    GitHub Packages, so a new tool reaches it once published: `includeBuild '../..'` in its `settings.gradle`
    would take both from the checkout, and the purse would no longer build as a client's. Decided 2026-11-12: no

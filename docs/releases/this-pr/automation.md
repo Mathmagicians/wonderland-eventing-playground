@@ -34,12 +34,13 @@ Owner: pair.
   with its test; PlantUML in [architecture-discovery/build.gradle](../../../architecture-discovery/build.gradle);
   `renderDiagrams` in [platform.gradle](../../../platform.gradle) runs it, the `plantuml` configuration and
   `diagramStyle` gone.
-- The version and the release, 2026-11-12: the tool's version from the `v*` tags in
+- The version and the release, 2026-11-13: the tool's version from its own tags, `architecture-discovery-v*`, in
   [architecture-discovery/build.gradle](../../../architecture-discovery/build.gradle), `-Prelease` for the next
-  version; `discovery-release` and `discovery-version` in the [Makefile](../../../Makefile);
+  version; `discovery-release`, the tag on HEAD, pushed, then the publish, and `discovery-version` in the
+  [Makefile](../../../Makefile);
   [architecture-discovery.yaml](../../../.github/workflows/architecture-discovery.yaml) runs `discovery-release`
-  from `main` and `discovery-publish` from anywhere else. The workflow is checked by its run on the pushed
-  branch, not played yet.
+  from `main`, with `contents: write` for the tag, and `discovery-publish` from anywhere else. The workflow is
+  checked by its run on the pushed branch, and the tag by its first run on `main`, neither played yet.
 - The documents, 2026-11-12: the README's Repository layout and Git and CI,
   [architecture-discoverability.md](../../../architecture-discovery/architecture-discoverability.md), step 6 and
   its dependencies.
@@ -52,21 +53,18 @@ Owner: pair.
   stories and the platform drawn as shapes in the forest and the streams, the streams left to right.
   `HexagonDocumenterTest`, `ForestDocumenterTest`, `StreamsDocumenterTest`.
 - Spec green, to sign: `make discovery-build`, 58 tests, then `make discovery-install` and `make build`, `make
-  arch-verify`, `make arch-bdd`, and `make arch-check` green on 2026-11-12 against a local Maven repository
-  holding the tool at `0.0.9-SNAPSHOT` alone; the renderer alone left
+  arch-verify`, `make arch-bdd`, and `make arch-check` green on 2026-11-12; `make discovery-install` at
+  `0.1.0-SNAPSHOT` and `make build` green on 2026-11-13; the renderer alone left
   `forest.svg`, `streams.svg`, `hexagon.svg`, and six module diagrams byte for byte as before, and the look then
   redrew the three levels. `make check` on
   `cli` and `kafka`, themathmagician's run, not played yet.
 - Open: `examples/purse` draws with the tool it finds published or in the local Maven repository, the look of
   before, until `architecture-discovery.yaml` publishes; decided 2026-11-12, question 4 of the
   [map](discovery.md#architecture-discovery-renders-its-own-diagrams): it waits for the published tool.
-- Open, themathmagician's: `0.1.0-SNAPSHOT` of the tool, version id 66480721 in GitHub Packages and a folder in
-  the local Maven repository, deleted, so `latest.integration` takes `0.0.9-SNAPSHOT`; until then the root build
-  resolves the tool of 2026-09-07 and does not compile.
-- Open: the tool's version block is a second copy of [platform.gradle:16](../../../platform.gradle#L16); one
-  home would be a script both apply.
-- Open: a `cicd` on `main` that fails after the tool's workflow released leaves the tool at a version the
-  repository never tagged, and the next release of the tool answers 409.
+- Open: the tool's version block is a second copy of [platform.gradle:16](../../../platform.gradle#L16) but
+  for the tag's prefix; one home would be a script both apply.
+- Open: a rerun of the tool's workflow on a commit of `main` it already released publishes the same version
+  again, and GitHub Packages answers 409.
 - Finding: `plantuml-mit` 1.2026.10 is published, the pin is 1.2026.8.
 
 ## Eventing over Cloudflare

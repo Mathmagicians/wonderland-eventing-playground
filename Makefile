@@ -119,13 +119,15 @@ discovery-build:   ## architecture-discovery: compile, tests, jar
 discovery-install: ## architecture-discovery into the local Maven repository, taken first
 	@$(DISCOVERY) publishToMavenLocal
 
-discovery-publish: ## architecture-discovery to GitHub Packages as the snapshot of the next version, where every build takes it from
+discovery-publish: ## architecture-discovery to GitHub Packages as the snapshot of the next version, what a branch's builds take
 	@$(WITH_GH) $(DISCOVERY) publish
 
-discovery-release: ## architecture-discovery to GitHub Packages as the next version, once: what its workflow publishes from main
-	@$(WITH_GH) $(DISCOVERY) publish -Prelease
+discovery-release: ## architecture-discovery's next version: tag architecture-discovery-v<version> on HEAD, push it, and publish to GitHub Packages; what its workflow runs on main
+	@git describe --tags --exact-match --match 'architecture-discovery-v*' HEAD >/dev/null 2>&1 || { \
+	  tag=architecture-discovery-v$$($(DISCOVERY) -q version -Prelease) && git tag -a $$tag -m "$$tag" && git push origin $$tag; }
+	@$(WITH_GH) $(DISCOVERY) publish
 
-discovery-version: ## architecture-discovery's version, from the git tags as the platform's
+discovery-version: ## architecture-discovery's version, from its own git tags: 1.2.3 at architecture-discovery-v1.2.3, 1.2.4-SNAPSHOT after it
 	@$(DISCOVERY) -q version
 
 # the publish tasks keep Gradle state the configuration cache cannot hold
