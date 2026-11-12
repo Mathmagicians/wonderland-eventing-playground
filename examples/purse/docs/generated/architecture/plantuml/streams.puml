@@ -1,0 +1,8 @@
+@startuml
+' the streams from the model: what each story publishes and subscribes to, a queue per payload
+
+queue "Transaction" as q_Transaction
+hexagon "Purse Story" as s_Purse_Story
+
+q_Transaction --> s_Purse_Story : subscribes
+@enduml

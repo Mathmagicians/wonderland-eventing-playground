@@ -62,10 +62,11 @@ hexagon's edges.
    content only: a ring is a `package`, a module a `hexagon`, a type a `card`, the legend a `frame`; no
    skinparam, no style block, no colour, no font size. Its look is `hexagon.style.puml`, a resource of the
    library.
-6. **Rendering.** The Gradle task `diagramStyle` takes `hexagon.style.puml` out of the library's jar, and
-   `renderDiagrams` runs PlantUML over the `.puml` files with it as the config read before each diagram, Modulith's
-   too, and writes one `.svg` per diagram to `docs/generated/architecture/svg`, with PlantUML's built-in layout
-   engine, so Graphviz is not needed. `make arch-gen` runs steps 5 and 6.
+6. **Rendering.** The Gradle task `renderDiagrams` runs the library's `DiagramRenderer` with two directories, the
+   `.puml` sources and where the SVG files go. It runs the PlantUML the library carries over the `.puml` files,
+   with `hexagon.style.puml` from its class path as the config read before each diagram, Modulith's too, and
+   writes one `.svg` per diagram to `docs/generated/architecture/svg`, with PlantUML's built-in layout engine, so
+   Graphviz is not needed. `make arch-gen` runs steps 5 and 6.
 7. **The specification against the build.** `make arch-check` runs `arch-gen`, then `ModelCheck` compares every
    `.textproto` specified by hand under `src/test/resources/architecture`, `SPEC` for another place, with the
    model the build wrote under `docs/generated/architecture/model`: both parsed as the message their header
@@ -92,8 +93,8 @@ hexagon's edges.
 | jMolecules ArchUnit rules | `org.jmolecules.integrations:jmolecules-archunit`, same BOM | test | `ensureHexagonal()` |
 | Spring Modulith | `org.springframework.modulith:spring-modulith-starter-test`, BOM 2.1.1 | test | module model, `verify()`, `Documenter` |
 | jMolecules stereotype catalog | `org.jmolecules.integrations:jmolecules-stereotype`, same BOM | through the library | reads the catalogs, answers a type's stereotypes |
-| architecture-discovery | `dk.mathmagicians.playground:architecture-discovery`, this folder, published to GitHub Packages | test | `HexagonDocumenter`, and `hexagon.style.puml`, the hexagon's look |
-| PlantUML | `net.sourceforge.plantuml:plantuml-mit` 1.2026.8 | the `plantuml` configuration | renders `.puml` to `.svg` |
+| architecture-discovery | `dk.mathmagicians.playground:architecture-discovery`, this folder, published to GitHub Packages | test | `HexagonDocumenter`, `hexagon.style.puml`, the hexagon's look, and `DiagramRenderer` |
+| PlantUML | `net.sourceforge.plantuml:plantuml-mit` 1.2026.8 | through the library | renders `.puml` to `.svg` |
 
 Versions are pinned in `build.gradle` with the date, since none of them is in the Spring Boot BOM.
 

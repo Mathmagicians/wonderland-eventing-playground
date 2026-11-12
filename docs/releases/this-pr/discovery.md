@@ -1,138 +1,231 @@
 # Discovery
 
-The example map of each work package in the [catalog](release-0.0.8.md): its story, its rules with examples, its
-questions, and the decisions it raises for [docs/adr.md](../../adr.md). Examples agreed 2026-10-29 on all four.
+The example map of each feature in the [catalog](release-0.0.9.md): its story, its rules with examples, its questions,
+and the decisions it raises for [docs/adr.md](../../adr.md).
 
-## The purse's architecture feature passes
+## architecture-discovery renders its own diagrams
 
-**Story:** as the purse, a story playing in Wonderland, my architecture is a feature, and it passes.
+**Story:** as a build that uses architecture-discovery, I declare the tool and nothing else, and it draws my
+diagrams.
 
-- The feature,
-  [the_purse_has_hexagonal_architecture.feature](../../../examples/purse/src/test/resources/features/the_purse_has_hexagonal_architecture.feature), and
-  the DSL as wished, [purse.textproto](../../../examples/purse/docs/generated/architecture/model/purse.textproto),
-  written 2026-10-29. `make bdd-snippets` in `examples/purse` lists its 11 steps undefined.
-- The platform ships its behaviour steps in its test fixtures and the purse reuses 7 of its 13 lines; the
-  architecture steps ship the same way.
+- A second repository, data-contracts-poc, is about to use the tool; with the rendering wired in
+  [platform.gradle](../../../platform.gradle) it would copy the PlantUML configuration and the style extraction.
 
-### Rule: a story's architecture feature states every architecture annotation of the story, in the code's own names, on steps the library and the platform offer; a client writes the facts and no step
-- `Then its @PrimaryPort is KnowWhatIsLeft, which implements Story`, `And KnowWhatIsLeft subscribesTo Transaction`,
-  `And its @Bean purse builds KnowWhatIsLeft from PurseProperties`.
-- the hexagon's steps, the library's: the architecture of the build, a module, its port, its wiring, what it
-  depends on, every payload driven by a scenario, no Hexagonal Architecture stereotype and no Spring wiring the
-  feature does not state, one step each, decided 2026-10-30; Wonderland's, the platform's: `subscribesTo`,
-  `publishes … through PublishMessage`, `publishes nothing`.
+### Rule: the tool carries PlantUML and its style, and renders the SVG files itself
+- `DiagramRenderer <puml directory> <svg directory>`: every `.puml` comes out as an `.svg`, the same drawing
+  `renderDiagrams` gave with the PlantUML of the client's build.
+- a source directory that is not there: an error naming the directory.
 
-### Rule: an annotation the generated diagram carries that the feature does not state is red
-- `Scenario: Nothing else is annotated`: the step reads the feature it runs in through Gherkin's parser, collects
-  every `@Annotation` its steps name, and compares with the DSL.
+### Rule: Gradle resolves dependencies, make orchestrates
+- the root build includes the tool's build, and Gradle substitutes it for
+  `dk.mathmagicians.playground:architecture-discovery`: `make build` is green with no install step, and a change
+  to a class of the tool is in the next `make arch-gen`.
+- `make discovery-publish` stays, for the builds outside this checkout.
 
-### Rule: a behaviour feature stays in domain language; the hexagon's words live in the architecture feature and the DSL
-- `When the purse reads the stream of transactions` in the behaviour feature; `subscribesTo Transaction` in the
-  architecture feature.
-
-### Rule: an @architecture-discovery feature plays without containers
-- `make arch-bdd` in `examples/purse`: the five scenarios, no image, no broker.
-
-### Rule: a behaviour feature belongs to the story whose build it lives in; one that lives elsewhere says which story it drives, @story:<name>
-- the purse's and the rabbit's features: no tag, the build is the story's.
-- the generator's two in the platform, `i_can_generate_events.feature` and the Flink table's: `@story:load`.
-- `arch-bdd` reads the scenarios that drove a story from the last run's report by that rule.
-
-## architecture-discovery extracts the purse's .textproto
-
-**Story:** as the build, I write a story's architecture as a `.textproto` from the code, and a reader sees what
-the story subscribes to and publishes, its ports, and how Spring wires it.
-
-- `ModelWriter` in [architecture-discovery/](../../../architecture-discovery/architecture-discoverability.md)
-  reads the classes once into the model, ArchUnit and Modulith; `HexagonDocumenter`, `ForestDocumenter`, and
-  `StreamsDocumenter` draw it; Modulith's `Documenter` writes the component diagrams; `renderDiagrams` in
-  [platform.gradle](../../../platform.gradle) renders them with the PlantUML jar. Decided 2026-10-29, the model
-  from the code, the PlantUML a view of it.
-- `Story.subscribesTo()` and `publishes()` answer at runtime; the writer reads the class objects they name
-  without starting the story.
-
-### Rule: the DSL is Protobuf text by hexagon.proto in architecture-discovery, the hexagon's words as its fields
-- `name`, `base_package`, `feature`, `primary_port`, `secondary_port`, `subscribes`, `publishes`, `through`,
-  `depends_on`, `type`, and Spring apart under `wiring`: `configuration`, `settings`, `bean`; decided 2026-10-30.
-  `TextFormat` parses it, the writer prints it in the specifications' layout; the generated classes are the
-  model's Java form, `architecture.model`.
-
-### Rule: one .textproto per story and one for the platform, under docs/generated/architecture/model, named as --story names the story
-- `examples/purse/docs/generated/architecture/model/purse.textproto`; the root build writes `platform`, `load`,
-  `tea-party`; the White Rabbit's build writes `white-rabbit.textproto`.
-
-### Rule: the PlantUML is a view of the model, content only, its look in a style file
-- `hexagon.puml`: a ring a `package`, a module a `hexagon`, a type a `card` with its role as the stereotype, the
-  legend a `frame`; no `skinparam`, no `<style>`, no colour, no font size; `hexagon.style.puml` handed to
-  PlantUML by `renderDiagrams`. Decided 2026-10-29; the model from the code since 2026-10-30, the PlantUML drawn
-  from it.
-
-### Rule: the Hexagonal Architecture stereotypes and the Spring wiring are kept apart, in the model and in the steps
-- the stereotypes as jMolecules names them, `PrimaryPort`, `Module`; the wiring as Spring's, `AutoConfiguration`,
-  `EnableConfigurationProperties` with its class, `ConfigurationProperties` with its prefix, `Bean` with what it
-  builds and builds from; the purse's six across the two. Decided 2026-10-30.
-
-### Rule: the scenarios drive, they are not specified
-- no scenario name in a spec, a name or a line being an address, not architecture; `arch-bdd` reads the last
-  run's `cucumber.json` and fails a story whose `subscribes` or `publishes` no scenario of its features drives.
-  Decided 2026-10-30.
-
-### Rule: the three levels are drawn from the DSL: the forest, the streams, the hexagon of each
-- the landscape of the platform and its stories; the stories with what they subscribe to and publish, a queue per
-  payload; the hexagon of each story and of the platform.
+### Rule: a client takes the tool as latest.integration, and task names, make targets, and the folders under docs/generated/architecture stay
 
 **Questions**
-1. The DSL: PlantUML, a hexagonal DSL of our own, Structurizr DSL, Mermaid, JSON, Gherkin, and Protobuf text were
-   compared on the three questions of the README's Purpose. Decided 2026-10-29: Protobuf text, its grammar in the
-   tool, Gherkin driving the verification, the behaviour feature in domain language, nothing external entering.
-2. The static home of what a story subscribes to and publishes, so the writer reads it without starting the
-   story. Decided 2026-10-30: the class objects the port's methods name literally, `subscribesTo()` returning
-   `Set.of(Transaction.class)` and its twin `publishes()`, a default of `Set.of()` in `Story`; the compiled class
-   keeps them as constants and the writer reads them with ArchUnit as the methods' referenced class objects. The
-   load story answers every payload `--load.type` can pick, the streams showing what a story can put on a topic.
+1. The renderer's name and package. Decided 2026-11-12: `DiagramRenderer`, beside the documenters in
+   `architecture.discovery`.
+2. `api` or `implementation` for PlantUML in the tool. Decided 2026-11-12: `implementation`, off a client's
+   compile class path, on its runtime class path.
+3. The tool's version. Decided 2026-11-12: a release, no snapshot, its version derived as the platform's is and
+   published by the pipeline; how, open, in [automation.md](automation.md#architecture-discovery-renders-its-own-diagrams).
+4. `examples/purse` takes the platform and, through its test fixtures, the tool from the local Maven repository or
+   GitHub Packages, so a new tool reaches it once published: `includeBuild '../..'` in its `settings.gradle`
+   would take both from the checkout, and the purse would no longer build as a client's. Open.
 
-## make arch-bdd and make arch-check check the DSL
+Examples agreed 2026-11-12.
 
-**Story:** as CI, I am red when the DSL and the code disagree, or the DSL and the feature.
+## Eventing over Cloudflare
 
-- `make arch-check` compares the specification with the build, [platform.mk](../../../platform.mk); `make
-  arch-verify` runs the architecture tests, `ArchUnitTest` and `ArchModulithTest`; `make arch-bdd` the features,
-  `ArchBddTest`; `make check` is the CI gate.
+**Goal:** a story plays on Cloudflare as a fourth transport, `cloudflare`, beside `cli`, `kafka`, and `confluent`,
+through adapters of its own at the rim of the hexagon.
 
-### Rule: make arch-check compares the DSL as specified with the DSL as built, layout aside; the PlantUML and the SVG are artifacts, not compared
-- `src/test/resources/architecture/purse.textproto`, written by hand, against what `make arch-gen` writes under
-  `docs/generated/architecture/model`: both parsed as messages, a value apart red, naming the file and the lines
-  each side has alone. Decided 2026-10-30.
+- 0.0.7 makes the transport a profile beside the environment.
+- Queues takes a message over HTTP, `POST /accounts/{account}/queues/{queue}/messages`, a body with the content type
+  `json` or `text`, under a token with `Queues Edit`
+  ([publish via HTTP](https://developers.cloudflare.com/queues/examples/publish-to-a-queue-via-http/),
+  [push API](https://developers.cloudflare.com/api/resources/queues/subresources/messages/methods/push/)).
+- A pull consumer reads over HTTP, `messages/pull` and `messages/ack`, up to 100 messages a pull, each with `body`,
+  `id`, `timestamp_ms`, `attempts`, and `lease_id`, and a visibility timeout up to 12 hours
+  ([pull consumers](https://developers.cloudflare.com/queues/configuration/pull-consumers/)).
+- A message is its body; the attributes a Kafka record carries as headers ride inside it.
+- Queues delivers at least once, and the consumer recognises a repeat by an id the producer writes
+  ([delivery guarantees](https://developers.cloudflare.com/queues/reference/delivery-guarantees/)); the order of
+  delivery is best effort ([JavaScript APIs](https://developers.cloudflare.com/queues/configuration/javascript-apis/)).
+- A message the consumer keeps failing goes to the queue's dead-letter queue
+  ([dead-letter queues](https://developers.cloudflare.com/queues/configuration/dead-letter-queues/)).
+- A Durable Object is one single-threaded instance per name, reached from a Worker
+  ([Durable Objects](https://developers.cloudflare.com/durable-objects/)).
+- Pipelines takes JSON over HTTP or a Worker binding, transforms it row by row in SQL, and writes it to R2 as Iceberg
+  tables or Parquet and JSON files; it is in open beta, and its streams, SQL, and sinks are fixed at creation
+  ([Pipelines](https://developers.cloudflare.com/pipelines/)).
+- `wrangler dev` simulates Queues for Workers through Miniflare
+  ([local development](https://developers.cloudflare.com/queues/configuration/local-development/)).
+- On Kafka the key picks the partition, so the records of one key stay in order (README, Purpose), and the envelope
+  rides as CloudEvents headers (README, Kafka and Confluent Cloud).
 
-### Rule: make arch-bdd plays the @architecture-discovery features, and the bdd targets leave them out
-- `make arch-bdd`: the `@architecture-discovery` features, no containers, reports under `build/reports/arch`.
-- `make bdd`: every scenario but `@architecture-discovery`, `@wip`, `@manual`, and the transport's tags.
+**Story:** I play a story on Cloudflare with `TRANSPORT=cloudflare`, and the stories stay as they are.
 
-### Rule: the three levels are targets of their own under arch-gen
-- `make arch-forest`, `make arch-streams`, `make arch-hexagon`: one drawing each; `make arch-gen` the model and
-  all three.
-
-### Rule: the ci job and a client's cicd run both
-- `make check` in `cicd.yaml` and in `cicd-client-example.yaml`; the purse's `cicd` red on a `.textproto` that
-  lies.
-
-## The White Rabbit and the skill: the round trip
-
-**Story:** as a client of the platform, I write the White Rabbit's features and its hexagon before its code, the
-build says whether what was built is what was specified, and the skill does it again.
-
-- The spec, written 2026-10-29 before its code:
-  [the_white_rabbit_has_no_time_to_haggle.feature](../../../examples/white-rabbit-1/src/test/resources/features/the_white_rabbit_has_no_time_to_haggle.feature),
-  [the_white_rabbits_hexagon.feature](../../../examples/white-rabbit-1/src/test/resources/features/the_white_rabbits_hexagon.feature),
-  [white-rabbit.textproto](../../../examples/white-rabbit-1/src/test/resources/architecture/white-rabbit.textproto).
-- `make platform-install` puts the platform, its test fixtures, and the stories in the local Maven repository,
-  [Makefile:116](../../../Makefile#L116).
-
-### Rule: the client is done when its make check is green, make arch-verify and make arch-bdd in it, its .textproto matching what the build writes
-### Rule: the skill's input is the architecture rules, the offered steps, the story's features and its .textproto, and the published platform
-### Rule: the run works offline, from make platform-install
-### Rule: the rehearsal's code is kept as <story>-backup, the fallback of the live demo
+### Rule: a generator publishes each payload type to a queue of its own, the counterpart of its topic, from the platform over HTTP
+### Rule: a listening story pulls its queues and acknowledges what it handled; a message it keeps failing goes to the dead-letter queue
+### Rule: a story handles a repeated message as it handled the first, by the envelope id
 
 **Questions**
-1. The client for the demo. Decided 2026-10-29: the White Rabbit Story, `stories.whiterabbit`, its port
-   `NoTimeToHaggle`, subscribes to `Offer`, publishes `Order`, in `examples/white-rabbit`.
+1. Order per key: the README's rule holds through a Durable Object per key, with a Worker in front of the queues;
+   or the transport delivers in best-effort order, and the features about order run on `kafka` and `confluent`?
+2. The envelope in the body: CloudEvents structured mode in JSON with the payload as `data_base64`, or the
+   `Envelope` message of `envelope.proto` in its JSON form?
+3. The schema: the Confluent framing with its schema id, base64 in the body, against a registry the platform
+   reaches; or the Protobuf JSON form, checked against the platform's own descriptors?
+4. The runs: a Cloudflare account for the developer machine and for CI, its token in `.env.cloudflare-<ENV>.private` and a
+   GitHub environment `cloudflare-<env>`?
+5. Pipelines: the counterpart of the `@confluent` Flink feature, the generator's JSON in an R2 table, with the
+   latest value snapshot as a query over it?
+
+## The catalog follows the board
+
+**Goal:** a project update is a release doc update; a change on the board is for members only.
+
+- Actions has no trigger for a project's fields. The `projects_v2_item` webhook is an organization's, in public
+  preview, [webhook events](https://docs.github.com/en/webhooks/webhook-events-and-payloads#projects_v2_item).
+- An issue field is an organization's single select on the issue. Setting it fires the `issues` event, `field_added`,
+  with the field's name, its value, and its previous value, and a board groups its columns by it,
+  [about issue fields](https://docs.github.com/en/issues/planning-and-tracking-with-projects/understanding-fields/about-issue-fields).
+  Mathmagicians has issue fields: Effort, Priority, Start date, and Target date, each Organization only.
+- An issue field is Organization only by default, visible to the organization's members and the repository's
+  collaborators,
+  [managing issue fields](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/managing-issue-fields-in-your-organization).
+  Setting a value takes push access to the repository,
+  [issue field values](https://docs.github.com/en/rest/issues/issue-field-values).
+- Project 5 is private: those granted read access see it, and the base role Write lets the organization's members
+  edit it,
+  [managing access](https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-your-project/managing-access-to-your-projects).
+- The `issues` event runs the workflow on `main`'s last commit,
+  [events that trigger workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#issues),
+  and `main` holds no `docs/releases`.
+
+**Story:** as a member of Mathmagicians, I move a card on the board, and the release plan on the release's branch
+says so.
+
+### Rule: a feature's phase is the issue field Phase; the board's columns are its options
+- the options: `discovery`, `formulation`, `automation`, `verification`, `parking`, `archive`.
+
+### Rule: a member of Mathmagicians moves the board's cards
+- themathmagician sets a card's Phase: the release plan follows, see the next rule.
+- the board opened signed out: it is not shown.
+- the project is private, its base role Write, and Phase is Organization only.
+
+### Rule: a Phase set on the board is its row's state and its gate's date, on the release's branch
+- the card of Project sync set to `verification`: `project.yaml` runs on `field_added`, and
+  `eventing-without-confluent` receives the commit `docs: Project sync: the board follows the catalog to
+  verification`, the row reading Verification with 2026-10-21 in its Spec green cell, linked to the feature's
+  section of `03_automation.md`, where our loop patches the evidence in.
+- the card of One name set to `archive`: the row reads Archive; In production is the release's gate, signed in
+  `04_verification.md`.
+- that commit's push starts no run, and the issue's body says the new state.
+- a Phase written by `make gh-project-sync`: the run finds the row in that state and commits nothing.
+
+### Rule: a release's milestone names its branch
+- `make gh-project-sync` on `eventing-without-confluent`: the milestone 0.0.6 has the description
+  `eventing-without-confluent`, the overview's Branch.
+- a card of 0.0.7 moved, its overview naming no branch: its Phase goes back to the row's state, and the job summary
+  names the card.
+
+**Questions**
+1. The gate a move signs, Examples agreed on the move to `formulation`, Spec signed to `automation`, Spec green to
+   `verification`: the pull writes its date into the feature's row, and our loop patches the evidence into the
+   feature's section of the phase file the card left. In production is the release's gate. A workflow that verifies
+   a gate, as `cicd.yaml` verifies a release, is a feature of its own. Decided 2026-10-21.
+2. A row is a feature, and a move changes its row; a release groups the features it releases. A feature is Spec green
+   on its passing BDD tests, or on a manual verification where BDD tests are not feasible. Decided 2026-10-21.
+3. Phase in place of Status, one field on the board: Project sync writes Phase, and the project's Status stays
+   unused. Decided 2026-10-21.
+4. A shipped feature's issue is closed by `closes #N` in a commit, when the commit reaches `main`; the pull moves its
+   card to `archive`. Decided 2026-10-22.
+
+**Decisions for docs/adr.md, by title**
+- The board writes a feature's phase to the catalog through the issue field Phase
+
+## A release ships what is ready
+
+**Goal:** a release ships the subset that is ready.
+
+- `make bdd` plays every feature file: the `bdd` task at [platform.gradle:103](../../../platform.gradle#L103) and
+  [junit-platform.properties](../../../platform/src/testFixtures/resources/junit-platform.properties) set no tag
+  filter. A pending step is a red run, the evidence of Spec signed, and a red feature blocks the build.
+- A card's milestone is its overview's version, see
+  [Project sync](../archived/release-0.0.6/01_discovery.md#project-sync-the-board-follows-the-catalog).
+- A feature we decide is not ready carries `@wip`, and a check played by hand, written as a scenario, carries
+  `@manual`: `make bdd` leaves both out, and `make bdd-snippets` leaves out `@manual` alone. Decided 2026-10-21.
+- The repository's own features, the tooling's, live in `src/test/resources/features/` at the root, played by a
+  `bdd` of the root project. Decided 2026-10-21.
+
+**Story:** I release the features that are ready; the others move on to the next release.
+
+### Rule: a release ships its rows in Verification; the others move to the next release's catalog
+- the merge of 0.0.6: its rows in Verification read Archive, signed In production in `04_verification.md`.
+- a feature in Discovery at the merge: its row moves to the catalog of 0.0.7, and its card to the swimlane 0.0.7.
+
+### Rule: a feature we decide is not ready carries @wip, and make bdd leaves it out
+- `make bdd`: every scenario but those tagged `@wip` or `@manual`.
+- a feature decided not ready for 0.0.6: its feature file carries `@wip`, and the release ships green without it.
+- `make bdd-snippets`: the snippets for the undefined steps of every scenario, `@wip` included.
+
+### Rule: a check played by hand carries @manual, and its evidence is in the phase file
+- the talk of the Slides spike as a scenario tagged `@manual`: `make bdd` and `make bdd-snippets` leave it out.
+- its Spec green in `03_automation.md`: what themathmagician saw, with the date.
+
+**Decisions for docs/adr.md, by title**
+- A release ships the features that are Spec green
+
+## Wonderland's lines: what a feature reuses from the platform
+
+**Goal:** in a client's feature I see which lines are Wonderland's and which the client defines, and the summary
+prints the degree of reuse.
+
+- The platform ships 14 step patterns in 7 classes under `platform/src/testFixtures/.../bdd`, each class named by
+  the element it drives: `TransportSteps`, `StreamSteps`, `StorySteps`, `GeneratorSteps`, `ClusterSteps`,
+  `SchemaSteps`, `FlinkSteps`.
+- The purse's feature has 13 step lines, 7 of them the platform's.
+- `cucumber.json` records each step's glue method, `cucumber.plugin` in `junit-platform.properties`; the `bdd` job
+  appends `pretty.txt` to its summary, [cicd.yaml:111](../../../.github/workflows/cicd.yaml#L111).
+
+**Story:** I read a client's feature and see, line by line, what Wonderland does and what the client defines, and
+the summary tells me how much of the feature is Wonderland's.
+
+Examples agreed 2026-10-24.
+
+### Rule: a platform step opens with Wonderland and names the element of the hexagon it drives, in the present tense
+- the rim, the transport played: `Given Wonderland is reachable`.
+- what the story hears, `StoryListener` and `ConsoleListener`: `And Wonderland hears on the stream of transactions:
+  Mad Hatter paid Alice 20.25 coins for a thing`.
+- the driving port `Story`, the story by its `--story` name: `When Wonderland's story purse reads the stream of
+  transactions`.
+- the driven port `Publisher`, `KafkaPublisher` and `LoggingPublisher`: `Then Wonderland publishes 3 offers to the
+  topic offers`.
+- Confluent Cloud, from `iac/`: `Then Wonderland has the topic offers`, `Wonderland has the schema offer.proto for
+  the topic offers`, the table the same way.
+
+### Rule: a client's step never opens with Wonderland
+- `Given Alice's purse holds 1000 coins`, `Then Alice has 1009.75 coins left`, `And the purse makes a warning`.
+
+### Rule: the opening and the glue agree
+- a line opening with Wonderland whose glue lies outside the platform's `bdd` package: `make bdd-reuse` red, naming
+  the line; the reverse the same way.
+
+### Rule: the summary prints the reuse per feature, by element
+- `make bdd-reuse` after `make bdd`: Feature | Lines | Rim | Heard | Story | Published | Cloud | Own | Share, from
+  `cucumber.json`, each line of the feature once; the tea party's row `24 | 1 | 9 | 4 | 0 | 0 | 10 | 58%`, played by
+  the root's `make bdd`; the purse's, `13 | 1 | 4 | 2 | 0 | 0 | 6 | 54%`, prints in its own cicd, it is its own
+  build under `examples/`.
+- the `bdd` job: the table under the scenarios in the job summary, a release check in `verification.md`.
+
+**Questions**
+1. Columns per element beside the one count: now, the rule above. Decided 2026-10-24.
+2. The order of the rewrite: the feature files first, one at a time, each red on its undefined steps, then the 14
+   step patterns in the fixtures turn them green. Decided 2026-10-24.
+
+**Decisions for docs/adr.md, by title**
+- [ADR-002 A platform step opens with Wonderland and names its hexagon element](../../adr.md#adr-002-a-platform-step-opens-with-wonderland-and-names-its-hexagon-element)

@@ -22,8 +22,7 @@ jobs:
       tag: ${{ steps.tags.outputs.tag }}
       transports: ${{ steps.transports.outputs.list }}
     env:
-      # the architecture-discovery library resolves from GitHub Packages, published by its own workflow; the
-      # registry needs a token even to read
+      # the platform's snapshot goes to GitHub Packages, which needs a token
       GITHUB_ACTOR: ${{ github.actor }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:

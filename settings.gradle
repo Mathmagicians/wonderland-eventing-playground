@@ -1,5 +1,9 @@
 rootProject.name = 'wonderland-eventing-playground'
 
+// the library behind the architecture documents, a build of its own: Gradle builds it from its folder and
+// substitutes it for dk.mathmagicians.playground:architecture-discovery wherever this build asks for it
+includeBuild 'architecture-discovery'
+
 // the substrate, the stories it runs in this repository, and the distribution that puts them in one image
 include 'platform'
 include 'stories:load'

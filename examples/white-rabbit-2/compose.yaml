@@ -1,0 +1,19 @@
+# The White Rabbit's flock: the story's image on TRANSPORT and ENV, one player. `make up` starts it, `make down`
+# stops it. Defaults live here; override with environment variables, e.g. WANTS="P-POCK,P-TOPH" TTL=300 make up.
+name: white-rabbit
+
+services:
+  white-rabbit:
+    image: white-rabbit:${VERSION:?set by make, the version is Gradle's}   # make docker-image
+    # the profiles are the transport and the environment; make sources what the image reads from .env.<TRANSPORT>-<ENV>.private
+    environment:
+      SPRING_PROFILES_ACTIVE: ${PROFILES:?set by make, <transport>,<env>}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-}
+      KAFKA_API_KEY: ${KAFKA_API_KEY:-}
+      KAFKA_API_SECRET: ${KAFKA_API_SECRET:-}
+      SCHEMA_REGISTRY_REST_ENDPOINT: ${SCHEMA_REGISTRY_REST_ENDPOINT:-}
+      SCHEMA_REGISTRY_API_KEY: ${SCHEMA_REGISTRY_API_KEY:-}
+      SCHEMA_REGISTRY_API_SECRET: ${SCHEMA_REGISTRY_API_SECRET:-}
+    command:
+      - --white-rabbit.wants=${WANTS:-P-POCK}
+      - --white-rabbit.ttl=${TTL:-60}

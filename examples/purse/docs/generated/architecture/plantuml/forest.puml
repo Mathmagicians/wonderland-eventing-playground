@@ -1,0 +1,8 @@
+@startuml
+' the forest from the model: the platform and the stories that play on it
+
+hexagon "Wonderland\nplatform" as platform
+hexagon "Purse Story\nstories/purse" as s_Purse_Story
+
+s_Purse_Story --> platform : plays on
+@enduml

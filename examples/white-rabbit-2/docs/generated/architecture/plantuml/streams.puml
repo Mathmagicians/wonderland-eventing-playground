@@ -1,0 +1,10 @@
+@startuml
+' the streams from the model: what each story publishes and subscribes to, a queue per payload
+
+queue "Offer" as q_Offer
+queue "Order" as q_Order
+hexagon "White Rabbit Story" as s_White_Rabbit_Story
+
+q_Offer --> s_White_Rabbit_Story : subscribes
+s_White_Rabbit_Story --> q_Order : publishes
+@enduml

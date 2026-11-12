@@ -28,6 +28,8 @@
 - A library published as a snapshot by a sibling workflow is consumed as `latest.integration`, with
   `cacheDynamicVersionsFor 0` and `cacheChangingModulesFor 0`, so every build looks again. GitHub Packages needs
   `GITHUB_ACTOR` and `GITHUB_TOKEN` even to read; `mavenLocal` filtered to the group serves the developer loop.
+- A library with a build of its own in this checkout is an `includeBuild` in the root's `settings.gradle`: Gradle
+  substitutes it for its coordinates, no install target. Gradle resolves dependencies, make orchestrates.
 - The Confluent Maven repository, `https://packages.confluent.io/maven/`, serves the Protobuf serializer and the
   registry client; versions are pinned with a date comment, no BOM carries them.
 - Spring Boot 4 moved `KafkaAutoConfiguration` and `KafkaProperties` to `org.springframework.boot.kafka.autoconfigure`.

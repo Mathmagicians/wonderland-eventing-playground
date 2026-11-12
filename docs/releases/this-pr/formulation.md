@@ -1,34 +1,46 @@
 # Formulation
 
-Each work package's scenarios and architecture rules, by link, and the step skeletons, for the packages of the
-[catalog](release-0.0.8.md) that passed Examples agreed. The evidence of Spec signed, the red run, is linked from
-the package's row in the catalog.
+Each feature's scenarios and architecture rules, by link, and the step skeletons, for the features of the
+[catalog](release-0.0.9.md) that passed Examples agreed.
 
-## The purse's architecture feature passes
-
-| Task | Owner | Done when |
-|---|---|---|
-| `the_purse_has_hexagonal_architecture.feature` and `purse.textproto`, the DSL as wished | themathmagician, pair secretary | done 2026-10-29: `make bdd-snippets` in `examples/purse`, 11 steps undefined, the red run |
-| Step skeletons for the hexagon's steps and Wonderland's, each throwing `PendingException` | pair | done 2026-10-29 as the steps themselves, in the platform's test fixtures, [automation.md](automation.md#the-purses-architecture-feature-passes) |
-
-## architecture-discovery extracts the purse's .textproto
+## The catalog follows the board
 
 | Task | Owner | Done when |
 |---|---|---|
-| `hexagon.proto`, the grammar of the DSL, in `architecture-discovery/src/main/proto` | pair | `purse.textproto` parses through `TextFormat` |
-| A test of the writer over a fixture PlantUML in architecture-discovery | pair | it fails on today's library |
-| A test of `HexagonDocumenter` asserting no styling line | pair | it fails on today's writer |
+| The map's scenarios in [the_catalog_follows_the_board.feature](../../../src/test/resources/features/the_catalog_follows_the_board.feature), `@manual` | pair | each example of the map is a scenario |
 
-## make arch-bdd and make arch-check check the DSL
+## A release ships what is ready
 
 | Task | Owner | Done when |
 |---|---|---|
-| `make arch-check` on `docs/generated/architecture/model` | pair | red on a `.textproto` one line apart |
-| `make arch-bdd` playing `@architecture-discovery` | pair | done 2026-10-29: red on the purse's undefined steps, the dry run of the same day |
+| The map's scenarios in [a_release_ships_what_is_ready.feature](../../../src/test/resources/features/a_release_ships_what_is_ready.feature), `@manual` | pair | each example of the map is a scenario |
 
-## The White Rabbit and the skill: the round trip
+## Wonderland's lines: what a feature reuses from the platform
+
+**Spec:** [wonderlands_lines.feature](../../../src/test/resources/features/wonderlands_lines.feature), written
+2026-10-27. Spec signed 2026-10-28: `make bdd-snippets SCENARIOS=@manual` lists every step of its 19 scenarios
+undefined, the red run.
 
 | Task | Owner | Done when |
 |---|---|---|
-| `the_white_rabbit_has_no_time_to_haggle.feature`, `the_white_rabbits_hexagon.feature`, and `white-rabbit.textproto`, written before the code | themathmagician, pair secretary | done 2026-10-29; red on 2026-10-30 in the folder's build: `make arch-bdd` names the missing module, `make bdd-snippets` the five undefined steps, [automation.md](automation.md#the-white-rabbit-and-the-skill-the-round-trip) |
-| The skill's brief, from the spec | themathmagician | done 2026-10-30: [SKILL.md](../../../.claude/skills/wonderland-generate-story/SKILL.md) names the input, the rules, the steps, the features, the `.textproto`, the platform, and the gates |
+| The map's scenarios in the feature file: the tea party's summary row, every line glued where its opening says, a line glued against its opening named | themathmagician | done 2026-10-27 |
+| The root's `bdd` plays the features of the repository: `RunCucumberTest` at the root, the platform's fixtures on its test classpath without `cucumber-spring`, played after the subprojects' | pair | done 2026-10-28: the red run above |
+| The five features rewritten to ADR-002, one file at a time: the purse's, the tea party's, the generator's, the cluster's, the Flink table's | themathmagician | `make bdd-snippets` lists every Wonderland step as undefined, the red run |
+| An architecture rule: none; ADR-002 is enforced by `make bdd-reuse` and review | | |
+
+## architecture-discovery renders its own diagrams
+
+The spec is a unit test of the tool,
+[DiagramRendererTest](../../../architecture-discovery/src/test/java/dk/mathmagicians/playground/architecture/discovery/DiagramRendererTest.java);
+no feature file, the tool has no Cucumber.
+
+| Task | Owner | Done when |
+|---|---|---|
+| `DiagramRendererTest`: every `.puml` rendered to SVG, a missing source directory named, a diagram PlantUML cannot draw named | pair | done 2026-11-12: `make discovery-build` red in `compileTestJava`, `cannot find symbol … DiagramRenderer` |
+
+## Eventing over Cloudflare
+
+| Task | Owner | Done when |
+|---|---|---|
+| The map's scenarios, tagged `@cloudflare` | themathmagician | each example of the map is a scenario |
+| An architecture rule: the Cloudflare adapters carry `@Profile("cloudflare")` | themathmagician | it fails on an adapter without it |
