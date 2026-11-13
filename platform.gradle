@@ -249,18 +249,10 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
         }
 
         // the architecture documents under docs/generated/architecture, -ParchitectureDocs for another place: the
-        // tagged test writes the PlantUML sources and the canvases, PlantUML renders the diagrams to SVG with its
-        // built-in layout engine, so no Graphviz is needed
+        // tagged test writes the PlantUML sources and the canvases, architecture-discovery renders the diagrams to
+        // SVG with the PlantUML and the style it carries
         // findProperty, not providers.gradleProperty: the latter does not see a subproject's gradle.properties
         def docs = layout.projectDirectory.dir(findProperty('architectureDocs') ?: 'docs/generated/architecture')
-
-        configurations {
-            plantuml
-        }
-
-        dependencies {
-            plantuml 'net.sourceforge.plantuml:plantuml-mit:1.2026.8' // not in the Boot BOM, 2026-09-08
-        }
 
         tasks.register('generateArchitecture', Test) {
             description = 'Verifies the application modules and writes their PlantUML diagrams and canvases.'
@@ -273,6 +265,11 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
             exclude cucumberRunner
             exclude archBddRunner
             systemProperty 'architecture.docs', docs.asFile.path
+            // the way the hexagon reads, -ParchitectureDirection=tb for top to bottom; left to right is the
+            // library's default
+            if (findProperty('architectureDirection')) {
+                systemProperty 'architecture.direction', findProperty('architectureDirection')
+            }
             // the features of every project in the build, where the stories' behaviour features are found
             systemProperty 'architecture.features', rootProject.allprojects
                     .collect { it.file('src/test/resources/features') }
@@ -295,40 +292,19 @@ if (project != rootProject || subprojects.isEmpty() || file('src/test').exists()
             args spec.asFile.path, docs.dir('model').asFile.path
         }
 
-        // the look of the hexagon, hexagon.style.puml in the architecture-discovery jar, taken out for PlantUML to
-        // read as its config before each diagram
-        def style = layout.buildDirectory.file('plantuml/hexagon.style.puml')
-        tasks.register('diagramStyle') {
-            description = 'Takes the diagram style out of the architecture-discovery jar.'
-            group = 'documentation'
-            def jar = configurations.testRuntimeClasspath.filter { it.name.startsWith('architecture-discovery-') }
-            inputs.files(jar)
-            outputs.file(style)
-            doLast {
-                new java.util.zip.ZipFile(jar.singleFile).withCloseable { zip ->
-                    def entry = zip.getEntry('hexagon.style.puml')
-                    if (entry == null) {
-                        throw new GradleException("${jar.singleFile.name} carries no hexagon.style.puml, an architecture-discovery from before the style file: make discovery-install, or wait for architecture-discovery.yaml to publish and rerun")
-                    }
-                    style.get().asFile.text = zip.getInputStream(entry).text
-                }
-            }
-        }
-
+        // architecture-discovery's renderer, on the class path that carries the library: PlantUML and the look of
+        // the hexagon, hexagon.style.puml, are the library's
         tasks.register('renderDiagrams', JavaExec) {
             description = 'Renders the PlantUML diagrams written by generateArchitecture to SVG.'
             group = 'documentation'
-            dependsOn tasks.named('generateArchitecture'), tasks.named('diagramStyle')
+            dependsOn tasks.named('generateArchitecture')
             def sources = docs.dir('plantuml')
             def rendered = docs.dir('svg')
             inputs.files(fileTree(sources) { include '*.puml' })
-            inputs.file(style)
             outputs.dir(rendered)
-            classpath = configurations.plantuml
-            mainClass = 'net.sourceforge.plantuml.Run'
-            jvmArgs '-Djava.awt.headless=true'
-            args '-tsvg', '-Playout=smetana', '-config', style.get().asFile.path, '-o', rendered.asFile.path,
-                    "${sources.asFile}/*.puml"
+            classpath = sourceSets.test.runtimeClasspath
+            mainClass = 'dk.mathmagicians.playground.architecture.discovery.DiagramRenderer'
+            args sources.asFile.path, rendered.asFile.path
         }
     }
 }

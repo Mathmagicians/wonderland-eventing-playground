@@ -1,13 +1,33 @@
-' the look of the hexagon, read by PlantUML as its config before hexagon.puml: a ring is a package, seen by its
-' title alone; a module a hexagon; a type a card with its role as the stereotype; the legend a frame
-skinparam ranksep 24
-skinparam nodesep 24
+' the look of the three levels, read by PlantUML as its config before each diagram: a ring is a package, seen by its
+' title alone; a module a hexagon, coloured by its ring; a type a card, coloured by its role, which the legend names;
+' a story a hexagon and the platform a filled one; a payload's stream a queue; the legend a frame
+skinparam ranksep 28
+skinparam nodesep 20
 <style>
-document { Shadowing 0 }
-arrow { FontSize 10; FontColor #666666 }
-package { HorizontalAlignment center; LineColor transparent; BackgroundColor transparent }
-hexagon { HorizontalAlignment center; FontStyle plain }
+document { Shadowing 0; FontName Helvetica }
+arrow { FontSize 10; FontColor #777777; LineColor #444444; LineThickness 1.2 }
+package { HorizontalAlignment center; LineColor transparent; BackgroundColor transparent; FontColor #666666; FontSize 12 }
+hexagon { HorizontalAlignment center; FontStyle bold; FontSize 13; LineThickness 1.5 }
 rectangle { LineColor transparent; BackgroundColor transparent }
-card { stereotype { FontSize 10; FontStyle plain } }
+card { RoundCorner 10; FontSize 13; LineThickness 1 }
+queue { BackgroundColor #FFF6DD; LineColor #C99A2E; FontSize 13 }
 frame { FontSize 10; FontColor #666666; LineColor #BBBBBB }
+' the rings: driving blue, driven green, shared grey, the application and the stories teal, the domain filled
+.driving { LineColor #2B6CB0; BackgroundColor #EEF4FB; FontColor #2B6CB0 }
+.driven { LineColor #1F9D55; BackgroundColor #EDF8F1; FontColor #1F9D55 }
+.shared { LineColor #8A8FA3; BackgroundColor #F1F2F6; FontColor #555B6E }
+.application { LineColor #1F6F78; BackgroundColor #DCEBEE; FontColor #1F6F78 }
+.domain { LineColor #1F6F78; BackgroundColor #1F6F78; FontColor #FFFFFF }
+.story { LineColor #1F6F78; BackgroundColor #DCEBEE; FontColor #1F6F78 }
+.platform { LineColor #1F6F78; BackgroundColor #1F6F78; FontColor #FFFFFF }
+' the roles: a port filled in its side's colour, an adapter tinted, the domain's types white on the domain
+.PrimaryAdapter { LineColor #2B6CB0; BackgroundColor #D6E6F7 }
+.PrimaryPort { LineColor #2B6CB0; BackgroundColor #2B6CB0; FontColor #FFFFFF }
+.SecondaryAdapter { LineColor #1F9D55; BackgroundColor #D5F0DF }
+.SecondaryPort { LineColor #1F9D55; BackgroundColor #1F9D55; FontColor #FFFFFF }
+.Adapter { LineColor #8A8FA3; BackgroundColor #E4E6EE }
+.ValueObject { LineColor #BBBBBB; BackgroundColor #FFFFFF }
+.Factory { LineColor #BBBBBB; BackgroundColor #F4F4F4 }
 </style>
+' the colour says the role and the ring, so their names are not written on every card
+hide stereotype

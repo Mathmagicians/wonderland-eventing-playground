@@ -48,8 +48,10 @@ carries it all.
 1. The overview: every row Spec green reads Archive, its gate cells filled and linked; the header names the merged
    pull request and the run on `main`. A row not Spec green
    moves to the next release's catalog first, in its state, with its gate dates and its sections of the phase files.
-2. The phase files: each task to pointers, each `Open` line closed with its date or handed to the release that takes
-   it, named `<version>, <feature>`. A link into another release's folder is a link only when that folder is
+2. The phase files, trimmed: each feature keeps its story, its rules by title, its decisions and gate dates, and
+   pointers to the files that carry it; what has a home elsewhere, a feature file, a schema, a document,
+   `make help`, is linked and not repeated. Each `Open` line is closed with its date or handed to the release that
+   takes it, named `<version>, <feature>`. A link into another release's folder is a link only when that folder is
    `archived/`; a live release is named.
 3. The folders: `this-pr/` moves to `archived/release-<version>/`, the next release's folder into `this-pr/`, plain
    `mv`; its overview names its branch. The branch starts from `main` after the merge.

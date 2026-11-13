@@ -60,17 +60,23 @@ class ForestDocumenterTest {
     }
 
     /// The platform a hexagon named as the system, every story a hexagon with its package, each
-    /// playing on the platform.
+    /// playing on the platform. A hexagon holds an empty label, since PlantUML draws the shape of a
+    /// hexagon with something inside it only, and the arrows join the labels.
     @Test
     void drawsThePlatformAndTheStoriesThatPlayOnIt() {
         assertThat(uml)
                 .startsWith("@startuml\n")
-                .contains("hexagon \"Wonderland\\nplatform\" as platform\n")
-                .contains("hexagon \"Purse Story\\nstories/purse\" as s_Purse_Story\n")
                 .contains(
-                        "hexagon \"White Rabbit Story\\nstories/whiterabbit\" as s_White_Rabbit_Story\n")
-                .contains("s_Purse_Story --> platform : plays on\n")
-                .contains("s_White_Rabbit_Story --> platform : plays on\n")
+                        "hexagon \"Wonderland\\nplatform\" as platform <<platform>> {\n"
+                                + "  label \" \" as platform_in\n}\n")
+                .contains(
+                        "hexagon \"Purse Story\\nstories/purse\" as s_Purse_Story <<story>> {\n"
+                                + "  label \" \" as s_Purse_Story_in\n}\n")
+                .contains(
+                        "hexagon \"White Rabbit Story\\nstories/whiterabbit\" as"
+                                + " s_White_Rabbit_Story <<story>> {\n")
+                .contains("s_Purse_Story_in --> platform_in : plays on\n")
+                .contains("s_White_Rabbit_Story_in --> platform_in : plays on\n")
                 .endsWith("@enduml\n");
         assertThat(uml).doesNotContain("Application").doesNotContain("Domain");
     }

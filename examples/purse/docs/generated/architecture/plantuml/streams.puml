@@ -1,0 +1,11 @@
+@startuml
+' the streams from the model: what each story publishes and subscribes to, a queue per payload
+left to right direction
+
+queue "Transaction" as q_Transaction
+hexagon "Purse Story" as s_Purse_Story <<story>> {
+  label " " as s_Purse_Story_in
+}
+
+q_Transaction --> s_Purse_Story_in : subscribes
+@enduml

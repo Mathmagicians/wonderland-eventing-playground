@@ -11,12 +11,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # the library's tag, architecture-discovery-v<version>, pushed from main
   packages: write
 
 jobs:
   architecture-discovery:
     runs-on: ubuntu-latest
+    env:
+      GIT_AUTHOR_NAME: github-actions[bot]
+      GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+      GIT_COMMITTER_NAME: github-actions[bot]
+      GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
     steps:
       - uses: actions/checkout@v7
         with:
@@ -36,9 +41,9 @@ jobs:
       - name: compile, tests, jar
         if: steps.changes.outputs.library == 'true'
         run: make discovery-build
-      - name: publish the snapshot to GitHub Packages, where the cicd workflow takes it from
+      - name: publish to GitHub Packages, where every build takes it from; from main the next version under its own tag, from anywhere else its snapshot
         if: steps.changes.outputs.library == 'true'
-        run: make discovery-publish
+        run: make ${{ github.ref == 'refs/heads/main' && 'discovery-release' || 'discovery-publish' }}
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

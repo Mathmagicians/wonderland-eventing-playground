@@ -1,0 +1,39 @@
+== Wonderland
+plantuml::components.puml[,,format=svg]
+
+== Domain
+plantuml::module-eventing.domain.puml[,,format=svg]
+include::module-eventing.domain.adoc[]
+
+== Protobuf
+plantuml::module-eventing.adapter.protobuf.puml[,,format=svg]
+include::module-eventing.adapter.protobuf.adoc[]
+
+== Application
+plantuml::module-eventing.application.puml[,,format=svg]
+include::module-eventing.application.adoc[]
+
+== Boot
+plantuml::module-eventing.adapter.cli.boot.puml[,,format=svg]
+include::module-eventing.adapter.cli.boot.adoc[]
+
+== Console
+plantuml::module-eventing.adapter.cli.console.puml[,,format=svg]
+include::module-eventing.adapter.cli.console.adoc[]
+
+== Log
+plantuml::module-eventing.adapter.cli.log.puml[,,format=svg]
+include::module-eventing.adapter.cli.log.adoc[]
+
+== Kafka Consumer
+plantuml::module-eventing.adapter.kafka.consumer.puml[,,format=svg]
+include::module-eventing.adapter.kafka.consumer.adoc[]
+
+== Kafka Publisher
+plantuml::module-eventing.adapter.kafka.publisher.puml[,,format=svg]
+include::module-eventing.adapter.kafka.publisher.adoc[]
+
+== White Rabbit Story
+plantuml::module-examples.stories.whiterabbit.puml[,,format=svg]
+include::module-examples.stories.whiterabbit.adoc[]
+

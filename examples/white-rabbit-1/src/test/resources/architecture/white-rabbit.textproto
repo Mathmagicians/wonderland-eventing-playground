@@ -1,0 +1,14 @@
+# proto-file: hexagon.proto
+# proto-message: Story
+
+name: "White Rabbit Story"
+base_package: "dk.mathmagicians.wonderland.examples.stories.whiterabbit"
+primary_port { name: "NoTimeToHaggle"  implements: "Story" }
+subscribes { payload: "Offer" }
+publishes { payload: "Order"  through: "PublishMessage" }
+depends_on: ["Application", "Domain"]
+wiring {
+  configuration: "WhiteRabbitStory"
+  settings { type: "WhiteRabbitProperties"  prefix: "white-rabbit" }
+  bean { name: "whiteRabbit"  builds: "NoTimeToHaggle"  from: ["WhiteRabbitProperties"] }
+}

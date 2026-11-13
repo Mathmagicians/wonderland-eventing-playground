@@ -159,8 +159,8 @@ arch-bdd:      ## the architecture-discovery features, no image: ArchBddTest, re
 # one rendering draws every level: the model under model/, every .puml under plantuml/ to svg/; a level's target is
 # that rendering and the check that its drawing came out
 ARCH_SVG = docs/generated/architecture/svg
-arch-gen:      ## the model and the three levels from the code: arch-forest, arch-streams, arch-hexagon
-	@$(GRADLE) $(BOOT):renderDiagrams
+arch-gen:      ## the model and the three levels from the code: arch-forest, arch-streams, arch-hexagon; DIRECTION=tb draws the hexagon top to bottom, left to right without it
+	@$(GRADLE) $(BOOT):renderDiagrams $(if $(DIRECTION),-ParchitectureDirection=$(DIRECTION))
 
 arch-forest: arch-gen   ## level 1, the forest: the landscape, the platform and its stories, svg/forest.svg
 	@test -f $(ARCH_SVG)/forest.svg || { echo "arch-forest: $(ARCH_SVG)/forest.svg is not drawn, the forest is not in the library yet"; exit 1; }

@@ -1,40 +1,34 @@
 @startuml
 ' the hexagon from the model: Spring Modulith modules placed by their jMolecules stereotypes
+left to right direction
 
 package "DRIVING ADAPTERS" as driving {
-  hexagon "Boot\ncli/boot" as m_Boot {
+  hexagon "Boot\ncli/boot" as m_Boot <<driving>> {
     rectangle " " as m_Boot_in {
       card "StoryRunner" as m_Boot_StoryRunner <<PrimaryAdapter>>
     }
   }
-  hexagon "Console\ncli/console" as m_Console {
+  hexagon "Console\ncli/console" as m_Console <<driving>> {
     rectangle " " as m_Console_in {
       card "ConsoleListener" as m_Console_ConsoleListener <<PrimaryAdapter>>
     }
   }
-  hexagon "Kafka Consumer\nkafka/consumer" as m_Kafka_Consumer {
+  hexagon "Kafka Consumer\nkafka/consumer" as m_Kafka_Consumer <<driving>> {
     rectangle " " as m_Kafka_Consumer_in {
       card "DeadLetters" as m_Kafka_Consumer_DeadLetters <<PrimaryAdapter>>
       card "Reader" as m_Kafka_Consumer_Reader <<PrimaryAdapter>>
       card "StoryListener" as m_Kafka_Consumer_StoryListener <<PrimaryAdapter>>
-      m_Kafka_Consumer_DeadLetters -[hidden]right-> m_Kafka_Consumer_Reader
-      m_Kafka_Consumer_DeadLetters -[hidden]down-> m_Kafka_Consumer_StoryListener
     }
   }
-  m_Boot_StoryRunner -[hidden]down-> m_Console_ConsoleListener
-  m_Console_ConsoleListener -[hidden]down-> m_Kafka_Consumer_DeadLetters
 }
 package "APPLICATION" as core {
-  hexagon "Application\neventing/application" as m_Application {
+  hexagon "Application\neventing/application" as m_Application <<application>> {
     rectangle " " as m_Application_in {
       card "PublishMessage" as m_Application_PublishMessage <<PrimaryPort>>
       card "Story" as m_Application_Story <<PrimaryPort>>
       card "Publisher" as m_Application_Publisher <<SecondaryPort>>
       card "Publishing" as m_Application_Publishing <<Factory>>
-      m_Application_PublishMessage -[hidden]right-> m_Application_Story
-      m_Application_Story -[hidden]right-> m_Application_Publisher
-      m_Application_Publisher -[hidden]right-> m_Application_Publishing
-      hexagon "Domain\neventing/domain" as m_Domain {
+      hexagon "Domain\neventing/domain" as m_Domain <<domain>> {
         rectangle " " as m_Domain_in {
           card "Wonderland" as m_Domain_Wonderland <<Factory>>
           card "Envelope" as m_Domain_Envelope <<ValueObject>>
@@ -43,111 +37,55 @@ package "APPLICATION" as core {
           card "Order" as m_Domain_Order <<ValueObject>>
           card "Product" as m_Domain_Product <<ValueObject>>
           card "Transaction" as m_Domain_Transaction <<ValueObject>>
-          m_Domain_Offer .up.|> m_Domain_Payload
-          m_Domain_Order .up.|> m_Domain_Payload
-          m_Domain_Product .up.|> m_Domain_Payload
-          m_Domain_Transaction .up.|> m_Domain_Payload
+          m_Domain_Offer ..|> m_Domain_Payload
+          m_Domain_Order ..|> m_Domain_Payload
+          m_Domain_Product ..|> m_Domain_Payload
+          m_Domain_Transaction ..|> m_Domain_Payload
           card "Receipt" as m_Domain_Receipt <<ValueObject>>
-          m_Domain_Wonderland -[hidden]right-> m_Domain_Envelope
-          m_Domain_Envelope -[hidden]right-> m_Domain_Payload
-          m_Domain_Payload -[hidden]right-> m_Domain_Receipt
-          m_Domain_Offer -[hidden]right-> m_Domain_Order
-          m_Domain_Order -[hidden]right-> m_Domain_Product
-          m_Domain_Product -[hidden]right-> m_Domain_Transaction
-          m_Domain_Payload -[hidden]down-> m_Domain_Order
         }
       }
-      m_Application_PublishMessage -[hidden]down-> m_Domain_Envelope
-      m_Application_Story -[hidden]down-> m_Domain_Envelope
-      m_Application_Publisher -[hidden]down-> m_Domain_Envelope
-      m_Application_Publishing -[hidden]down-> m_Domain_Envelope
     }
   }
-  hexagon "Purse Story\nstories/purse" as m_Purse_Story {
+  hexagon "Purse Story\nstories/purse" as m_Purse_Story <<application>> {
     rectangle " " as m_Purse_Story_in {
       card "KnowWhatIsLeft" as m_Purse_Story_KnowWhatIsLeft <<PrimaryPort>>
     }
   }
-  m_Domain_Offer -[hidden]down-> m_Purse_Story_KnowWhatIsLeft
-  m_Domain_Order -[hidden]down-> m_Purse_Story_KnowWhatIsLeft
-  m_Domain_Product -[hidden]down-> m_Purse_Story_KnowWhatIsLeft
-  m_Domain_Transaction -[hidden]down-> m_Purse_Story_KnowWhatIsLeft
 }
 package "DRIVEN ADAPTERS" as driven {
-  hexagon "Kafka Publisher\nkafka/publisher" as m_Kafka_Publisher {
+  hexagon "Kafka Publisher\nkafka/publisher" as m_Kafka_Publisher <<driven>> {
     rectangle " " as m_Kafka_Publisher_in {
       card "KafkaPublisher" as m_Kafka_Publisher_KafkaPublisher <<SecondaryAdapter>>
     }
   }
-  hexagon "Log\ncli/log" as m_Log {
+  hexagon "Log\ncli/log" as m_Log <<driven>> {
     rectangle " " as m_Log_in {
       card "LoggingPublisher" as m_Log_LoggingPublisher <<SecondaryAdapter>>
     }
   }
-  m_Kafka_Publisher_KafkaPublisher -[hidden]down-> m_Log_LoggingPublisher
 }
 package "SHARED ADAPTERS" as shared {
-  hexagon "Protobuf\nadapter/protobuf" as m_Protobuf {
+  hexagon "Protobuf\nadapter/protobuf" as m_Protobuf <<shared>> {
     rectangle " " as m_Protobuf_in {
       card "Converter" as m_Protobuf_Converter <<Adapter>>
     }
   }
 }
-label " " as t_driving
-t_driving -[hidden]down-> m_Boot_StoryRunner
-label " " as t_core
-t_driving -[hidden]right-> t_core
-driving -[hidden]right-> core
-t_core -[hidden]down-> m_Application_Story
-label " " as t_driven
-t_core -[hidden]right-> t_driven
-core -[hidden]right-> driven
-t_driven -[hidden]down-> m_Kafka_Publisher_KafkaPublisher
-m_Domain_Offer -[hidden]down-> m_Protobuf_Converter
-m_Domain_Order -[hidden]down-> m_Protobuf_Converter
-m_Domain_Product -[hidden]down-> m_Protobuf_Converter
-m_Domain_Transaction -[hidden]down-> m_Protobuf_Converter
-m_Purse_Story_KnowWhatIsLeft -[hidden]down-> m_Protobuf_Converter
 
-m_Application_PublishMessage -right-> m_Application_Publisher
-m_Application_PublishMessage ..> m_Domain_Envelope
-m_Application_PublishMessage ..> m_Domain_Payload
-m_Application_PublishMessage ..> m_Domain_Receipt
-m_Application_Publisher ..> m_Domain_Envelope
-m_Application_Publisher ..> m_Domain_Receipt
-m_Application_Publishing .right.> m_Application_PublishMessage
-m_Application_Publishing -right-> m_Application_Publisher
-m_Application_Publishing ..> m_Domain_Envelope
-m_Application_Publishing ..> m_Domain_Payload
-m_Application_Story ..> m_Domain_Envelope
-m_Application_Story ..> m_Domain_Payload
-m_Boot_StoryRunner -right-> m_Application_Story
-m_Console_ConsoleListener -right-> m_Application_Publishing
-m_Console_ConsoleListener -right-> m_Application_Story
+m_Application_PublishMessage --> m_Application_Publisher
+m_Application_Publishing ..> m_Application_PublishMessage
+m_Application_Publishing --> m_Application_Publisher
+m_Boot_StoryRunner --> m_Application_Story
+m_Console_ConsoleListener --> m_Application_Publishing
+m_Console_ConsoleListener --> m_Application_Story
 m_Console_ConsoleListener .[norank].> m_Protobuf_Converter
-m_Domain_Envelope .right.> m_Domain_Offer
-m_Domain_Envelope .right.> m_Domain_Order
-m_Domain_Envelope -right-> m_Domain_Payload
-m_Domain_Envelope .right.> m_Domain_Product
-m_Domain_Envelope .right.> m_Domain_Transaction
-m_Domain_Offer .right.> m_Domain_Product
-m_Domain_Offer .right.> m_Domain_Wonderland
-m_Domain_Order .right.> m_Domain_Product
-m_Domain_Order .right.> m_Domain_Wonderland
-m_Domain_Product .right.> m_Domain_Wonderland
-m_Domain_Transaction -right-> m_Domain_Offer
-m_Domain_Transaction -right-> m_Domain_Order
 m_Kafka_Consumer_Reader .[norank].> m_Protobuf_Converter
-m_Kafka_Consumer_StoryListener -right-> m_Application_Story
-m_Kafka_Publisher_KafkaPublisher .left.|> m_Application_Publisher
+m_Kafka_Consumer_StoryListener --> m_Application_Story
+m_Application_Publisher <|.. m_Kafka_Publisher_KafkaPublisher
 m_Kafka_Publisher_KafkaPublisher .[norank].> m_Protobuf_Converter
-m_Log_LoggingPublisher .left.|> m_Application_Publisher
+m_Application_Publisher <|.. m_Log_LoggingPublisher
 m_Log_LoggingPublisher .[norank].> m_Protobuf_Converter
 m_Purse_Story_KnowWhatIsLeft ..|> m_Application_Story
-m_Purse_Story_KnowWhatIsLeft ..> m_Domain_Envelope
-m_Purse_Story_KnowWhatIsLeft ..> m_Domain_Order
-m_Purse_Story_KnowWhatIsLeft ..> m_Domain_Payload
-m_Purse_Story_KnowWhatIsLeft ..> m_Domain_Transaction : subscribes
 
 frame "legend" as legend {
   label " " as l_uses_from
@@ -159,10 +97,23 @@ frame "legend" as legend {
   label " " as l_depends_on_from
   label " " as l_depends_on_to
   l_depends_on_from .right.> l_depends_on_to : depends on
-  l_uses_to -[hidden]right-> l_implements_from
-  l_implements_to -[hidden]right-> l_depends_on_from
+  card "PrimaryAdapter" as l_role_PrimaryAdapter <<PrimaryAdapter>>
+  card "PrimaryPort" as l_role_PrimaryPort <<PrimaryPort>>
+  card "SecondaryPort" as l_role_SecondaryPort <<SecondaryPort>>
+  card "Factory" as l_role_Factory <<Factory>>
+  card "ValueObject" as l_role_ValueObject <<ValueObject>>
+  card "SecondaryAdapter" as l_role_SecondaryAdapter <<SecondaryAdapter>>
+  card "Adapter" as l_role_Adapter <<Adapter>>
+  l_uses_to -[hidden]-> l_implements_from
+  l_implements_to -[hidden]-> l_depends_on_from
+  l_depends_on_to -[hidden]-> l_role_PrimaryAdapter
+  l_role_PrimaryAdapter -[hidden]-> l_role_PrimaryPort
+  l_role_PrimaryPort -[hidden]-> l_role_SecondaryPort
+  l_role_SecondaryPort -[hidden]-> l_role_Factory
+  l_role_Factory -[hidden]-> l_role_ValueObject
+  l_role_ValueObject -[hidden]-> l_role_SecondaryAdapter
+  l_role_SecondaryAdapter -[hidden]-> l_role_Adapter
 }
-m_Protobuf_Converter -[hidden]down-> l_uses_from
 legend right
   Wonderland
 endlegend

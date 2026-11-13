@@ -3,6 +3,7 @@ package dk.mathmagicians.playground.architecture.discovery;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.tngtech.archunit.core.importer.ImportOption;
+import dk.mathmagicians.playground.architecture.discovery.HexagonDocumenter.Direction;
 import dk.mathmagicians.playground.architecture.discovery.HexagonDocumenter.Options;
 import dk.mathmagicians.playground.architecture.discovery.fixture.FixtureApplication;
 import dk.mathmagicians.playground.architecture.model.ModelWriter;
@@ -28,7 +29,14 @@ class HexagonDocumenterTest {
     private static final Pattern STYLING =
             Pattern.compile("skinparam|<style>|#[0-9A-Fa-f]{6}|#line:|<size:|<b>");
 
-    private final String uml = new HexagonDocumenter(PLATFORM).toPlantUml();
+    private static final Options TOP_TO_BOTTOM =
+            Options.defaults().withDirection(Direction.TOP_TO_BOTTOM);
+
+    /// The picture top to bottom, the columns held in place by hidden arrows.
+    private final String uml = new HexagonDocumenter(PLATFORM, TOP_TO_BOTTOM).toPlantUml();
+
+    /// The picture as the defaults draw it, left to right.
+    private final String leftToRight = new HexagonDocumenter(PLATFORM).toPlantUml();
 
     /// The text is content: the elements, their stereotypes, their nesting, the arrows. The look is
     /// `hexagon.style.puml`'s.
@@ -52,29 +60,31 @@ class HexagonDocumenterTest {
         return "card \"" + type + "\" as m_" + module + "_" + type + " <<" + role + ">>\n";
     }
 
-    /// A module's hexagon: its name above its package, the last two segments, no stereotype.
-    private static String hexagon(String pkg, String name) {
-        return "hexagon \"" + name + "\\n" + pkg + "\" as m_" + name + " {";
+    /// A module's hexagon: its name above its package, the last two segments, its ring as the
+    /// stereotype.
+    private static String hexagon(String pkg, String name, String ring) {
+        return "hexagon \"" + name + "\\n" + pkg + "\" as m_" + name + " <<" + ring + ">> {";
     }
 
     /// Module names are Modulith's display names, the last package segment capitalised. A column is
-    /// a package with the ring's name as its title; a module is a hexagon.
+    /// a package with the ring's name as its title; a module is a hexagon, its ring the stereotype
+    /// the style file colours it by.
     @Test
     void placesModulesByTheStereotypesOfTheirTypes() {
         assertThat(uml)
                 .contains("package \"DRIVING ADAPTERS\" as driving {")
-                .contains(hexagon("fixture/cli", "Cli"))
+                .contains(hexagon("fixture/cli", "Cli", "driving"))
                 .contains("package \"APPLICATION\" as core {")
-                .contains(hexagon("fixture/application", "Application"))
-                .contains(hexagon("fixture/domain", "Domain"))
+                .contains(hexagon("fixture/application", "Application", "application"))
+                .contains(hexagon("fixture/domain", "Domain", "domain"))
                 .contains("package \"DRIVEN ADAPTERS\" as driven {")
-                .contains(hexagon("fixture/kafka", "Kafka"));
+                .contains(hexagon("fixture/kafka", "Kafka", "driven"));
     }
 
     @Test
     void nestsTheDomainInsideTheApplication() {
-        var application = uml.indexOf(hexagon("fixture/application", "Application"));
-        var domain = uml.indexOf(hexagon("fixture/domain", "Domain"));
+        var application = uml.indexOf(hexagon("fixture/application", "Application", "application"));
+        var domain = uml.indexOf(hexagon("fixture/domain", "Domain", "domain"));
         var driven = uml.indexOf("package \"DRIVEN ADAPTERS\"");
 
         assertThat(application).isLessThan(domain);
@@ -104,7 +114,7 @@ class HexagonDocumenterTest {
     void drawsTheSharedAdaptersInARowBelowTheApplication() {
         assertThat(uml)
                 .contains("package \"SHARED ADAPTERS\" as shared {")
-                .contains(hexagon("fixture/wire", "Wire"))
+                .contains(hexagon("fixture/wire", "Wire", "shared"))
                 .contains(card("Wire", "Codec", "Adapter"))
                 .contains("m_Domain_Square -[hidden]down-> m_Wire_Codec")
                 .contains("m_Cli_Runner .[norank].> m_Wire_Codec\n")
@@ -189,12 +199,11 @@ class HexagonDocumenterTest {
     }
 
     /// `Runner`, a component, holds a `Publish`, injected, so Modulith reads it as a use;
-    /// `KafkaPublisher` implements `Publisher`, the port; `Publish` holds a `Publisher` and takes a
-    /// `Thing`. Both ends have cards, so the arrows join the cards, without a label but for what a
-    /// port subscribes to and publishes, which say so: the legend draws the other relations, in a
-    /// row hung below the driven adapters and the shared adapters, and the text legend names the
-    /// system. `Runner` holds a `Defaults` too, which has no role and no card: that arrow ends on
-    /// the Application hexagon. `Wiring` has no card, so its arrows are not drawn.
+    /// `KafkaPublisher` implements `Publisher`, the port; `Publish` holds a `Publisher`. Both ends
+    /// have cards, so the arrows join the cards, without a label: the legend draws the relations,
+    /// in a row hung below the driven adapters and the shared adapters, and the text legend names
+    /// the system. `Runner` holds a `Defaults` too, which has no role and no card: that arrow ends
+    /// on the Application hexagon. `Wiring` has no card, so its arrows are not drawn.
     @Test
     void drawsTheArrowsWithTheLegend() {
         assertThat(uml)
@@ -202,9 +211,6 @@ class HexagonDocumenterTest {
                 .contains("m_Cli_Runner -right-> m_Application\n")
                 .contains("m_Kafka_KafkaPublisher .left.|> m_Application_Publisher\n")
                 .contains("m_Application_Publish -right-> m_Application_Publisher\n")
-                .contains("m_Application_Publish ..> m_Domain_Thing\n")
-                .contains("m_Application_Squarer ..> m_Domain_Circle : subscribes\n")
-                .contains("m_Application_Squarer ..> m_Domain_Square : publishes\n")
                 .doesNotContain("m_Application_Wiring")
                 .contains("frame \"legend\" as legend {")
                 .contains("l_implements_from .right.|> l_implements_to : implements")
@@ -218,8 +224,59 @@ class HexagonDocumenterTest {
                 .contains("legend right\n  fixture\nendlegend");
     }
 
+    /// Every ring may reach the domain, and the streams draw what a story subscribes to and
+    /// publishes: the hexagon leaves out a dependency on the domain, the arrows inside it but a
+    /// sealed type's family, and both words, whichever way it is laid out.
+    @Test
+    void leavesOutWhatEveryRingMayReach() {
+        assertThat(uml)
+                .doesNotContain("m_Application_Publish ..> m_Domain_Thing")
+                .doesNotContain(" : subscribes")
+                .doesNotContain(" : publishes")
+                .contains("m_Domain_Circle .up.|> m_Domain_Shape");
+        assertThat(leftToRight)
+                .doesNotContain("> m_Domain_Thing")
+                .doesNotContain(" : subscribes")
+                .doesNotContain(" : publishes");
+    }
+
+    /// The legend names every role a card carries, a card each, in the order the picture draws
+    /// them, so the style file's colour for a role is explained once.
+    @Test
+    void namesTheRolesInTheLegend() {
+        assertThat(uml)
+                .contains("card \"PrimaryAdapter\" as l_role_PrimaryAdapter <<PrimaryAdapter>>")
+                .contains("card \"SecondaryPort\" as l_role_SecondaryPort <<SecondaryPort>>")
+                .contains("card \"ValueObject\" as l_role_ValueObject <<ValueObject>>")
+                .contains("card \"Adapter\" as l_role_Adapter <<Adapter>>");
+        assertThat(uml.indexOf("l_role_PrimaryAdapter"))
+                .isLessThan(uml.indexOf("l_role_SecondaryAdapter"));
+    }
+
+    /// Left to right by default: the direction in one line and no hidden arrow between the modules
+    /// or their cards, the layout engine placing the rings by the arrows; the legend alone is held
+    /// together, one strip. An adapter's use points at its port, a driven adapter is written after
+    /// the port it implements, so it lands to the right, and the shared adapters are reached
+    /// without rank.
+    @Test
+    void laysOutLeftToRightByDefault() {
+        assertThat(leftToRight.lines().filter(line -> line.contains("-[hidden]")))
+                .isNotEmpty()
+                .allMatch(line -> line.strip().startsWith("l_"));
+        assertThat(leftToRight)
+                .contains("left to right direction\n")
+                .contains("l_depends_on_to -[hidden]-> l_role_PrimaryAdapter")
+                .doesNotContain("label \" \" as t_")
+                .contains("m_Cli_Runner --> m_Application_Publish\n")
+                .contains("m_Application_Publisher <|.. m_Kafka_KafkaPublisher\n")
+                .contains("m_Domain_Circle ..|> m_Domain_Shape\n")
+                .contains("m_Cli_Runner .[norank].> m_Wire_Codec\n");
+        assertThat(uml).doesNotContain("left to right direction");
+    }
+
     @Test
     void writesTheSameTextTwice() {
-        assertThat(new HexagonDocumenter(PLATFORM).toPlantUml()).isEqualTo(uml);
+        assertThat(new HexagonDocumenter(PLATFORM, TOP_TO_BOTTOM).toPlantUml()).isEqualTo(uml);
+        assertThat(new HexagonDocumenter(PLATFORM).toPlantUml()).isEqualTo(leftToRight);
     }
 }

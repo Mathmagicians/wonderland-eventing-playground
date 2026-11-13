@@ -202,7 +202,7 @@ only, both reach the shared adapters, which reach the domain only, and nothing i
 ├── src/main/flink/           Flink SQL, one file per table, declared by iac/
 ├── iac/                      Terraform: topics, schemas, and Flink tables on the Confluent cluster, applied by Terraform Cloud
 ├── .github/workflows/        cicd.yaml, load-run.yaml, iac.yaml, architecture-discovery.yaml, cicd-client-example.yaml
-├── architecture-discovery/   the library behind the hexagon diagram, and architecture-discoverability.md: its own build, its own workflow, published to GitHub Packages
+├── architecture-discovery/   the library behind the hexagon diagram, with the PlantUML that renders it, and architecture-discoverability.md: its own build, its own workflow, published to GitHub Packages
 ├── slides/                   the talk, Architecture Discoverability and Verification, played by compose: make slidev-present
 └── docs/
     ├── generated/            the architecture from the code, make arch-gen; the slides as PDF, make slidev-export
@@ -520,8 +520,11 @@ BDD with Cucumber:
   that is not up, its data sources failing to read, is written as disregarded and leaves the check green. Terraform
   Cloud applies `iac/` on `main` through its GitHub connection.
 - `architecture-discovery.yaml` runs on the same events as `cicd.yaml` and does its work when
-  `architecture-discovery/` changed, the same way: `make discovery-build`, then `make discovery-publish`, the
-  library's snapshot to GitHub Packages, where `ci`, `bdd`, and `cd` resolve it.
+  `architecture-discovery/` changed, the same way: `make discovery-build`, then the library to GitHub Packages,
+  where `ci`, `bdd`, `cd`, and every client resolve it: `make discovery-release` from `main`, the next version,
+  and `make discovery-publish` from anywhere else, its snapshot. The library's version is its own, from the git
+  tags `architecture-discovery-v<version>` its workflow pushes on `main`, a series beside the repository's
+  `v<version>`: `0.1.0` first, the next patch on every push to `main` that changes the library.
 - `cicd-client-example.yaml` runs on the same events as `cicd.yaml` and does its work when `examples/purse/` or the
   shared build files changed, the same way: the example's build, its image, its features on `cli` in `cli-test`,
   and its image to the registry, as a client's own cicd would.

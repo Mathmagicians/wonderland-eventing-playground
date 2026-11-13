@@ -1,0 +1,172 @@
+@startuml
+' the hexagon from the model: Spring Modulith modules placed by their jMolecules stereotypes
+
+package "DRIVING ADAPTERS" as driving {
+  hexagon "Boot\ncli/boot" as m_Boot {
+    rectangle " " as m_Boot_in {
+      card "StoryRunner" as m_Boot_StoryRunner <<PrimaryAdapter>>
+    }
+  }
+  hexagon "Console\ncli/console" as m_Console {
+    rectangle " " as m_Console_in {
+      card "ConsoleListener" as m_Console_ConsoleListener <<PrimaryAdapter>>
+    }
+  }
+  hexagon "Kafka Consumer\nkafka/consumer" as m_Kafka_Consumer {
+    rectangle " " as m_Kafka_Consumer_in {
+      card "DeadLetters" as m_Kafka_Consumer_DeadLetters <<PrimaryAdapter>>
+      card "Reader" as m_Kafka_Consumer_Reader <<PrimaryAdapter>>
+      card "StoryListener" as m_Kafka_Consumer_StoryListener <<PrimaryAdapter>>
+      m_Kafka_Consumer_DeadLetters -[hidden]right-> m_Kafka_Consumer_Reader
+      m_Kafka_Consumer_DeadLetters -[hidden]down-> m_Kafka_Consumer_StoryListener
+    }
+  }
+  m_Boot_StoryRunner -[hidden]down-> m_Console_ConsoleListener
+  m_Console_ConsoleListener -[hidden]down-> m_Kafka_Consumer_DeadLetters
+}
+package "APPLICATION" as core {
+  hexagon "Application\neventing/application" as m_Application {
+    rectangle " " as m_Application_in {
+      card "PublishMessage" as m_Application_PublishMessage <<PrimaryPort>>
+      card "Story" as m_Application_Story <<PrimaryPort>>
+      card "Publisher" as m_Application_Publisher <<SecondaryPort>>
+      card "Publishing" as m_Application_Publishing <<Factory>>
+      m_Application_PublishMessage -[hidden]right-> m_Application_Story
+      m_Application_Story -[hidden]right-> m_Application_Publisher
+      m_Application_Publisher -[hidden]right-> m_Application_Publishing
+      hexagon "Domain\neventing/domain" as m_Domain {
+        rectangle " " as m_Domain_in {
+          card "Wonderland" as m_Domain_Wonderland <<Factory>>
+          card "Envelope" as m_Domain_Envelope <<ValueObject>>
+          card "Payload" as m_Domain_Payload <<ValueObject>>
+          card "Offer" as m_Domain_Offer <<ValueObject>>
+          card "Order" as m_Domain_Order <<ValueObject>>
+          card "Product" as m_Domain_Product <<ValueObject>>
+          card "Transaction" as m_Domain_Transaction <<ValueObject>>
+          m_Domain_Offer .up.|> m_Domain_Payload
+          m_Domain_Order .up.|> m_Domain_Payload
+          m_Domain_Product .up.|> m_Domain_Payload
+          m_Domain_Transaction .up.|> m_Domain_Payload
+          card "Receipt" as m_Domain_Receipt <<ValueObject>>
+          m_Domain_Wonderland -[hidden]right-> m_Domain_Envelope
+          m_Domain_Envelope -[hidden]right-> m_Domain_Payload
+          m_Domain_Payload -[hidden]right-> m_Domain_Receipt
+          m_Domain_Offer -[hidden]right-> m_Domain_Order
+          m_Domain_Order -[hidden]right-> m_Domain_Product
+          m_Domain_Product -[hidden]right-> m_Domain_Transaction
+          m_Domain_Payload -[hidden]down-> m_Domain_Order
+        }
+      }
+      m_Application_PublishMessage -[hidden]down-> m_Domain_Envelope
+      m_Application_Story -[hidden]down-> m_Domain_Envelope
+      m_Application_Publisher -[hidden]down-> m_Domain_Envelope
+      m_Application_Publishing -[hidden]down-> m_Domain_Envelope
+    }
+  }
+  hexagon "White Rabbit Story\nstories/whiterabbit" as m_White_Rabbit_Story {
+    rectangle " " as m_White_Rabbit_Story_in {
+      card "NoTimeToHaggle" as m_White_Rabbit_Story_NoTimeToHaggle <<PrimaryPort>>
+    }
+  }
+  m_Domain_Offer -[hidden]down-> m_White_Rabbit_Story_NoTimeToHaggle
+  m_Domain_Order -[hidden]down-> m_White_Rabbit_Story_NoTimeToHaggle
+  m_Domain_Product -[hidden]down-> m_White_Rabbit_Story_NoTimeToHaggle
+  m_Domain_Transaction -[hidden]down-> m_White_Rabbit_Story_NoTimeToHaggle
+}
+package "DRIVEN ADAPTERS" as driven {
+  hexagon "Kafka Publisher\nkafka/publisher" as m_Kafka_Publisher {
+    rectangle " " as m_Kafka_Publisher_in {
+      card "KafkaPublisher" as m_Kafka_Publisher_KafkaPublisher <<SecondaryAdapter>>
+    }
+  }
+  hexagon "Log\ncli/log" as m_Log {
+    rectangle " " as m_Log_in {
+      card "LoggingPublisher" as m_Log_LoggingPublisher <<SecondaryAdapter>>
+    }
+  }
+  m_Kafka_Publisher_KafkaPublisher -[hidden]down-> m_Log_LoggingPublisher
+}
+package "SHARED ADAPTERS" as shared {
+  hexagon "Protobuf\nadapter/protobuf" as m_Protobuf {
+    rectangle " " as m_Protobuf_in {
+      card "Converter" as m_Protobuf_Converter <<Adapter>>
+    }
+  }
+}
+label " " as t_driving
+t_driving -[hidden]down-> m_Boot_StoryRunner
+label " " as t_core
+t_driving -[hidden]right-> t_core
+driving -[hidden]right-> core
+t_core -[hidden]down-> m_Application_Story
+label " " as t_driven
+t_core -[hidden]right-> t_driven
+core -[hidden]right-> driven
+t_driven -[hidden]down-> m_Kafka_Publisher_KafkaPublisher
+m_Domain_Offer -[hidden]down-> m_Protobuf_Converter
+m_Domain_Order -[hidden]down-> m_Protobuf_Converter
+m_Domain_Product -[hidden]down-> m_Protobuf_Converter
+m_Domain_Transaction -[hidden]down-> m_Protobuf_Converter
+m_White_Rabbit_Story_NoTimeToHaggle -[hidden]down-> m_Protobuf_Converter
+
+m_Application_PublishMessage -right-> m_Application_Publisher
+m_Application_PublishMessage ..> m_Domain_Envelope
+m_Application_PublishMessage ..> m_Domain_Payload
+m_Application_PublishMessage ..> m_Domain_Receipt
+m_Application_Publisher ..> m_Domain_Envelope
+m_Application_Publisher ..> m_Domain_Receipt
+m_Application_Publishing .right.> m_Application_PublishMessage
+m_Application_Publishing -right-> m_Application_Publisher
+m_Application_Publishing ..> m_Domain_Envelope
+m_Application_Publishing ..> m_Domain_Payload
+m_Application_Story ..> m_Domain_Envelope
+m_Application_Story ..> m_Domain_Payload
+m_Boot_StoryRunner -right-> m_Application_Story
+m_Console_ConsoleListener -right-> m_Application_Publishing
+m_Console_ConsoleListener -right-> m_Application_Story
+m_Console_ConsoleListener .[norank].> m_Protobuf_Converter
+m_Domain_Envelope .right.> m_Domain_Offer
+m_Domain_Envelope .right.> m_Domain_Order
+m_Domain_Envelope -right-> m_Domain_Payload
+m_Domain_Envelope .right.> m_Domain_Product
+m_Domain_Envelope .right.> m_Domain_Transaction
+m_Domain_Offer .right.> m_Domain_Product
+m_Domain_Offer .right.> m_Domain_Wonderland
+m_Domain_Order .right.> m_Domain_Product
+m_Domain_Order .right.> m_Domain_Wonderland
+m_Domain_Product .right.> m_Domain_Wonderland
+m_Domain_Transaction -right-> m_Domain_Offer
+m_Domain_Transaction -right-> m_Domain_Order
+m_Kafka_Consumer_Reader .[norank].> m_Protobuf_Converter
+m_Kafka_Consumer_StoryListener -right-> m_Application_Story
+m_Kafka_Publisher_KafkaPublisher .left.|> m_Application_Publisher
+m_Kafka_Publisher_KafkaPublisher .[norank].> m_Protobuf_Converter
+m_Log_LoggingPublisher .left.|> m_Application_Publisher
+m_Log_LoggingPublisher .[norank].> m_Protobuf_Converter
+m_White_Rabbit_Story_NoTimeToHaggle --> m_Application_PublishMessage
+m_White_Rabbit_Story_NoTimeToHaggle ..|> m_Application_Story
+m_White_Rabbit_Story_NoTimeToHaggle ..> m_Domain_Envelope
+m_White_Rabbit_Story_NoTimeToHaggle ..> m_Domain_Offer : subscribes
+m_White_Rabbit_Story_NoTimeToHaggle ..> m_Domain_Order : publishes
+m_White_Rabbit_Story_NoTimeToHaggle ..> m_Domain_Payload
+m_White_Rabbit_Story_NoTimeToHaggle ..> m_Domain_Receipt
+m_White_Rabbit_Story_NoTimeToHaggle ..> m_Domain_Wonderland
+
+frame "legend" as legend {
+  label " " as l_uses_from
+  label " " as l_uses_to
+  l_uses_from -right-> l_uses_to : uses
+  label " " as l_implements_from
+  label " " as l_implements_to
+  l_implements_from .right.|> l_implements_to : implements
+  label " " as l_depends_on_from
+  label " " as l_depends_on_to
+  l_depends_on_from .right.> l_depends_on_to : depends on
+  l_uses_to -[hidden]right-> l_implements_from
+  l_implements_to -[hidden]right-> l_depends_on_from
+}
+m_Protobuf_Converter -[hidden]down-> l_uses_from
+legend right
+  Wonderland
+endlegend
+@enduml

@@ -1,0 +1,16 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`dk.mathmagicians.wonderland.examples.stories.whiterabbit`
+|Spring components
+|_Primary ports_
+
+* `d.m.w.e.s.w.NoTimeToHaggle`
+
+_Configuration properties_
+
+* `d.m.w.e.s.w.WhiteRabbitProperties`
+|Bean references
+|* `d.m.w.e.a.PublishMessage` (in Application)
+* `d.m.w.e.a.Publishing` (in Application)
+|===
